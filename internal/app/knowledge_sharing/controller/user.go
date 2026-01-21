@@ -5,6 +5,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -18,6 +19,8 @@ func AddUserHandler(c *gin.Context) { //c
 	// 从表单中获取用户信息
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")
+	receiveAccountStr := c.PostForm("receiveAccount")
+	content := c.PostForm("content")
 
 	// 数据验证
 	if accountStr == "" {
@@ -30,6 +33,11 @@ func AddUserHandler(c *gin.Context) { //c
 		return
 	}
 
+	if receiveAccountStr == "" {
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		return
+	}
+
 	if !utils.IsValidPassword(password) {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
@@ -38,6 +46,13 @@ func AddUserHandler(c *gin.Context) { //c
 	account, err := strconv.Atoi(accountStr)
 	if err != nil || account < 0 {
 		service.Logger.Error("accountStrAtoi err", zap.Error(err))
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		return
+	}
+
+	receiveAccount, err := strconv.Atoi(receiveAccountStr)
+	if err != nil || account < 0 {
+		service.Logger.Error("receiveAccountStrAtoi err", zap.Error(err))
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
 	}
@@ -56,6 +71,18 @@ func AddUserHandler(c *gin.Context) { //c
 		return
 	}
 
+	//创建用户消息
+	createTime := time.Now()
+
+	//消息结构体
+	information := &model.Information{
+		SendId:         UserId,
+		ReceiveAccount: receiveAccount,
+		Content:        content,
+		CreateAt:       &createTime,
+	}
+
+	err = service.UserAddInformation(information)
 	// 返回成功响应
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
@@ -65,6 +92,7 @@ func GetUserHandler(c *gin.Context) {
 	// 从表单中获取用户信息
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")
+	content := c.PostForm("content")
 
 	// 数据验证
 	if accountStr == "" {
@@ -75,6 +103,10 @@ func GetUserHandler(c *gin.Context) {
 	if password == "" || len(password) < 8 {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
+	}
+
+	if content == "" {
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 	}
 
 	if !utils.IsValidPassword(password) {
@@ -107,9 +139,24 @@ func GetUserHandler(c *gin.Context) {
 
 	UserId = user.Id
 
+	createTime := time.Now()
+
+	notice := &model.Information{
+		ReceiveAccount: user.Account,
+		Content:        content,
+		CreateAt:       &createTime,
+	}
+
+	err = service.AddUserNotice(notice)
+	if err != nil {
+		service.Logger.Error("AddUserNotice", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+	}
+
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
 
+// 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")

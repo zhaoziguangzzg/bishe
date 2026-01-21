@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// 消息通知
 func CreateInformationHandle(c *gin.Context) {
 	receiveAccountStr := c.PostForm("receiveAccont")
 	content := c.PostForm("content")
@@ -30,10 +31,10 @@ func CreateInformationHandle(c *gin.Context) {
 
 	//消息结构体
 	information := &model.Information{
-		SendId:        UserId,
-		ReceiveAccont: receiveAccount,
-		Content:       content,
-		CreateAt:      &createTime,
+		SendId:         UserId,
+		ReceiveAccount: receiveAccount,
+		Content:        content,
+		CreateAt:       &createTime,
 	}
 
 	err = service.UserAddInformation(information)
