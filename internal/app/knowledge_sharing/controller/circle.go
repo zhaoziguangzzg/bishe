@@ -57,6 +57,7 @@ func AddCircleHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
 
+// 获取圈子
 func GetCircleHandle(c *gin.Context) {
 	chargeCircles, err := service.GetCircleAllCharge()
 	if err != nil {

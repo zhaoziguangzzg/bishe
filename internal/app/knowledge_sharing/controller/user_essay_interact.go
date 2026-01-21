@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// 用户在文章的喜欢
 func AddUserEssayLikeHandle(c *gin.Context) {
 	uidStr := c.PostForm("user_id")
 	circleIdStr := c.PostForm("circle_id")

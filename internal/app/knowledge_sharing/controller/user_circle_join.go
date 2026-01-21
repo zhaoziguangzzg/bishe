@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// 用户参与圈子
 func AddUserCircleJoinHandle(c *gin.Context) {
 	uidStr := c.PostForm("user_id")
 	circleIdStr := c.PostForm("circle_id")
