@@ -48,7 +48,10 @@ func main() {
 
 	// 注册路由
 	r.POST("/api/user/add", controller.AddUserHandler) //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
-	r.GET("/api/user", controller.GetUserHandler)
+	r.POST("/api/user/login", controller.UserLoginHandler)
+	r.GET("/api/user/get", controller.GetUserHandler)
+	r.POST("/api/user/update", controller.UpdateUserHandler)
+	r.GET("/api/user/logout", controller.UserLogoutHandler)
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))

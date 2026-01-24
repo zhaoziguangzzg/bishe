@@ -4,7 +4,6 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -71,9 +70,9 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
-	createTime := time.Now()
-	content := "对文章" + essayIdStr + "评论成功"
-	err = service.MakeAndSendNotice(0, UserAccount, content, createTime)
+	// createTime := time.Now()
+	// content := "对文章" + essayIdStr + "评论成功"
+	// err = service.MakeAndSendNotice(0, UserAccount, content, createTime)
 	if err != nil {
 		service.Logger.Error("MakeAndSendNotice err", zap.Int("uid", uid), zap.Error(err))
 		MakeApiResponseErrorDefault(c)

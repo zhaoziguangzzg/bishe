@@ -59,10 +59,10 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 	createTime := time.Now()
 
 	notice := &model.Information{
-		SendId:         sendId,
-		ReceiveAccount: UserAccount,
-		Content:        content, //用户加入圈子成功
-		CreateAt:       &createTime,
+		SendId: sendId,
+		// ReceiveAccount: UserAccount,
+		Content:  content, //用户加入圈子成功
+		CreateAt: &createTime,
 	}
 
 	err = service.AddUserNotice(notice)
@@ -71,5 +71,5 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		MakeApiResponseError(c, CODE_SYS_ERROR)
 	}
 
-	MakeApiResponseSuccess(c, newUserCircle)
+	MakeApiResponseSuccessDefault(c)
 }

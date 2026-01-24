@@ -12,16 +12,15 @@ import (
 )
 
 // 通过post查询参数添加用户的处理函数
-func AddUserHandler(c *gin.Context) { //c
-
+func AddUserHandler(c *gin.Context) {
 	// 从表单中获取用户信息
-	accountStr := c.PostForm("account")
+	name := c.PostForm("name")
 	password := c.PostForm("password")
 
-	// 数据验证
-	//todo 验证 account超长
-	if accountStr == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	//验证 name超长
+	nameLen := len(name)
+	if nameLen == 0 || nameLen > 20 {
+		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
 		return
 	}
 
@@ -35,39 +34,38 @@ func AddUserHandler(c *gin.Context) { //c
 		return
 	}
 
-	account, err := strconv.Atoi(accountStr)
-	if err != nil || account < 0 {
-		service.Logger.Error("accountStrAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
+	createTime := time.Now()
 
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
-		Account:  account,
+		Name:     name,
 		Password: password,
+		CreateAt: &createTime,
+		UpdateAt: &createTime,
 	}
 
 	// 插入数据库
-	err = service.CreateUser(newUser)
+	err := service.CreateUser(newUser)
 	if err != nil {
 		service.Logger.Error("CreateUser err", zap.Error(err))
 		MakeApiResponse(c, CODE_USER_NAME_EXIST, nil)
 		return
 	}
 
+	service.SetUserCookie(c, newUser.Id, name)
+
 	// 返回成功响应
-	MakeApiResponseSuccess(c, CODE_SUCCESS)
+	MakeApiResponseSuccessDefault(c)
 }
 
 // POST /api/user/login
-func GetUserHandler(c *gin.Context) {
+func UserLoginHandler(c *gin.Context) {
 	// 从表单中获取用户信息
-	accountStr := c.PostForm("account")
+	name := c.PostForm("name")
 	password := c.PostForm("password")
 
 	// 数据验证
-	if accountStr == "" {
+	if name == "" {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
 	}
@@ -82,104 +80,130 @@ func GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	account, err := strconv.Atoi(accountStr)
-	if err != nil || account < 0 {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
-
-	passwordStr, err := service.GetPasswordFromUser(account)
+	user, err := service.GetUserByName(name)
 	if err != nil {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
-
-	if password != passwordStr {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
-
-	user, err := service.GetUserByAccount(account)
-	if err != nil {
-		service.Logger.Error("GetUserByAccount", zap.Error(err))
+		service.Logger.Error("GetUserByName", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
-	}
-
-	createTime := time.Now()
-
-	err = service.MakeAndSendNotice(0, user.Account, "用户已登录成功", createTime)
-	if err != nil {
-		service.Logger.Error("MakeAndSendNotice err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	HttpCookie(c, "userAccount", strconv.Itoa(user.Account))
-	HttpCookie(c, "userId", strconv.Itoa(user.Id))
+	if user == nil {
+		MakeApiResponseError(c, CODE_USER_NAME_NOT_EXIST)
+		return
+	}
 
-	MakeApiResponseSuccess(c, CODE_SUCCESS)
+	//验证密码是否正确
+	if password != user.Password {
+		MakeApiResponseError(c, CODE_USER_PASSWORD_INVALID)
+		return
+	}
+
+	service.SetUserCookie(c, user.Id, name)
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 退出登录
+func UserLogoutHandler(c *gin.Context) {
+	//清除cookie
+	service.DeleteUserCookie(c)
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取用户
+func GetUserHandler(c *gin.Context) {
+	//从cookie获取用户信息
+	uid, name := service.GetUserFromCookie(c)
+	if uid == 0 || name == "" {
+		//用户未登录
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//从数据库获取用户信息
+	user, err := service.GetUserByUserId(uid)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	if user == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"name":  user.Name,
+		"email": user.Email,
+		"phone": user.Phone})
+
 }
 
 // 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
-	userIdStr, err := c.Cookie("userId")
-	if err != nil {
-		service.Logger.Error("get coolie err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
+	//从cookie获取用户登录信息，是验证登录
+	uid, name := service.GetUserFromCookie(c)
+	if uid == 0 || name == "" {
+		//用户未登录
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
-	userId, _ := strconv.Atoi(userIdStr)
-	if userId == 0 {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-	accountStr := c.PostForm("account")
-	password := c.PostForm("password")
+	userName := c.PostForm("name")
 	email := c.PostForm("email")
-	ageStr := c.PostForm("age")
 	phoneStr := c.PostForm("phone")
 
-	account, err := strconv.Atoi(accountStr)
-	if err != nil {
-		service.Logger.Error("accountAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	//检测name超长，name="",
+	userNameLen := len(userName)
+	if userNameLen == 0 || userNameLen > 20 {
+		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
+		return
 	}
 
-	age, err := strconv.Atoi(ageStr)
-	if err != nil {
-		service.Logger.Error("ageAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	//检测email格式错误
+	if !utils.IsValidEmail(email) {
+		MakeApiResponseError(c, CODE_USER_EMAIL_INVALID)
+		return
+	}
+
+	//检测手机号长度11位
+	if len(phoneStr) != 11 {
+		MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
 		return
 	}
 
 	phone, err := strconv.Atoi(phoneStr)
 	if err != nil {
-		service.Logger.Error("phoneAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
 		return
 	}
 
-	user, err := service.GetUserByUserId(userId)
+	user, err := service.GetUserByUserId(uid)
 	if err != nil {
 		service.Logger.Error("GetUserByUserId", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
 	}
 
-	result := service.UpdateFromUser(user, password, email, age, phone)
-	if result.Error != nil {
-		service.Logger.Error("UpdateFromUser err", zap.Error(err))
+	//用户cookie有问题，重新登录
+	if user == nil {
+		// 清除cookie
+		service.DeleteUserCookie(c)
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//更新用户信息
+	affectRows, err := service.UpdateUserByUid(uid, userName, email, phone)
+	if !(affectRows > 0 && err == nil) {
+		service.Logger.Error("UpdateUserByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
 		return
 	}
 
-	service.MakeAndSendNotice(0, account, "用户信息已更新", time.Now())
+	//修改cookie中的用户名
+	service.SetUserCookie(c, uid, userName)
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"account":  account,
-		"password": password,
-		"email":    email,
-		"age":      age,
-		"phone":    phone,
-	})
+	MakeApiResponseSuccessDefault(c)
+
 }

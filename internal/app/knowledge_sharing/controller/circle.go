@@ -43,12 +43,12 @@ func AddCircleHandler(c *gin.Context) {
 
 	// 构造圈子对象
 	newCircle := &model.Circle{ //其中包含自动生成的id
-		Title:         title,
-		Price:         price,
-		CircleOwnerId: UserId,
-		CreateAt:      &createTime,
-		UpdateAt:      &createTime,
-		Status:        model.CircleNormal,
+		Title: title,
+		Price: price,
+		//CircleOwnerId: userId,
+		CreateAt: &createTime,
+		UpdateAt: &createTime,
+		Status:   model.CircleNormal,
 	}
 
 	// 插入数据库
@@ -62,10 +62,10 @@ func AddCircleHandler(c *gin.Context) {
 	sendId := 1111
 
 	notice := &model.Information{
-		SendId:         sendId,
-		ReceiveAccount: UserAccount,
-		Content:        content,
-		CreateAt:       &createTime,
+		SendId: sendId,
+		//	ReceiveAccount: UserAccount,
+		Content:  content,
+		CreateAt: &createTime,
 	}
 
 	err = service.AddUserNotice(notice)
@@ -75,7 +75,7 @@ func AddCircleHandler(c *gin.Context) {
 	}
 
 	// 返回成功响应
-	MakeApiResponseSuccess(c, CODE_SUCCESS)
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 获取圈子

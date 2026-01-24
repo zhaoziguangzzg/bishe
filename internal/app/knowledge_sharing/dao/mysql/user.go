@@ -12,35 +12,16 @@ func CreateUser(newUser *model.User) (err error) {
 	return
 }
 
-// 获取用户密码
-func GetPasswordFromUser(account int) (password string, err error) {
-	err = DB.Model(&model.User{}).Where("account=?", account).Select("password").Scan(&password).Error
-	return
-}
-
 // 更新
-func UpdateFromUser(user *model.User, password string, email string, age int, phone int) (result *gorm.DB) {
-	// if password == "" {
-	// 	email = user.Password
-	// }
-	// if email == "" {
-	// 	email = user.Email
-	// }
-
-	// if age == 0 {
-	// 	age = user.Age
-	// }
-
-	// if phone == 0 {
-	// 	phone = user.Phone
-	// }
-	result = DB.Model(&model.User{}).Where("id=?", user.Id).Updates(model.User{Password: password, Email: email, Age: age, Phone: phone})
-	return
+func UpdateUserByUid(uid int, name string, email string, phone int) (int64, error) {
+	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(model.User{Name: name, Email: email, Phone: phone})
+	return result.RowsAffected, result.Error
 }
 
-// 根据account获取用户
-func GetUserByAccount(account int) (user *model.User, err error) {
-	err = DB.Model(&model.User{}).Where("account=?", account).Find(user).Error
+// 根据name获取用户
+func GetUserByName(name string) (user *model.User, err error) {
+	user = &model.User{}
+	err = DB.Model(&model.User{}).Where("name=?", name).First(&user).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -55,7 +36,8 @@ func GetUserByAccount(account int) (user *model.User, err error) {
 
 // 根据uid获取用户
 func GetUserByUserId(UserId int) (user *model.User, err error) {
-	err = DB.Model(&model.User{}).Where("id=?", UserId).Find(user).Error
+	user = new(model.User)
+	err = DB.Model(&model.User{}).Where("id=?", UserId).First(&user).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

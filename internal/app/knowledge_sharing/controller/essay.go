@@ -45,10 +45,10 @@ func AddEssayHandler(c *gin.Context) { //c
 
 	// 构造文章
 	newEssay := &model.Essay{ //其中包含自动生成的id
-		Title:       title,
-		Content:     content,
-		CircleId:    circleId,
-		AuthorId:    UserId,
+		Title:    title,
+		Content:  content,
+		CircleId: circleId,
+		// AuthorId:    UserId,
 		CreateAt:    &createTime,
 		UpdateAt:    &createTime,
 		EssayStatus: model.EssayNormal,
@@ -65,10 +65,10 @@ func AddEssayHandler(c *gin.Context) { //c
 	sendId := 1111
 
 	notice := &model.Information{
-		SendId:         sendId,
-		ReceiveAccount: UserAccount,
-		Content:        content,
-		CreateAt:       &createTime,
+		SendId: sendId,
+		// ReceiveAccount: UserAccount,
+		Content:  content,
+		CreateAt: &createTime,
 	}
 
 	err = service.AddUserNotice(notice)
@@ -78,5 +78,5 @@ func AddEssayHandler(c *gin.Context) { //c
 	}
 
 	// 返回成功响应
-	MakeApiResponseSuccess(c, CODE_SUCCESS)
+	MakeApiResponseSuccessDefault(c)
 }

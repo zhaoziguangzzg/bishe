@@ -31,7 +31,7 @@ func CreateInformationHandle(c *gin.Context) {
 
 	//消息结构体
 	information := &model.Information{
-		SendId:         UserId,
+		// SendId:         UserId,
 		ReceiveAccount: receiveAccount,
 		Content:        content,
 		CreateAt:       &createTime,
