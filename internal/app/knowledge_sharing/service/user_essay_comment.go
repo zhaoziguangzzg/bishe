@@ -11,6 +11,6 @@ func CreateUserEssayComment(newUserEssayComment *model.UserEssayComment) (err er
 }
 
 // get 文章的评论
-func GetCircleEssayComment(circleId int, essayId int) (comments *model.UserEssayComment, err error) {
-	return mysql.GetCircleEssayComment(circleId, essayId)
+func GetCircleEssayComment(circleId int, essayId int, page int, pageSize int) (comments *model.UserEssayComment, err error) {
+	return mysql.GetCircleEssayComment(circleId, essayId, page, pageSize)
 }

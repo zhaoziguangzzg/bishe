@@ -9,7 +9,8 @@ func CreateUserEssayComment(newUserEssayComment *model.UserEssayComment) (err er
 }
 
 //get 文章的评论
-func GetCircleEssayComment(circleId int, essayId int) (comments *model.UserEssayComment, err error) {
-	err = DB.Model(&model.UserEssayComment{}).Where("circle_id=? and essay_id", circleId, essayId).Find(comments).Error
+func GetCircleEssayComment(circleId int, essayId int, page int, pageSize int) (comments *model.UserEssayComment, err error) {
+	offset := (page - 1) * pageSize
+	err = DB.Model(&model.UserEssayComment{}).Offset(offset).Limit(pageSize).Where("circle_id=? and essay_id", circleId, essayId).Find(comments).Error
 	return
 }
