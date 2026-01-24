@@ -19,6 +19,7 @@ func AddUserHandler(c *gin.Context) { //c
 	password := c.PostForm("password")
 
 	// 数据验证
+	//todo 验证 account超长
 	if accountStr == "" {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
@@ -51,7 +52,7 @@ func AddUserHandler(c *gin.Context) { //c
 	err = service.CreateUser(newUser)
 	if err != nil {
 		service.Logger.Error("CreateUser err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
+		MakeApiResponse(c, CODE_USER_NAME_EXIST, nil)
 		return
 	}
 
