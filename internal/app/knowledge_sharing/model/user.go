@@ -2,7 +2,8 @@ package model
 
 // User 定义用户结构体
 type User struct {
-	Id       int    `json:"id" gorm:"column:id" mapstructure:"id"`
+	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
+	//用户名，昵称
 	Account  int    `json:"account" gorm:"column:account" mapstructure:"account"`
 	Password string `json:"password" gorm:"column:password" mapstructure:"password"`
 	Email    string `json:"email" gorm:"column:email" mapstructure:"email"`

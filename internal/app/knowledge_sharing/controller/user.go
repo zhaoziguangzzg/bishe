@@ -11,16 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
-var UserId int
-
 // 通过post查询参数添加用户的处理函数
 func AddUserHandler(c *gin.Context) { //c
 
 	// 从表单中获取用户信息
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")
-	receiveAccountStr := c.PostForm("receiveAccount")
-	content := c.PostForm("content")
 
 	// 数据验证
 	if accountStr == "" {
@@ -33,11 +29,6 @@ func AddUserHandler(c *gin.Context) { //c
 		return
 	}
 
-	if receiveAccountStr == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
-
 	if !utils.IsValidPassword(password) {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
@@ -46,13 +37,6 @@ func AddUserHandler(c *gin.Context) { //c
 	account, err := strconv.Atoi(accountStr)
 	if err != nil || account < 0 {
 		service.Logger.Error("accountStrAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
-		return
-	}
-
-	receiveAccount, err := strconv.Atoi(receiveAccountStr)
-	if err != nil || account < 0 {
-		service.Logger.Error("receiveAccountStrAtoi err", zap.Error(err))
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
 	}
@@ -71,18 +55,6 @@ func AddUserHandler(c *gin.Context) { //c
 		return
 	}
 
-	//创建用户消息
-	createTime := time.Now()
-
-	//消息结构体
-	information := &model.Information{
-		SendId:         UserId,
-		ReceiveAccount: receiveAccount,
-		Content:        content,
-		CreateAt:       &createTime,
-	}
-
-	err = service.UserAddInformation(information)
 	// 返回成功响应
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
@@ -92,7 +64,6 @@ func GetUserHandler(c *gin.Context) {
 	// 从表单中获取用户信息
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")
-	content := c.PostForm("content")
 
 	// 数据验证
 	if accountStr == "" {
@@ -103,10 +74,6 @@ func GetUserHandler(c *gin.Context) {
 	if password == "" || len(password) < 8 {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
-	}
-
-	if content == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 	}
 
 	if !utils.IsValidPassword(password) {
@@ -137,27 +104,35 @@ func GetUserHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_SYS_ERROR)
 	}
 
-	UserId = user.Id
-
 	createTime := time.Now()
 
-	notice := &model.Information{
-		ReceiveAccount: user.Account,
-		Content:        content,
-		CreateAt:       &createTime,
+	err = service.MakeAndSendNotice(0, user.Account, "用户已登录成功", createTime)
+	if err != nil {
+		service.Logger.Error("MakeAndSendNotice err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
 	}
 
-	err = service.AddUserNotice(notice)
-	if err != nil {
-		service.Logger.Error("AddUserNotice", zap.Error(err))
-		MakeApiResponseError(c, CODE_SYS_ERROR)
-	}
+	HttpCookie(c, "userAccount", strconv.Itoa(user.Account))
+	HttpCookie(c, "userId", strconv.Itoa(user.Id))
 
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
 
 // 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
+	userIdStr, err := c.Cookie("userId")
+	if err != nil {
+		service.Logger.Error("get coolie err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	userId, _ := strconv.Atoi(userIdStr)
+	if userId == 0 {
+		MakeApiResponseErrorParams(c)
+		return
+	}
 	accountStr := c.PostForm("account")
 	password := c.PostForm("password")
 	email := c.PostForm("email")
@@ -184,7 +159,7 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := service.GetUserByUserId(UserId)
+	user, err := service.GetUserByUserId(userId)
 	if err != nil {
 		service.Logger.Error("GetUserByUserId", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
@@ -196,6 +171,8 @@ func UpdateUserHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_SYS_ERROR)
 		return
 	}
+
+	service.MakeAndSendNotice(0, account, "用户信息已更新", time.Now())
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"account":  account,
