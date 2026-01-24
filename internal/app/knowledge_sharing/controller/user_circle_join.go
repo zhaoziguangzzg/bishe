@@ -14,6 +14,7 @@ import (
 func AddUserCircleJoinHandle(c *gin.Context) {
 	uidStr := c.PostForm("user_id")
 	circleIdStr := c.PostForm("circle_id")
+	content := c.PostForm("content")
 
 	if uidStr == "" {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
@@ -51,6 +52,23 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		service.Logger.Error("CreateUserCircleJoin err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	sendId := 1111
+
+	createTime := time.Now()
+
+	notice := &model.Information{
+		SendId:         sendId,
+		ReceiveAccount: UserAccount,
+		Content:        content, //用户加入圈子成功
+		CreateAt:       &createTime,
+	}
+
+	err = service.AddUserNotice(notice)
+	if err != nil {
+		service.Logger.Error("AddUserNotice", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
 	}
 
 	MakeApiResponseSuccess(c, newUserCircle)
