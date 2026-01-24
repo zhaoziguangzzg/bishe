@@ -62,6 +62,21 @@ func AddEssayHandler(c *gin.Context) { //c
 		return
 	}
 
+	sendId := 1111
+
+	notice := &model.Information{
+		SendId:         sendId,
+		ReceiveAccount: UserAccount,
+		Content:        content,
+		CreateAt:       &createTime,
+	}
+
+	err = service.AddUserNotice(notice)
+	if err != nil {
+		service.Logger.Error("AddUserNotice", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+	}
+
 	// 返回成功响应
 	MakeApiResponseSuccess(c, CODE_SUCCESS)
 }
