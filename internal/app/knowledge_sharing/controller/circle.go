@@ -16,6 +16,7 @@ func AddCircleHandler(c *gin.Context) {
 	// 从表单中获取圈子信息
 	title := c.PostForm("title")
 	priceStr := c.PostForm("price")
+	content := c.PostForm("content")
 
 	// 数据验证
 	if title == "" {
@@ -24,6 +25,11 @@ func AddCircleHandler(c *gin.Context) {
 	}
 
 	if priceStr == "" {
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		return
+	}
+
+	if content == "" {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
 	}
@@ -51,6 +57,21 @@ func AddCircleHandler(c *gin.Context) {
 		service.Logger.Error("CreateCircle err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	sendId := 1111
+
+	notice := &model.Information{
+		SendId:         sendId,
+		ReceiveAccount: UserAccount,
+		Content:        content,
+		CreateAt:       &createTime,
+	}
+
+	err = service.AddUserNotice(notice)
+	if err != nil {
+		service.Logger.Error("AddUserNotice", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
 	}
 
 	// 返回成功响应
