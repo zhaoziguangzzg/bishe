@@ -47,11 +47,22 @@ func main() {
 	r.Static("/static", "./static")
 
 	// 注册路由
-	r.POST("/api/user/add", controller.AddUserHandler) //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
-	r.POST("/api/user/login", controller.UserLoginHandler)
-	r.GET("/api/user/get", controller.GetUserHandler)
-	r.POST("/api/user/update", controller.UpdateUserHandler)
-	r.GET("/api/user/logout", controller.UserLogoutHandler)
+
+	//用户模块
+	r.POST("/api/user/add", controller.AddUserHandler)       //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
+	r.POST("/api/user/login", controller.UserLoginHandler)   //用户登录
+	r.GET("/api/user/get", controller.GetUserHandler)        //获取某用户信息
+	r.POST("/api/user/update", controller.UpdateUserHandler) //更新用户信息
+	r.GET("/api/user/logout", controller.UserLogoutHandler)  //用户退出登录
+
+	//圈子模块
+	r.POST("/api/circle/add", controller.AddCircleHandler)   //创建圈子
+	r.GET("/api/circle/all", controller.GetAllCircleHandler) //获取全部圈子
+	r.GET("/api/circle/get", controller.GetCircleHandler)    //获取圈子详情
+
+	//用户加入圈子
+	r.POST("/api/usercircle/add", controller.AddUserCircleJoinHandle) //创建用户加入圈子
+	r.POST("/api/usercircle/quit", controller.UserQuitCircleHandler)  //用户退出圈子
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
