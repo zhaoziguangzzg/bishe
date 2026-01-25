@@ -14,7 +14,12 @@ func CreateUser(newUser *model.User) (err error) {
 
 // 更新
 func UpdateUserByUid(uid int, name string, email string, phone int) (int64, error) {
-	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(model.User{Name: name, Email: email, Phone: phone})
+	user := model.User{
+		Name:  name,
+		Email: email,
+		Phone: phone,
+	}
+	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(user)
 	return result.RowsAffected, result.Error
 }
 

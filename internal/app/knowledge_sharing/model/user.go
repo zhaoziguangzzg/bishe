@@ -27,6 +27,14 @@ type User struct {
 	IsDeleted int `json:"isDeleted" gorm:"column:is_deleted" mapstructture:"isDeleted"`
 }
 
+const (
+	USER_STATUS_NORMAL int = 0 //正常
+	USER_STATUS_REVIEW int = 1 //审核
+
+	USER_NOT_DELETED int = 0 //未被删除
+	USER_IS_DELETED  int = 1 //被删除
+)
+
 // 指定User对应的表名
 func (User) TableName() string {
 	return "users"

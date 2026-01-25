@@ -22,6 +22,13 @@ const (
 
 	CODE_CHECKIN_REPEAT   int = 3001
 	CODE_COMMENT_TOO_LONG int = 3002
+
+	CODE_CIRCLE_EXIST                     int = 4001
+	CODE_CIRCLE_TITLE_LEN_INVASLID        int = 4002
+	CODE_CIRCLE_INTRODUCTION_LEN_INVASLID int = 4003
+	CODE_CIRCLE_PRICE_INVASLID            int = 4004
+	CODE_CIRCLE_NOT_EXIST                 int = 4005
+	CODE_USER_NOT_CREATE_CIRCLE           int = 4006
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -39,6 +46,13 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_CHECKIN_REPEAT:   "重复打卡",
 	CODE_COMMENT_TOO_LONG: "评论最多200字",
+
+	CODE_CIRCLE_EXIST:                     "圈子已存在",
+	CODE_CIRCLE_TITLE_LEN_INVASLID:        "圈子标题长度错误",
+	CODE_CIRCLE_INTRODUCTION_LEN_INVASLID: "圈子简介长度错误",
+	CODE_CIRCLE_PRICE_INVASLID:            "圈子价格超过1w",
+	CODE_CIRCLE_NOT_EXIST:                 "圈子不存在",
+	CODE_USER_NOT_CREATE_CIRCLE:           "用户未加入圈子",
 }
 
 func GetMsgByCode(code int) (msg string) {

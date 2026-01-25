@@ -48,7 +48,7 @@ func AddUserHandler(c *gin.Context) {
 	err := service.CreateUser(newUser)
 	if err != nil {
 		service.Logger.Error("CreateUser err", zap.Error(err))
-		MakeApiResponse(c, CODE_USER_NAME_EXIST, nil)
+		MakeApiResponseError(c, CODE_USER_NAME_EXIST)
 		return
 	}
 
