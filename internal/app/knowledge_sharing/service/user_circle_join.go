@@ -9,3 +9,13 @@ import (
 func CreateUserCircleJoin(newUserCircle *model.UserCircleJoin) (err error) {
 	return mysql.CreateUserCircleJoin(newUserCircle)
 }
+
+// 查询用户加入圈子
+func GetUserJoinCircleByUidCid(uid int, cid int) (userCircleJoin *model.UserCircleJoin, err error) {
+	return mysql.GetUserJoinCircleByUidCid(uid, cid)
+}
+
+// 用户退出圈子
+func UpdateUserCircleJoinStatusByUidCid(uid int, cid int) (int64, error) {
+	return mysql.UpdateUserCircleJoinStatusByUidCid(uid, cid)
+}
