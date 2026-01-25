@@ -10,6 +10,11 @@ func CreateCircle(newCircle *model.Circle) (err error) {
 	return mysql.CreateCircle(newCircle)
 }
 
+// 根据cid获取圈子
+func GetCircleByCid(cid int) (circle *model.Circle, err error) {
+	return mysql.GetCircleByCid(cid)
+}
+
 // get 付费圈子
 func GetCircleAllCharge() (circles []model.Circle, err error) {
 	return mysql.GetCircleAllCharge()
@@ -21,6 +26,26 @@ func GetCricleAllFree() (circles []model.Circle, err error) {
 }
 
 // get all圈子
-func GetCircleAllSortByJoinNum() (circles []model.Circle, err error) {
-	return mysql.GetCircleAllSortByJoinNum()
+func GetCircleAllByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCircleAllByJoinNum(page, pagesize)
+}
+
+// get 用户创建的圈子
+func GetUserCreateCircleByUid(uid int, page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetUserCreateCircleByUid(uid, page, pagesize)
+}
+
+// get 用户加入的圈子
+func GetUserJoinCircleListByUid(uid int, page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetUserJoinCircleListByUid(uid, page, pagesize)
+}
+
+// 更新圈子join num 增加
+func IncrUpdateCircleJoinNumByCid(cid int) (int64, error) {
+	return mysql.IncrUpdateCircleJoinNumByCid(cid)
+}
+
+// 更新圈子join num 减少
+func DecrrUpdateCircleJoinNumByCid(cid int) (int64, error) {
+	return mysql.DecrrUpdateCircleJoinNumByCid(cid)
 }
