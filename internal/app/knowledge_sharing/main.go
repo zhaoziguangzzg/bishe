@@ -56,13 +56,21 @@ func main() {
 	r.GET("/api/user/logout", controller.UserLogoutHandler)  //用户退出登录
 
 	//圈子模块
-	r.POST("/api/circle/add", controller.AddCircleHandler)   //创建圈子
-	r.GET("/api/circle/all", controller.GetAllCircleHandler) //获取全部圈子
-	r.GET("/api/circle/get", controller.GetCircleHandler)    //获取圈子详情
+	r.POST("/api/circle/add", controller.AddCircleHandler)             //创建圈子
+	r.GET("/api/circle/all", controller.GetAllCircleHandler)           //获取全部圈子
+	r.GET("/api/circle/get", controller.GetCircleHandler)              //获取圈子详情
+	r.GET("/api/circle/create", controller.GetUserCreateCircleHandler) //获取用户创建的圈子
+	r.GET("/api/circle/join", controller.GetUserJoinCircleHandler)     //获取用户加入的圈子
+	r.POST("/api/circle/update", controller.UpdateCircleHandler)       //更新圈子信息
 
 	//用户加入圈子
 	r.POST("/api/usercircle/add", controller.AddUserCircleJoinHandle) //创建用户加入圈子
 	r.POST("/api/usercircle/quit", controller.UserQuitCircleHandler)  //用户退出圈子
+
+	//文章模块
+	r.POST("/api/essay/add", controller.AddEssayHandler)       //创建文章
+	r.GET("/api/essay/all", controller.GetUserAllEssayHandler) //获取用户全部文章
+	r.GET("/api/essay/get", controller.GetEssayHandler)        //查看文章
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
