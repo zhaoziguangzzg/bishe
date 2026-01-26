@@ -49,3 +49,8 @@ func IncrUpdateCircleJoinNumByCid(cid int) (int64, error) {
 func DecrrUpdateCircleJoinNumByCid(cid int) (int64, error) {
 	return mysql.DecrrUpdateCircleJoinNumByCid(cid)
 }
+
+// 更新圈子信息
+func UpdateCircleByCid(cid int, title string, price int, introduction string) (int64, error) {
+	return mysql.UpdateCircleByCid(cid, title, price, introduction)
+}

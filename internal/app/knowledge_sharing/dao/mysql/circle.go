@@ -101,3 +101,15 @@ func DecrrUpdateCircleJoinNumByCid(cid int) (int64, error) {
 	result := DB.Model(&model.Circle{}).Where("id=?", cid).UpdateColumn("join_num", gorm.Expr("join_num - ?", 1))
 	return result.RowsAffected, result.Error
 }
+
+// 更新圈子信息
+func UpdateCircleByCid(cid int, title string, price int, introduction string) (int64, error) {
+	circle := model.Circle{
+		Title:        title,
+		Introduction: introduction,
+		Price:        price,
+	}
+
+	result := DB.Model(&model.Circle{}).Where("id=?", cid).Updates(circle)
+	return result.RowsAffected, result.Error
+}

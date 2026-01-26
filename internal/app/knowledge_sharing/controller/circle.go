@@ -179,7 +179,7 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 }
 
 // 获取用户已加入圈子的列表
-func GetUserJoinCricleHandler(c *gin.Context) {
+func GetUserJoinCircleHandler(c *gin.Context) {
 	page := c.GetInt("page")
 	if page == 0 {
 		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
@@ -204,18 +204,69 @@ func GetUserJoinCricleHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circle": circle,
+		"circle": circles,
 	})
 }
 
 // 更新圈子信息
 func UpdateCircleHandler(c *gin.Context) {
 	// cid
+	cid := c.GetInt("cid")
+	if cid == 0 {
+		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
-	// title
+	title := c.PostForm("title")
+	priceStr := c.PostForm("price")
+	introduction := c.PostForm("introduction")
 
-	// price
+	// 数据验证
+	titleLen := len(title)
+	if titleLen > model.CIRCLE_MAX_TITLE || titleLen == 0 {
+		MakeApiResponseError(c, CODE_CIRCLE_TITLE_LEN_INVASLID)
+		return
+	}
 
-	// introduction
+	introductionLen := len(introduction)
+	if introductionLen > model.CIRCLE_MAX_INTRODUCTION || introductionLen == 0 {
+		MakeApiResponseError(c, CODE_CIRCLE_INTRODUCTION_LEN_INVASLID)
+		return
+	}
 
+	price, err := strconv.Atoi(priceStr)
+	if err != nil {
+		service.Logger.Error("priceStrAtoi err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if price > model.CIRCLE_MAX_PRICE {
+		MakeApiResponseError(c, CODE_CIRCLE_PRICE_INVASLID)
+		return
+	}
+
+	//根据cid获取圈子
+	circle, err := service.GetCircleByCid(cid)
+	if err != nil {
+		service.Logger.Error("GetCircleByCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
+
+	//更新圈子信息
+	affectRows, err := service.UpdateCircleByCid(cid, title, price, introduction)
+	if err != nil || affectRows != 0 {
+		service.Logger.Error("UpdateCircleByCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 }
