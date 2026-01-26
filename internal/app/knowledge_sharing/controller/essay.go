@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,32 +11,32 @@ import (
 
 // 文章
 func AddEssayHandler(c *gin.Context) { //c
-
 	// 从表单中获取用户信息
 	title := c.PostForm("title")
 	content := c.PostForm("content")
-	circleIdStr := c.PostForm("circleId")
 
-	// 数据验证
-	if title == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	titleLen := len(title)
+	if titleLen > model.ESSAY_MAX_TITLE || titleLen == 0 {
+		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
 		return
 	}
 
-	if content == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	contentLen := len(content)
+	if contentLen > model.ESSAY_MAX_TITLE || contentLen == 0 {
+		MakeApiResponseError(c, CODE_ESSAY_CONTENT_LEN_INVASLID)
 		return
 	}
 
-	if circleIdStr == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	cid := c.GetInt("cid")
+	if cid == 0 {
+		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	circleId, err := strconv.Atoi(circleIdStr)
-	if err != nil {
-		service.Logger.Error("circleIdAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
@@ -47,36 +46,128 @@ func AddEssayHandler(c *gin.Context) { //c
 	newEssay := &model.Essay{ //其中包含自动生成的id
 		Title:    title,
 		Content:  content,
-		CircleId: circleId,
-		// AuthorId:    UserId,
-		CreateAt:    &createTime,
-		UpdateAt:    &createTime,
-		EssayStatus: model.EssayNormal,
+		CircleId: cid,
+		AuthorId: uid,
+		CreateAt: &createTime,
+		UpdateAt: &createTime,
 	}
 
 	// 插入数据库
-	err = service.CreateEssay(newEssay)
+	err := service.CreateEssay(newEssay)
 	if err != nil {
 		service.Logger.Error("CreateEssay err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	sendId := 1111
-
-	notice := &model.Information{
-		SendId: sendId,
-		// ReceiveAccount: UserAccount,
-		Content:  content,
-		CreateAt: &createTime,
-	}
-
-	err = service.AddUserNotice(notice)
-	if err != nil {
-		service.Logger.Error("AddUserNotice", zap.Error(err))
-		MakeApiResponseError(c, CODE_SYS_ERROR)
-	}
-
 	// 返回成功响应
 	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取全部用户文章列表
+func GetUserAllEssayHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pagesize := 10
+
+	//获取全部essay
+	essays, err := service.GetAllEssayByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllEssayByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"essays": essays,
+	})
+}
+
+// 获取某文章
+func GetEssayHandler(c *gin.Context) {
+	//获取文章id
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("GetInt eid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//根据eid获取文章
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayByEid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if essay == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"essay": essay,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 更新文章信息
+func UpdateEssayHandler(c *gin.Context) {
+	title := c.PostForm("title")
+	content := c.PostForm("content")
+
+	titleLen := len(title)
+	if titleLen == 0 || titleLen > 100 {
+		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
+		return
+	}
+
+	contentLen := len(content)
+	if contentLen == 0 || contentLen > 200 {
+		MakeApiResponseError(c, CODE_ESSAY_CONTENT_LEN_INVASLID)
+		return
+	}
+
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("GetInt eid err", zap.String("err", "eid err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//根据eid获取文章
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayByEid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if essay == nil {
+		MakeApiResponseError(c, CODE_ESSAY_NOT_EXIST)
+		return
+	}
+
+	affectRows, err := service.UpdateEssayByEid(eid, title, content)
+	if err != nil || affectRows != 0 {
+		service.Logger.Error("UpdateEssayByEid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+
 }
