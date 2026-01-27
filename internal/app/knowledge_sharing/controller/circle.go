@@ -208,6 +208,30 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 	})
 }
 
+// 获取付费圈子排行
+func GetChargeCircleRankHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pagesize := 10
+
+	//获取付费circle，按joinnum倒叙
+	circles, err := service.GetCircleAllChargeByJoinNum(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetCircleAllChargeByJoinNum", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circles": circles,
+	})
+}
+
 // 更新圈子信息
 func UpdateCircleHandler(c *gin.Context) {
 	// cid

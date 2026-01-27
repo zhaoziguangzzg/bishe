@@ -16,13 +16,13 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 }
 
 // get 付费圈子
-func GetCircleAllCharge() (circles []model.Circle, err error) {
-	return mysql.GetCircleAllCharge()
+func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCircleAllChargeByJoinNum(page, pagesize)
 }
 
 // get 免费圈子
-func GetCricleAllFree() (circles []model.Circle, err error) {
-	return mysql.GetCricleAllFree()
+func GetCricleAllFree(page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCricleAllFree(page, pagesize)
 }
 
 // get all圈子

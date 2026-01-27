@@ -28,8 +28,11 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 }
 
 // get 付费圈子
-func GetCircleAllCharge() (circles []model.Circle, err error) {
-	err = DB.Model(&model.Circle{}).Where("price>?", 0).Find(&circles).Error
+func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Circle{}).Where("price>?", 0).Order("join_num DESC").
+		Offset(offset).Limit(pagesize).Find(&circles).Error
 	if err != nil {
 		return
 	}
@@ -38,8 +41,11 @@ func GetCircleAllCharge() (circles []model.Circle, err error) {
 }
 
 // get 免费圈子
-func GetCricleAllFree() (circles []model.Circle, err error) {
-	err = DB.Model(&model.Circle{}).Where("price=?", 0).Find(&circles).Error
+func GetCricleAllFree(page int, pagesize int) (circles []model.Circle, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Circle{}).Where("price=?", 0).Order("join_num DESC").
+		Offset(offset).Limit(pagesize).Find(&circles).Error
 	if err != nil {
 		return
 	}
