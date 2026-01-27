@@ -16,8 +16,21 @@ func CreateEssay(newEssay *model.Essay) (err error) {
 func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, err error) {
 	offset := (page - 1) * pagesize
 
-	err = DB.Model(&model.Essay{}).Where("author_id=?", uid).Order("id ASC").
+	err = DB.Model(&model.Essay{}).Where("author_id=? and is_deleted=?", uid, model.ESSAY_NOT_DELETED).Order("id ASC").
 		Offset(offset).Limit(pagesize).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// get圈子中的文章
+func GetAllEssayByCid(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Essay{}).Where("circle_id=? and is_deleted=?", cid, model.ESSAY_NOT_DELETED).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
 	if err != nil {
 		return
 	}
@@ -28,7 +41,7 @@ func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, er
 // 根据eid获取文章
 func GetEssayByEid(eid int) (essay *model.Essay, err error) {
 	essay = new(model.Essay)
-	err = DB.Model(&model.Essay{}).Where("id=? and essay_status=?", eid, model.ESSAY_NOT_DELETED).First(&essay).Error
+	err = DB.Model(&model.Essay{}).Where("id=? and is_deleted=?", eid, model.ESSAY_NOT_DELETED).First(&essay).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -48,5 +61,11 @@ func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
 	}
 
 	result := DB.Model(&model.Essay{}).Where("id=?", eid).Updates(essay)
+	return result.RowsAffected, result.Error
+}
+
+// 更新IsDeleted删除essay
+func UpdateEssayIsDeleted(eid int) (int64, error) {
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_deleted", model.ESSAY_IS_DELETED)
 	return result.RowsAffected, result.Error
 }

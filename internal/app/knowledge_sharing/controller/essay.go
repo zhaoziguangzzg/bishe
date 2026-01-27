@@ -171,3 +171,54 @@ func UpdateEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 
 }
+
+// 获取圈子全部文章
+func GetCircleAllEssayHandler(c *gin.Context) {
+	cid := c.GetInt("cid")
+	if cid == 0 {
+		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pagesize := 10
+
+	//获取圈子中全部essay
+	essays, err := service.GetAllEssayByCid(cid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllEssayByCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"essays": essays,
+	})
+}
+
+// 删除发布的文章
+func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
+	//更新字段
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("geteid err", zap.String("err", "get eid"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	affectRows, err := service.UpdateEssayIsDeleted(eid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayIsDeleted err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}

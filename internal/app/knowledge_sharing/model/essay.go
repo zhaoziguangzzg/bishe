@@ -8,7 +8,7 @@ type Essay struct {
 	//文章标题
 	Title string `json:"title" gorm:"column:title" mapstructure:"title"`
 	//所在圈子id
-	CircleId int `json:"circleId" gorm:"column:circleId" mapstructure:"circleId"`
+	CircleId int `json:"circleId" gorm:"column:circle_id" mapstructure:"circleId"`
 	//文章内容
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//作者id
