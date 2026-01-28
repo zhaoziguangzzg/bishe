@@ -22,7 +22,7 @@ func AddEssayHandler(c *gin.Context) { //c
 	}
 
 	contentLen := len(content)
-	if contentLen > model.ESSAY_MAX_TITLE || contentLen == 0 {
+	if contentLen > model.ESSAY_MAX_CONTENT || contentLen == 0 {
 		MakeApiResponseError(c, CODE_ESSAY_CONTENT_LEN_INVASLID)
 		return
 	}

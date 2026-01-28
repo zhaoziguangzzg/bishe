@@ -16,8 +16,8 @@ func CreateEssay(newEssay *model.Essay) (err error) {
 func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, err error) {
 	offset := (page - 1) * pagesize
 
-	err = DB.Model(&model.Essay{}).Where("author_id=? and is_deleted=?", uid, model.ESSAY_NOT_DELETED).Order("id ASC").
-		Offset(offset).Limit(pagesize).Find(&essays).Error
+	err = DB.Model(&model.Essay{}).Where("author_id=? and is_deleted=?", uid, model.ESSAY_NOT_DELETED).
+		Order("id ASC").Offset(offset).Limit(pagesize).Find(&essays).Error
 	if err != nil {
 		return
 	}
