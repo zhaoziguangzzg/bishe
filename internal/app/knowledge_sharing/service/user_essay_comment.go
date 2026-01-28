@@ -11,6 +11,16 @@ func CreateUserEssayComment(newUserEssayComment *model.UserEssayComment) (err er
 }
 
 // get 文章的评论
-func GetCircleEssayComment(circleId int, essayId int, page int, pageSize int) (comments *model.UserEssayComment, err error) {
-	return mysql.GetCircleEssayComment(circleId, essayId, page, pageSize)
+func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
+	return mysql.GetEssayAllComment(eid, page, pageSize)
+}
+
+// get 用户全部comment
+func GetEssayAllCommentByUid(uid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
+	return mysql.GetEssayAllCommentByUid(uid, page, pageSize)
+}
+
+// update isdeleted
+func UpdateIsDeletedByCommentId(commentId int) (int64, error) {
+	return mysql.UpdateIsDeletedByCommentId(commentId)
 }

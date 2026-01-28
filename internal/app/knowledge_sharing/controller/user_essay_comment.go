@@ -3,7 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
-	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -11,98 +11,122 @@ import (
 
 // 用户在文章的评论
 func AddUserEssayCommentHandle(c *gin.Context) {
-	uidStr, err := c.Cookie("uid")
-	if err != nil {
-		return
-	}
-
-	accountStr, err := c.Cookie("username")
-	if err != nil {
-		return
-	}
-
-	circleIdStr := c.PostForm("circle_id")
-	essayIdStr := c.PostForm("essay_id")
-
-	comment := c.PostForm("comment")
-
-	uid, _ := strconv.Atoi(uidStr)
+	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
-		MakeApiResponseErrorParams(c)
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
-	account, _ := strconv.Atoi(accountStr)
-	if account == 0 {
-		MakeApiResponseErrorParams(c)
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("geteid err", zap.String("err", "get eid"))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	circleId, _ := strconv.Atoi(circleIdStr)
-	if circleId == 0 {
-		MakeApiResponseErrorParams(c)
+	content := c.PostForm("content")
+
+	contentLen := len(content)
+	if contentLen > model.COMMENT_MAX_CONTENT || contentLen == 0 {
+		MakeApiResponseError(c, CODE_COMMENT_CONTENT_LEN_INVASLID)
 		return
 	}
 
-	essayId, _ := strconv.Atoi(essayIdStr)
-	if essayId == 0 {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	if len(comment) > 200 {
-		//评论过长
-		MakeApiResponseError(c, CODE_COMMENT_TOO_LONG)
-		return
-	}
+	createTime := time.Now()
 
 	newUserEssayComment := &model.UserEssayComment{ //其中包含自动生成的id
 		UserId:   uid,
-		CircleId: circleId,
-		EssayId:  essayId,
-		Comment:  comment,
+		EssayId:  eid,
+		Content:  content,
+		CreateAt: &createTime,
+		UpdateAt: &createTime,
 	}
 
-	err = service.CreateUserEssayComment(newUserEssayComment)
+	err := service.CreateUserEssayComment(newUserEssayComment)
 	if err != nil {
 		service.Logger.Error("CreateUserEssayComment err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	// createTime := time.Now()
-	// content := "对文章" + essayIdStr + "评论成功"
-	// err = service.MakeAndSendNotice(0, UserAccount, content, createTime)
-	if err != nil {
-		service.Logger.Error("MakeAndSendNotice err", zap.Int("uid", uid), zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccess(c, newUserEssayComment)
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 获取文章评论列表
 func GetUserEssayCommentHandle(c *gin.Context) {
-	circleId := c.GetInt("circle_id")
-	essayId := c.GetInt("essay_id")
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("GetInt eid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	pageSize := 10
 
-	if page <= 0 {
-		page = 1
-	}
-
-	if circleId == 0 || essayId == 0 {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	comments, err := service.GetCircleEssayComment(circleId, essayId, page, pageSize)
+	comments, err := service.GetEssayAllComment(eid, page, pageSize)
 	if err != nil {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		service.Logger.Error("GetEssayAllComment", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	MakeApiResponseSuccess(c, comments)
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"comments": comments,
+	})
+}
+
+// 获取用户全部评论列表
+func GetUserAllCommentHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageSize := 10
+
+	//获取用户全部comment
+	comments, err := service.GetEssayAllCommentByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetEssayAllCommentByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"comments": comments,
+	})
+}
+
+// 删除评论
+func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
+	commentId := c.GetInt("comment_id")
+	if commentId == 0 {
+		service.Logger.Error("GetInt comment_id err", zap.String("err", "get comment_id"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新isDeleted
+	affectRows, err := service.UpdateIsDeletedByCommentId(commentId)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateIsDeletedByCommentId err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 }
