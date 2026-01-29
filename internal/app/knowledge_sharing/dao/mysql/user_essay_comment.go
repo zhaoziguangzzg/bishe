@@ -26,6 +26,7 @@ func GetEssayAllCommentByUid(uid int, page int, pageSize int) (comments []model.
 
 //update isdeleted
 func UpdateIsDeletedByCommentId(commentId int) (int64, error) {
-	result := DB.Model(&model.UserEssayComment{}).Where("id=?", commentId).Update("is_deleted", model.COMMENT_IS_DELETED)
+	result := DB.Model(&model.UserEssayComment{}).Where("id=? and is_deleted=?", commentId, model.COMMENT_NOT_DELETED).
+		Update("is_deleted", model.COMMENT_IS_DELETED)
 	return result.RowsAffected, result.Error
 }

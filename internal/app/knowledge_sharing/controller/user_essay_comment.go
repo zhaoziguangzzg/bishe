@@ -25,7 +25,6 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	}
 
 	content := c.PostForm("content")
-
 	contentLen := len(content)
 	if contentLen > model.COMMENT_MAX_CONTENT || contentLen == 0 {
 		MakeApiResponseError(c, CODE_COMMENT_CONTENT_LEN_INVASLID)
@@ -53,7 +52,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 }
 
 // 获取文章评论列表
-func GetUserEssayCommentHandle(c *gin.Context) {
+func GetEssayAllCommentHandle(c *gin.Context) {
 	eid := c.GetInt("eid")
 	if eid == 0 {
 		service.Logger.Error("GetInt eid err", zap.String("err", "get eid err"))

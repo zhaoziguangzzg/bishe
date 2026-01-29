@@ -34,6 +34,10 @@ const (
 	CODE_ESSAY_TITLE_LEN_INVASLID   int = 5002
 	CODE_ESSAY_CONTENT_LEN_INVASLID int = 5003
 	CODE_ESSAY_NOT_EXIST            int = 5004
+
+	CODE_COMMENT_CONTENT_LEN_INVASLID int = 6003
+
+	CODE_INTERACT_FAVORITE_LEN_INVASLID int = 7003
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -63,6 +67,10 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_ESSAY_TITLE_LEN_INVASLID:   "文章标题长度错误",
 	CODE_ESSAY_CONTENT_LEN_INVASLID: "文章内容长度错误",
 	CODE_ESSAY_NOT_EXIST:            "文章不存在",
+
+	CODE_COMMENT_CONTENT_LEN_INVASLID: "文章评论内容长度错误",
+
+	CODE_INTERACT_FAVORITE_LEN_INVASLID: "文章收藏夹名长度错误",
 }
 
 func GetMsgByCode(code int) (msg string) {
