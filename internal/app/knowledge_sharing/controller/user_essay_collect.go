@@ -50,3 +50,38 @@ func AddUserEssayCollectHandle(c *gin.Context) {
 
 	MakeApiResponseSuccessDefault(c)
 }
+
+// 获取用户文章是否收藏
+func GetUserEssayCollectHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("geteid err", zap.String("err", "get eid"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	collect, err := service.GetUserEssayCollect(uid, eid)
+	if err != nil {
+		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if collect == nil {
+		MakeApiResponseError(c, CODE_COLLECT_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"like": collect,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
