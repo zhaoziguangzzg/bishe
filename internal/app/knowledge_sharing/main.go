@@ -69,9 +69,24 @@ func main() {
 	r.POST("/api/usercircle/quit", controller.UserQuitCircleHandler)  //用户退出圈子
 
 	//文章模块
-	r.POST("/api/essay/add", controller.AddEssayHandler)       //创建文章
-	r.GET("/api/essay/all", controller.GetUserAllEssayHandler) //获取用户全部文章
-	r.GET("/api/essay/get", controller.GetEssayHandler)        //查看文章
+	r.POST("/api/essay/add", controller.AddEssayHandler)                         //创建文章
+	r.GET("/api/essay/userall", controller.GetUserAllEssayHandler)               //获取用户全部文章
+	r.GET("/api/essay/get", controller.GetEssayHandler)                          //查看文章
+	r.POST("/api/essay/update", controller.UpdateEssayHandler)                   //更新文章
+	r.GET("/api/essay/circleall", controller.GetCircleAllEssayHandler)           //获取圈子全部文章
+	r.POST("/api/essay/delete", controller.DeletedEssayByUpdateIsDeletedHandler) //删除文章
+
+	//点赞
+	r.POST("/api/like/add", controller.AddUserEssayLikeHandler) //添加点赞
+	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)  //获取点赞
+	r.GET("/api/like/all", controller.GetUserAllLikeHandler)    //获取用户点赞
+	r.POST("/api/like/update", controller.UpdateUserEssayLike)  //更新点赞删除
+
+	//收藏
+	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)       //添加收藏
+	r.GET("/api/collect/get", controller.GetUserEssayCollectHandler)        //获取收藏
+	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)          //获取用户的全部收藏
+	r.POST("/api/collect/update", controller.UpdateUserEssayCollectHandler) //更新收藏删除状态
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
