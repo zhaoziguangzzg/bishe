@@ -12,20 +12,6 @@ func CreateUserEssayLike(newUserEssayLike *model.UserEssayLike) (err error) {
 	return
 }
 
-// get 用户对文章点赞
-func GetUserEssayInteract(uid int, circleId int, essayId int) (userEssayInteract *model.UserEssayLike, err error) {
-	err = DB.Model(&model.UserEssayLike{}).Where("user_id=? and circle_id=? and essay_id=?", uid, circleId, essayId).Find(userEssayInteract).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound { //没查到数据返回空
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	return userEssayInteract, nil
-}
-
 // 根据uid,eid获取文章点赞
 func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err error) {
 	userEssayLike = new(model.UserEssayLike)
@@ -44,10 +30,10 @@ func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err
 }
 
 // get 用户全部点赞
-func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayInteracts []model.UserEssayLike, err error) {
+func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayLikes []model.UserEssayLike, err error) {
 	offset := (page - 1) * pageSize
 	err = DB.Model(&model.UserEssayLike{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pageSize).Find(&userEssayInteracts).Error
+		Order("id ASC").Offset(offset).Limit(pageSize).Find(&userEssayLikes).Error
 	return
 }
 

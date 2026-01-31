@@ -10,7 +10,22 @@ func CreateUserEssayCollect(newUserEssayCollect *model.UserEssayCollect) (err er
 	return mysql.CreateUserEssayCollect(newUserEssayCollect)
 }
 
-// 根据uid,eid获取文章点赞
+// 根据uid,eid获取文章收藏
 func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCollect, err error) {
 	return mysql.GetUserEssayCollect(uid, eid)
+}
+
+// get 用户全部收藏
+func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects []model.UserEssayCollect, err error) {
+	return mysql.GetUserAllCollectByUid(uid, page, pageSize)
+}
+
+// 取消收藏
+func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
+	return mysql.UpdateUserEssayCollectIsToNot(uid, eid)
+}
+
+// 进行收藏
+func UpdateUserEssayCollectNotToIs(uid int, eid int, favorite string) (int64, error) {
+	return mysql.UpdateUserEssayCollectNotToIs(uid, eid, favorite)
 }

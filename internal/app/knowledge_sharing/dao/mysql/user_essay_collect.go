@@ -12,7 +12,7 @@ func CreateUserEssayCollect(newUserEssayCollect *model.UserEssayCollect) (err er
 	return
 }
 
-// 根据uid,eid获取文章点赞
+// 根据uid,eid获取文章收藏
 func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCollect, err error) {
 	userEssayCollect = new(model.UserEssayCollect)
 	err = DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).
@@ -27,4 +27,31 @@ func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCol
 	}
 
 	return userEssayCollect, nil
+}
+
+// get 用户全部收藏
+func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects []model.UserEssayCollect, err error) {
+	offset := (page - 1) * pageSize
+	err = DB.Model(&model.UserEssayCollect{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
+		Order("id ASC").Offset(offset).Limit(pageSize).Find(&userEssayCollects).Error
+	return
+}
+
+// 取消收藏
+func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
+	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).
+		Update("is_deleted", model.COLLECT_IS_DELETED)
+
+	return result.RowsAffected, result.Error
+}
+
+// 进行收藏
+func UpdateUserEssayCollectNotToIs(uid int, eid int, favorite string) (int64, error) {
+	collect := model.UserEssayCollect{
+		Favorite:  favorite,
+		IsDeleted: model.COLLECT_NOT_DELETED,
+	}
+
+	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).Updates(collect)
+	return result.RowsAffected, result.Error
 }

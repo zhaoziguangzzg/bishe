@@ -10,14 +10,9 @@ func CreateUserEssayLike(newUserEssayLike *model.UserEssayLike) (err error) {
 	return mysql.CreateUserEssayLike(newUserEssayLike)
 }
 
-// get 用户对文章点赞收藏
-func GetUserEssayInteract(uid int, circleId int, essayId int) (userEssayInteract *model.UserEssayLike, err error) {
-	return mysql.GetUserEssayInteract(uid, circleId, essayId)
-}
-
 // get 用户全部点赞
-func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayInteracts []model.UserEssayLike, err error) {
-	return GetUserAllLikeByUid(uid, page, pageSize)
+func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayLikes []model.UserEssayLike, err error) {
+	return mysql.GetUserAllLikeByUid(uid, page, pageSize)
 }
 
 // 根据uid,eid获取文章点赞

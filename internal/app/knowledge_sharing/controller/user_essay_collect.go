@@ -10,7 +10,7 @@ import (
 )
 
 // 用户在文章的收藏
-func AddUserEssayCollectHandle(c *gin.Context) {
+func AddUserEssayCollectHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
@@ -79,9 +79,93 @@ func GetUserEssayCollectHandler(c *gin.Context) {
 	}
 
 	data := map[string]interface{}{
-		"like": collect,
+		"collect": collect,
 	}
 
 	MakeApiResponseSuccess(c, data)
+
+}
+
+// 获取用户全部收藏
+func GetUserAllCollectHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageSize := 10
+
+	//获取用户全部collect
+	collects, err := service.GetUserAllCollectByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserAllCollectByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"collects": collects,
+	})
+}
+
+// 更新用户收藏
+func UpdateUserEssayCollectHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	eid := c.GetInt("eid")
+	if eid == 0 {
+		service.Logger.Error("geteid err", zap.String("err", "get eid"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	delete := c.GetInt("delete")
+	if delete == 0 {
+		service.Logger.Error("GetInt delete err", zap.String("err", "get delete"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	favorite := c.PostForm("favorite")
+	favoriteLen := len(favorite)
+	if favoriteLen > model.FAVOTRITE_MAX_CONTENT || favoriteLen == 0 {
+		MakeApiResponseError(c, CODE_INTERACT_FAVORITE_LEN_INVASLID)
+		return
+	}
+
+	//取消收藏
+	if delete == model.COLLECT_NOT_DELETED {
+		affectRows, err := service.UpdateUserEssayCollectIsToNot(uid, eid)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateUserEssayCollectIsToNot err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	//添加收藏
+	affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, favorite)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateUserEssayCollectNotToIs err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 
 }
