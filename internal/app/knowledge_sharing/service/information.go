@@ -16,13 +16,19 @@ func AddUserNotice(notice *model.Information) (err error) {
 	return mysql.AddUserNotice(notice)
 }
 
+// 获取用户消息
+func GetInformationByUname(uname string) (information *model.Information, err error) {
+	return mysql.GetInformationByUname(uname)
+}
+
 // 创建和发送消息
-func MakeAndSendNotice(sendId int, account int, content string, t time.Time) (err error) {
+func MakeAndSendNotice(sendId int, uname string, content string, t time.Time) (err error) {
 	notice := &model.Information{
-		SendId:         sendId,
-		ReceiveAccount: account,
-		Content:        content,
-		CreateAt:       &t,
+		SendId:      sendId,
+		ReceiveName: uname,
+		Content:     content,
+		CreateAt:    &t,
+		UpdateAt:    &t,
 	}
 
 	err = AddUserNotice(notice)

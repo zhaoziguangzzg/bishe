@@ -40,6 +40,9 @@ const (
 	CODE_INTERACT_FAVORITE_LEN_INVASLID int = 7003
 	CODE_LIKE_NOT_EXIST                 int = 7004
 	CODE_COLLECT_NOT_EXIST              int = 7005
+
+	CODE_INFORMATION_CONTENT_LEN_INVASLID int = 8003
+	CODE_INFORMATION_NOT_EXIST            int = 8004
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -75,6 +78,9 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_INTERACT_FAVORITE_LEN_INVASLID: "文章收藏夹名长度错误",
 	CODE_LIKE_NOT_EXIST:                 "用户文章喜欢不存在",
 	CODE_COLLECT_NOT_EXIST:              "用户文章收藏不存在",
+
+	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
+	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
 }
 
 func GetMsgByCode(code int) (msg string) {

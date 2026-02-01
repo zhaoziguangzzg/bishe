@@ -88,6 +88,10 @@ func main() {
 	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)          //获取用户的全部收藏
 	r.POST("/api/collect/update", controller.UpdateUserEssayCollectHandler) //更新收藏删除状态
 
+	//消息
+	r.POST("/api/information/add", controller.CreateInformationHandle)  //添加消息
+	r.GET("/api/information/get", controller.GetUserInformationHandler) //获取消息
+
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
 	service.Logger.Error("Default error", zap.Error(r.Run(":8080")))

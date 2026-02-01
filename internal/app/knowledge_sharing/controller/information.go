@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,35 +11,76 @@ import (
 
 // 消息通知
 func CreateInformationHandle(c *gin.Context) {
-	receiveAccountStr := c.PostForm("receiveAccont")
+	// 从表单中获取用户信息
 	content := c.PostForm("content")
 
-	if receiveAccountStr == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	contentLen := len(content)
+	if contentLen > model.INFORMATION_MAX_CONTENT || contentLen == 0 {
+		MakeApiResponseError(c, CODE_INFORMATION_CONTENT_LEN_INVASLID)
 		return
 	}
 
-	receiveAccount, err := strconv.Atoi(receiveAccountStr)
-	if err != nil {
-		service.Logger.Error("receiveAccountStrAtoi err", zap.Error(err))
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	uname := c.GetString("uname")
+	unameLen := len(uname)
+	if unameLen > model.INFORMATION_MAX_RECEIVE_NAME || unameLen == 0 {
+		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
+		return
+	}
+
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
 	createTime := time.Now()
 
-	//消息结构体
-	information := &model.Information{
-		// SendId:         UserId,
-		ReceiveAccount: receiveAccount,
-		Content:        content,
-		CreateAt:       &createTime,
+	// 构造消息
+	newInformation := &model.Information{ //其中包含自动生成的id
+		SendId:      uid,
+		ReceiveName: uname,
+		Content:     content,
+		CreateAt:    &createTime,
+		UpdateAt:    &createTime,
 	}
 
-	err = service.UserAddInformation(information)
+	// 插入数据库
+	err := service.UserAddInformation(newInformation)
 	if err != nil {
-		service.Logger.Error("userAddInformation err", zap.Error(err))
-		MakeApiResponseError(c, CODE_SYS_ERROR)
+		service.Logger.Error("CreateInformation err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	// 返回成功响应
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 用户获取消息
+func GetUserInformationHandler(c *gin.Context) {
+	//获取uid，uname
+	uid, uname := service.GetUserFromCookie(c)
+	if uid == 0 || uname == "" {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//根据uname获取消息
+	information, err := service.GetInformationByUname(uname)
+	if err != nil {
+		service.Logger.Error("GetInformationByUname", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if information == nil {
+		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"information": information,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
