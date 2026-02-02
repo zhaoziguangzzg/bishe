@@ -32,3 +32,9 @@ func AddUserNotice(notice *model.Information) (err error) {
 	err = DB.Model(&model.Information{}).Create(notice).Error
 	return
 }
+
+// 更新IsDeleted删除information
+func UpdateInformationIsDeleted(iid int) (int64, error) {
+	result := DB.Model(&model.Information{}).Where("id=?", iid).Update("is_deleted", model.INFORMATION_IS_DELETED)
+	return result.RowsAffected, result.Error
+}

@@ -84,3 +84,23 @@ func GetUserInformationHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 }
+
+// 删除发送的消息
+func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {
+	//更新字段
+	iid := c.GetInt("iid")
+	if iid == 0 {
+		service.Logger.Error("GetInt iid err", zap.String("err", "get iid"))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	affectRows, err := service.UpdateInformationIsDeleted(iid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateInformationIsDeleted err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}

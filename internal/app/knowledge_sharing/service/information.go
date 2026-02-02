@@ -34,3 +34,8 @@ func MakeAndSendNotice(sendId int, uname string, content string, t time.Time) (e
 	err = AddUserNotice(notice)
 	return
 }
+
+// 更新IsDeleted删除information
+func UpdateInformationIsDeleted(iid int) (int64, error) {
+	return mysql.UpdateInformationIsDeleted(iid)
+}
