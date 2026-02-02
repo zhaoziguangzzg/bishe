@@ -68,7 +68,7 @@ func GetCircleAllByJoinNum(page int, pagesize int) (circles []model.Circle, err 
 // get 用户创建的圈子
 func GetUserCreateCircleByUid(uid int, page int, pagesize int) (circles []model.Circle, err error) {
 	offset := (page - 1) * pagesize
-	err = DB.Model(&model.Circle{}).Where("circle_own_id=?", uid).Order("join_num DESC").Offset(offset).Limit(pagesize).Find(&circles).Error
+	err = DB.Model(&model.Circle{}).Where("circle_owner_id=?", uid).Order("join_num DESC").Offset(offset).Limit(pagesize).Find(&circles).Error
 	if err != nil {
 		return
 	}

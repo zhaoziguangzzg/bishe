@@ -75,9 +75,7 @@ func AddCircleHandler(c *gin.Context) {
 func GetAllCircleHandler(c *gin.Context) {
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pagesize := 10
@@ -97,9 +95,16 @@ func GetAllCircleHandler(c *gin.Context) {
 
 // 获取圈子详情
 func GetCircleHandler(c *gin.Context) {
-	cid := c.GetInt("cid")
-	if cid == 0 {
-		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Query cidStr err", zap.String("err", "get cidStr err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -147,9 +152,7 @@ func GetCircleHandler(c *gin.Context) {
 func GetUserCreateCircleHandler(c *gin.Context) {
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pagesize := 5
@@ -212,9 +215,7 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 func GetChargeCircleRankHandler(c *gin.Context) {
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pagesize := 10
@@ -235,11 +236,17 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 // 更新圈子信息
 func UpdateCircleHandler(c *gin.Context) {
 	// cid
-	cid := c.GetInt("cid")
-	if cid == 0 {
-		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
-		MakeApiResponseErrorDefault(c)
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	title := c.PostForm("title")

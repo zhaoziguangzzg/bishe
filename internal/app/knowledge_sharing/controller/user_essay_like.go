@@ -103,6 +103,8 @@ func GetUserAllLikeHandler(c *gin.Context) {
 		return
 	}
 
+	//todo dianzan
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"likes": likes,
 	})

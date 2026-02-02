@@ -30,6 +30,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_INTERACT_FAVORITE_LEN_INVASLID)
 		return
 	}
+	//todo 收藏到收藏夹 表
 
 	createTime := time.Now()
 

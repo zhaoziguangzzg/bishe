@@ -15,7 +15,7 @@ func CreateUserCircleJoin(newUserCircleJoin *model.UserCircleJoin) (err error) {
 // 根据uid，cid查询用户加入圈子
 func GetUserJoinCircleByUidCid(uid int, cid int) (userCircleJoin *model.UserCircleJoin, err error) {
 	userCircleJoin = new(model.UserCircleJoin)
-	err = DB.Model(&model.Circle{}).Where("user_id=? and circle_id=? and not_join_status=?", uid, cid, model.USER_CIRCLE_NOT_NO_JOIN).First(&userCircleJoin).Error
+	err = DB.Model(&model.UserCircleJoin{}).Where("user_id=? and circle_id=? and not_join_status=?", uid, cid, model.USER_CIRCLE_NOT_NO_JOIN).First(&userCircleJoin).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil

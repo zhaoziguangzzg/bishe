@@ -113,7 +113,7 @@ func GetEssayHandler(c *gin.Context) {
 	}
 
 	if essay == nil {
-		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		MakeApiResponseError(c, CODE_ESSAY_NOT_EXIST)
 		return
 	}
 

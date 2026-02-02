@@ -10,7 +10,7 @@ type Circle struct {
 	//圈子价格
 	Price int `json:"price" gorm:"column:price" mapstructure:"price"`
 	//圈主id
-	CircleOwnerId int `json:"circleOwnerId" gorm:"column:circle_own_id" mapstructure:"circleOwnerId"`
+	CircleOwnerId int `json:"circleOwnerId" gorm:"column:circle_owner_id" mapstructure:"circleOwnerId"`
 	//圈子简介
 	Introduction string `json:"introduction" gorm:"column:introduction" mapstructure:"introduction"`
 	//加入圈子人数
