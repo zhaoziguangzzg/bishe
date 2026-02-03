@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +18,17 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	favorite := c.PostForm("favorite")
@@ -42,7 +49,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		UpdateAt: &createTime,
 	}
 
-	err := service.CreateUserEssayCollect(newUserEssayCollect)
+	err = service.CreateUserEssayCollect(newUserEssayCollect)
 	if err != nil {
 		service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -60,11 +67,17 @@ func GetUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	collect, err := service.GetUserEssayCollect(uid, eid)
@@ -97,9 +110,7 @@ func GetUserAllCollectHandler(c *gin.Context) {
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pageSize := 10
@@ -125,18 +136,30 @@ func UpdateUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	delete := c.GetInt("delete")
-	if delete == 0 {
-		service.Logger.Error("GetInt delete err", zap.String("err", "get delete"))
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+	}
+
+	deleteStr := c.Query("delete")
+	if deleteStr == "" {
+		service.Logger.Error("Getdelete err", zap.String("err", "get delete err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	delete, err := strconv.Atoi(deleteStr)
+	if err != nil {
+		service.Logger.Error("Atoi deleteStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	favorite := c.PostForm("favorite")

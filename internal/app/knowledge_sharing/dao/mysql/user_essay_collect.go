@@ -31,9 +31,16 @@ func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCol
 
 // get 用户全部收藏
 func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects []model.UserEssayCollect, err error) {
+	var eids []int
 	offset := (page - 1) * pageSize
+
 	err = DB.Model(&model.UserEssayCollect{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pageSize).Find(&userEssayCollects).Error
+		Order("id ASC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
+	if err != nil {
+		return
+	}
+
+	err = DB.Where("id IN (?)", eids).Error
 	return
 }
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +18,17 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	content := c.PostForm("content")
@@ -41,7 +48,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		UpdateAt: &createTime,
 	}
 
-	err := service.CreateUserEssayComment(newUserEssayComment)
+	err = service.CreateUserEssayComment(newUserEssayComment)
 	if err != nil {
 		service.Logger.Error("CreateUserEssayComment err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -53,18 +60,22 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 
 // 获取文章评论列表
 func GetEssayAllCommentHandle(c *gin.Context) {
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("GetInt eid err", zap.String("err", "get eid err"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pageSize := 10
@@ -91,15 +102,13 @@ func GetUserAllCommentHandler(c *gin.Context) {
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pageSize := 10
 
-	//获取用户全部comment
-	comments, err := service.GetEssayAllCommentByUid(uid, page, pageSize)
+	//获取用户全部评论文章
+	essays, err := service.GetUserAllCommentEssayByUid(uid, page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetEssayAllCommentByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -107,17 +116,23 @@ func GetUserAllCommentHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"comments": comments,
+		"essays": essays,
 	})
 }
 
 // 删除评论
 func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
-	commentId := c.GetInt("comment_id")
-	if commentId == 0 {
-		service.Logger.Error("GetInt comment_id err", zap.String("err", "get comment_id"))
-		MakeApiResponseErrorDefault(c)
+	commentIdStr := c.Query("comment_id")
+	if commentIdStr == "" {
+		service.Logger.Error("GetcommentId err", zap.String("err", "get commentId err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	commentId, err := strconv.Atoi(commentIdStr)
+	if err != nil {
+		service.Logger.Error("Atoi commentIdStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	//更新isDeleted

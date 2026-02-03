@@ -11,8 +11,8 @@ func CreateUserEssayLike(newUserEssayLike *model.UserEssayLike) (err error) {
 }
 
 // get 用户全部点赞
-func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayLikes []model.UserEssayLike, err error) {
-	return mysql.GetUserAllLikeByUid(uid, page, pageSize)
+func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
+	return mysql.GetUserAllLikeEssayByUid(uid, page, pageSize)
 }
 
 // 根据uid,eid获取文章点赞

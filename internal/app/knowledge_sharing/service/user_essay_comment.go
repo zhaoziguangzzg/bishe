@@ -16,8 +16,8 @@ func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserE
 }
 
 // get 用户全部comment
-func GetEssayAllCommentByUid(uid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
-	return mysql.GetEssayAllCommentByUid(uid, page, pageSize)
+func GetUserAllCommentEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
+	return mysql.GetUserAllCommentEssayByUid(uid, page, pageSize)
 }
 
 // update isdeleted

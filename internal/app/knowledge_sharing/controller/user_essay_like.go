@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +18,17 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	createTime := time.Now()
@@ -33,7 +40,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		UpdateAt: &createTime,
 	}
 
-	err := service.CreateUserEssayLike(newUserEssayLike)
+	err = service.CreateUserEssayLike(newUserEssayLike)
 	if err != nil {
 		service.Logger.Error("CreateUserEssayLike err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -51,11 +58,17 @@ func GetUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	like, err := service.GetUserEssayLike(uid, eid)
@@ -88,25 +101,21 @@ func GetUserAllLikeHandler(c *gin.Context) {
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pageSize := 10
 
 	//获取用户全部like
-	likes, err := service.GetUserAllLikeByUid(uid, page, pageSize)
+	essays, err := service.GetUserAllLikeEssayByUid(uid, page, pageSize)
 	if err != nil {
-		service.Logger.Error("GetUserAllLikeByUid", zap.Error(err))
+		service.Logger.Error("GetUserAllLikeEssayByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	//todo dianzan
-
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"likes": likes,
+		"essays": essays,
 	})
 }
 
@@ -118,18 +127,30 @@ func UpdateUserEssayLike(c *gin.Context) {
 		return
 	}
 
-	delete := c.GetInt("delete")
-	if delete == 0 {
-		service.Logger.Error("GetInt delete err", zap.String("err", "get delete"))
-		MakeApiResponseErrorDefault(c)
+	deleteStr := c.Query("delete")
+	if deleteStr == "" {
+		service.Logger.Error("Getdelete err", zap.String("err", "get delete err"))
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
+	delete, err := strconv.Atoi(deleteStr)
+	if err != nil {
+		service.Logger.Error("Atoi deleteStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+	}
+
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	//喜欢转不喜欢

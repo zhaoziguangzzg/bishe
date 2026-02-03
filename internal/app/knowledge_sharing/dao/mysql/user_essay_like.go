@@ -29,11 +29,22 @@ func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err
 	return userEssayLike, nil
 }
 
-// get 用户全部点赞
-func GetUserAllLikeByUid(uid int, page int, pageSize int) (userEssayLikes []model.UserEssayLike, err error) {
+// get 用户全部点赞文章
+func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
+	var eids []int
 	offset := (page - 1) * pageSize
+
 	err = DB.Model(&model.UserEssayLike{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pageSize).Find(&userEssayLikes).Error
+		Order("id ASC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
+	if err != nil {
+		return
+	}
+
+	err = DB.Where("id IN (?)", eids).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
 	return
 }
 
