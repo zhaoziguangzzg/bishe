@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -88,11 +89,17 @@ func GetUserInformationHandler(c *gin.Context) {
 // 删除发送的消息
 func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	iid := c.GetInt("iid")
-	if iid == 0 {
-		service.Logger.Error("GetInt iid err", zap.String("err", "get iid"))
-		MakeApiResponseErrorDefault(c)
+	iidStr := c.Query("iid")
+	if iidStr == "" {
+		service.Logger.Error("Getiid err", zap.String("err", "get iid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	iid, err := strconv.Atoi(iidStr)
+	if err != nil {
+		service.Logger.Error("Atoi iidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	affectRows, err := service.UpdateInformationIsDeleted(iid)

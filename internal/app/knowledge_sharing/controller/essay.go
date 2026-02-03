@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -74,9 +75,7 @@ func GetUserAllEssayHandler(c *gin.Context) {
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pagesize := 10
@@ -97,11 +96,17 @@ func GetUserAllEssayHandler(c *gin.Context) {
 // 获取某文章
 func GetEssayHandler(c *gin.Context) {
 	//获取文章id
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("GetInt eid err", zap.String("err", "get eid err"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	//根据eid获取文章
@@ -141,11 +146,17 @@ func UpdateEssayHandler(c *gin.Context) {
 		return
 	}
 
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("GetInt eid err", zap.String("err", "eid err"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	//根据eid获取文章
@@ -174,18 +185,22 @@ func UpdateEssayHandler(c *gin.Context) {
 
 // 获取圈子全部文章
 func GetCircleAllEssayHandler(c *gin.Context) {
-	cid := c.GetInt("cid")
-	if cid == 0 {
-		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
-		MakeApiResponseErrorDefault(c)
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	page := c.GetInt("page")
 	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
+		page = 1
 	}
 
 	pagesize := 10
@@ -206,11 +221,17 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 // 删除发布的文章
 func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	eid := c.GetInt("eid")
-	if eid == 0 {
-		service.Logger.Error("geteid err", zap.String("err", "get eid"))
-		MakeApiResponseErrorDefault(c)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	affectRows, err := service.UpdateEssayIsDeleted(eid)
