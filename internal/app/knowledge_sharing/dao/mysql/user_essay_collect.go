@@ -34,7 +34,7 @@ func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects 
 	var eids []int
 	offset := (page - 1) * pageSize
 
-	err = DB.Model(&model.UserEssayCollect{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
+	err = DB.Model(&model.UserEssayCollect{}).Where("user_id and is_deleted=?", uid, model.COLLECT_NOT_DELETED).
 		Order("id ASC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
 	if err != nil {
 		return
@@ -53,10 +53,10 @@ func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
 }
 
 // 进行收藏
-func UpdateUserEssayCollectNotToIs(uid int, eid int, favorite string) (int64, error) {
+func UpdateUserEssayCollectNotToIs(uid int, eid int, fid int) (int64, error) {
 	collect := model.UserEssayCollect{
-		Favorite:  favorite,
-		IsDeleted: model.COLLECT_NOT_DELETED,
+		FavoriteId: fid,
+		IsDeleted:  model.COLLECT_NOT_DELETED,
 	}
 
 	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).Updates(collect)

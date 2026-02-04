@@ -31,22 +31,37 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 	}
 
-	favorite := c.PostForm("favorite")
-	favoriteLen := len(favorite)
-	if favoriteLen > model.FAVOTRITE_MAX_CONTENT || favoriteLen == 0 {
-		MakeApiResponseError(c, CODE_INTERACT_FAVORITE_LEN_INVASLID)
+	// favorite := c.PostForm("favorite")
+	// favoriteLen := len(favorite)
+	// if favoriteLen > model.FAVOTRITE_MAX_CONTENT || favoriteLen == 0 {
+	// 	MakeApiResponseError(c, CODE_INTERACT_FAVORITE_LEN_INVASLID)
+	// 	return
+	// }
+
+	fidStr := c.Query("fid")
+	if fidStr == "" {
+		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
+		MakeApiResponseErrorParams(c)
 		return
 	}
+
+	fid, err := strconv.Atoi(fidStr)
+	if err != nil {
+		service.Logger.Error("Atoi fidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	//todo 收藏到收藏夹 表
 
 	createTime := time.Now()
 
 	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
-		UserId:   uid,
-		EssayId:  eid,
-		Favorite: favorite,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
+		UserId:     uid,
+		EssayId:    eid,
+		FavoriteId: fid,
+		CreateAt:   &createTime,
+		UpdateAt:   &createTime,
 	}
 
 	err = service.CreateUserEssayCollect(newUserEssayCollect)
@@ -162,10 +177,17 @@ func UpdateUserEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 	}
 
-	favorite := c.PostForm("favorite")
-	favoriteLen := len(favorite)
-	if favoriteLen > model.FAVOTRITE_MAX_CONTENT || favoriteLen == 0 {
-		MakeApiResponseError(c, CODE_INTERACT_FAVORITE_LEN_INVASLID)
+	fidStr := c.Query("fid")
+	if fidStr == "" {
+		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	fid, err := strconv.Atoi(fidStr)
+	if err != nil {
+		service.Logger.Error("Atoi fidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
@@ -183,7 +205,7 @@ func UpdateUserEssayCollectHandler(c *gin.Context) {
 	}
 
 	//添加收藏
-	affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, favorite)
+	affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, fid)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateUserEssayCollectNotToIs err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

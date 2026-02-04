@@ -9,8 +9,8 @@ type UserEssayCollect struct {
 	UserId int `json:"userId" gorm:"column:user_id" mapstructure:"userId"`
 	//文章id
 	EssayId int `json:"essayId" gorm:"column:essay_id" mapstructure:"essayId"`
-	//收藏夹
-	Favorite string `json:"favorite" gorm:"column:favorite" mapstructure:"favorite"`
+	//收藏夹id
+	FavoriteId int `json:"favoriteId" gorm:"column:favorite_id" mapstructure:"favoriteId"`
 
 	CreateAt      *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr   string     `json:"-" gorm:"-" mapstructure:"createAt"`

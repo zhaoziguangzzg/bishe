@@ -26,6 +26,6 @@ func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
 }
 
 // 进行收藏
-func UpdateUserEssayCollectNotToIs(uid int, eid int, favorite string) (int64, error) {
-	return mysql.UpdateUserEssayCollectNotToIs(uid, eid, favorite)
+func UpdateUserEssayCollectNotToIs(uid int, eid int, fid int) (int64, error) {
+	return mysql.UpdateUserEssayCollectNotToIs(uid, eid, fid)
 }
