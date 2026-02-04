@@ -59,32 +59,38 @@ func CreateInformationHandle(c *gin.Context) {
 
 // 用户获取消息
 func GetUserInformationHandler(c *gin.Context) {
-	//获取uid，uname
-	uid, uname := service.GetUserFromCookie(c)
-	if uid == 0 || uname == "" {
+	//获取uid
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
+	//todo uid获取消息
+
 	//根据uname获取消息
-	information, err := service.GetInformationByUname(uname)
-	if err != nil {
-		service.Logger.Error("GetInformationByUname", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
+	// information, err := service.GetInformationByUname(uid)
+	// if err != nil {
+	// 	service.Logger.Error("GetInformationByUname", zap.Error(err))
+	// 	MakeApiResponseErrorDefault(c)
+	// 	return
+	// }
 
-	if information == nil {
-		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
-		return
-	}
+	// if information == nil {
+	// 	MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+	// 	return
+	// }
 
-	data := map[string]interface{}{
-		"information": information,
-	}
+	// data := map[string]interface{}{
+	// 	"information": information,
+	// }
 
-	MakeApiResponseSuccess(c, data)
+	// MakeApiResponseSuccess(c, data)
 }
+
+//todo 获取用户对每个人发送的消息 分页
+//获取用户的消息列表
+//获取每个人对用户的消息
 
 // 删除发送的消息
 func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {

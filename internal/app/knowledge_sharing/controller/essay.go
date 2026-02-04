@@ -28,11 +28,17 @@ func AddEssayHandler(c *gin.Context) { //c
 		return
 	}
 
-	cid := c.GetInt("cid")
-	if cid == 0 {
-		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
-		MakeApiResponseErrorDefault(c)
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -54,7 +60,7 @@ func AddEssayHandler(c *gin.Context) { //c
 	}
 
 	// 插入数据库
-	err := service.CreateEssay(newEssay)
+	err = service.CreateEssay(newEssay)
 	if err != nil {
 		service.Logger.Error("CreateEssay err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
