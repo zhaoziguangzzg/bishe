@@ -27,6 +27,21 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 	return circle, nil
 }
 
+// 根据title获取圈子
+func GetCircleByTitle(title string) (circle *model.Circle, err error) {
+	circle = new(model.Circle)
+	err = DB.Model(&model.Circle{}).Where("title=?", title).First(&circle).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound { //没查到数据返回空
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return circle, nil
+}
+
 // get 付费圈子
 func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	offset := (page - 1) * pagesize
@@ -117,5 +132,11 @@ func UpdateCircleByCid(cid int, title string, price int, introduction string) (i
 	}
 
 	result := DB.Model(&model.Circle{}).Where("id=?", cid).Updates(circle)
+	return result.RowsAffected, result.Error
+}
+
+// 更新圈子信息
+func UpdateCircleByTitle(title string) (int64, error) {
+	result := DB.Model(&model.Circle{}).Where("title=?", title).UpdateColumn("circle_status", model.CIRCLE_NOT_DELETED)
 	return result.RowsAffected, result.Error
 }

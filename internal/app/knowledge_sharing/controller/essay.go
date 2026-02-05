@@ -59,16 +59,33 @@ func AddEssayHandler(c *gin.Context) { //c
 		UpdateAt: &createTime,
 	}
 
-	// 插入数据库
-	err = service.CreateEssay(newEssay)
+	// 用户创建文章之前，判断Essay
+	essay, err := service.GetEssayByTitle(title, cid)
 	if err != nil {
-		service.Logger.Error("CreateEssay err", zap.Error(err))
+		service.Logger.Error("GetEssayByTitle err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
+	if essay == nil {
+		err = service.CreateEssay(newEssay)
+		if err != nil {
+			service.Logger.Error("CreateEssay err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	if essay.IsDeleted == model.ESSAY_NOT_DELETED {
+		MakeApiResponseError(c, CODE_ESSAY_EXIST)
+		return
+	}
+
 	// 返回成功响应
-	MakeApiResponseSuccessDefault(c)
+	MakeApiResponseError(c, CODE_TITLE_REPLACE)
 }
 
 // 获取全部用户文章列表

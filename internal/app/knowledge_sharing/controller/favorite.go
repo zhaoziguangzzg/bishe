@@ -37,16 +37,34 @@ func AddFavoriteHandler(c *gin.Context) { //c
 		UpdateAt: &createTime,
 	}
 
-	// 插入数据库
-	err := service.CreateFavorite(newFavorite)
+	// 用户创建收藏夹之前，判断Favorite
+	favorite, err := service.GetFavoriteByTitle(title, uid)
 	if err != nil {
-		service.Logger.Error("CreateFavorite err", zap.Error(err))
+		service.Logger.Error("GetFavoriteByTitle err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	// 返回成功响应
-	MakeApiResponseSuccessDefault(c)
+	if favorite == nil {
+		err = service.CreateFavorite(newFavorite)
+		if err != nil {
+			service.Logger.Error("CreateFavorite err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	if favorite.IsDeleted == model.FAVORITE_NOT_DELETED {
+		MakeApiResponseError(c, CODE_FAVORITE_EXIST)
+		return
+	}
+
+	// 返回响应
+	MakeApiResponseError(c, CODE_TITLE_REPLACE)
+
 }
 
 // 获取用户全部的收藏夹

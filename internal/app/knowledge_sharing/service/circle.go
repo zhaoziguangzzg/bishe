@@ -15,6 +15,11 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 	return mysql.GetCircleByCid(cid)
 }
 
+// 根据title获取圈子
+func GetCircleByTitle(title string) (circle *model.Circle, err error) {
+	return mysql.GetCircleByTitle(title)
+}
+
 // get 付费圈子
 func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	return mysql.GetCircleAllChargeByJoinNum(page, pagesize)
@@ -53,4 +58,9 @@ func DecrrUpdateCircleJoinNumByCid(cid int) (int64, error) {
 // 更新圈子信息
 func UpdateCircleByCid(cid int, title string, price int, introduction string) (int64, error) {
 	return mysql.UpdateCircleByCid(cid, title, price, introduction)
+}
+
+// 更新圈子状态
+func UpdateCircleByTitle(title string) (int64, error) {
+	return mysql.UpdateCircleByTitle(title)
 }

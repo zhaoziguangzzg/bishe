@@ -39,3 +39,18 @@ func GetFavoriteByFid(fid int) (favorite *model.Favorite, err error) {
 
 	return favorite, nil
 }
+
+// 根据title获取收藏夹
+func GetFavoriteByTitle(title string, uid int) (favorite *model.Favorite, err error) {
+	favorite = new(model.Favorite)
+	err = DB.Model(&model.Favorite{}).Where("title=? and user_id=? and is_deleted=?", title, uid, model.FAVORITE_NOT_DELETED).First(&favorite).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound { //没查到数据返回空
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return favorite, nil
+}

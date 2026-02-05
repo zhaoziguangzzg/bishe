@@ -22,6 +22,7 @@ const (
 
 	CODE_CHECKIN_REPEAT   int = 3001
 	CODE_COMMENT_TOO_LONG int = 3002
+	CODE_TITLE_REPLACE    int = 3003
 
 	CODE_CIRCLE_EXIST                     int = 4001
 	CODE_CIRCLE_TITLE_LEN_INVASLID        int = 4002
@@ -37,6 +38,7 @@ const (
 
 	CODE_COMMENT_CONTENT_LEN_INVASLID int = 6003
 
+	CODE_FAVORITE_EXIST                 int = 7002
 	CODE_INTERACT_FAVORITE_LEN_INVASLID int = 7003
 	CODE_LIKE_NOT_EXIST                 int = 7004
 	CODE_COLLECT_NOT_EXIST              int = 7005
@@ -60,6 +62,7 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_CHECKIN_REPEAT:   "重复打卡",
 	CODE_COMMENT_TOO_LONG: "评论最多200字",
+	CODE_TITLE_REPLACE:    "请更换标题",
 
 	CODE_CIRCLE_EXIST:                     "圈子已存在",
 	CODE_CIRCLE_TITLE_LEN_INVASLID:        "圈子标题长度错误",
@@ -75,6 +78,7 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_COMMENT_CONTENT_LEN_INVASLID: "文章评论内容长度错误",
 
+	CODE_FAVORITE_EXIST:                 "收藏夹已存在",
 	CODE_INTERACT_FAVORITE_LEN_INVASLID: "文章收藏夹名长度错误",
 	CODE_LIKE_NOT_EXIST:                 "用户文章喜欢不存在",
 	CODE_COLLECT_NOT_EXIST:              "用户文章收藏不存在",

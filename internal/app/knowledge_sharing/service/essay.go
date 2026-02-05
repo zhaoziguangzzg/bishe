@@ -25,6 +25,11 @@ func GetEssayByEid(eid int) (essay *model.Essay, err error) {
 	return mysql.GetEssayByEid(eid)
 }
 
+// 根据title获取文章
+func GetEssayByTitle(title string, cid int) (essay *model.Essay, err error) {
+	return mysql.GetEssayByTitle(title, cid)
+}
+
 // 根据eid更新文章信息
 func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
 	return mysql.UpdateEssayByEid(eid, title, content)

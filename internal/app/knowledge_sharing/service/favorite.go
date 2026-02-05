@@ -15,6 +15,11 @@ func GetAllFavoriteByUid(uid int, page int, pagesize int) (favorites []model.Fav
 	return mysql.GetAllFavoriteByUid(uid, page, pagesize)
 }
 
+// 根据title获取收藏夹
+func GetFavoriteByTitle(title string, uid int) (favorite *model.Favorite, err error) {
+	return mysql.GetFavoriteByTitle(title, uid)
+}
+
 // 根据fid获取收藏夹
 func GetFavoriteByFid(fid int) (favorite *model.Favorite, err error) {
 	return mysql.GetFavoriteByFid(fid)

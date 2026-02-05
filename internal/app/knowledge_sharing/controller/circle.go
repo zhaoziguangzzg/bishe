@@ -59,16 +59,32 @@ func AddCircleHandler(c *gin.Context) {
 		UpdateAt:      &createTime,
 	}
 
-	// 插入数据库
-	err = service.CreateCircle(newCircle)
+	// 用户创建圈子之前，判断isdelete
+	circle, err := service.GetCircleByTitle(title)
 	if err != nil {
-		service.Logger.Error("CreateCircle err", zap.Error(err))
+		service.Logger.Error("GetCircleByTitle err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		err = service.CreateCircle(newCircle)
+		if err != nil {
+			service.Logger.Error("CreateCircle err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	if circle.CircleStatus == model.CIRCLE_NOT_DELETED {
 		MakeApiResponseError(c, CODE_CIRCLE_EXIST)
 		return
 	}
 
-	// 返回成功响应
-	MakeApiResponseSuccessDefault(c)
+	MakeApiResponseError(c, CODE_TITLE_REPLACE)
 }
 
 // 获取圈子列表
