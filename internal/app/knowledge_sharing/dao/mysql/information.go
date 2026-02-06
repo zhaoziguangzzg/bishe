@@ -15,7 +15,8 @@ func UserAddInformation(information *model.Information) (err error) {
 // 获取用户消息
 func GetInformationByUname(uname string) (information *model.Information, err error) {
 	information = new(model.Information)
-	err = DB.Model(&model.Information{}).Where("receive_name=? and is_deleted=?", uname, model.ESSAY_NOT_DELETED).First(&information).Error
+	err = DB.Model(&model.Information{}).Where("receive_name=? and is_deleted=?", uname, model.
+		INFORMATION_NOT_DELETED).First(&information).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -25,6 +26,43 @@ func GetInformationByUname(uname string) (information *model.Information, err er
 	}
 
 	return information, nil
+}
+
+// 获取用户接收消息
+func GetReceiveInformationByUid(uid int, sendId int, page int, pageSize int) (informations []model.Information, err error) {
+	offset := (page - 1) * pageSize
+
+	err = DB.Model(&model.Information{}).Where("send_id=? and receive_id=? and is_deleted=?", sendId, uid,
+		model.INFORMATION_NOT_DELETED).Order("id DESC").Offset(offset).Limit(pageSize).Find(&informations).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 获取用户发送消息
+func GetSendInformationByUid(uid int, receiveId int, page int, pageSize int) (informations []model.Information, err error) {
+	offset := (page - 1) * pageSize
+
+	err = DB.Model(&model.Information{}).Where("send_id=? and receive_id=? and is_deleted=?", uid, receiveId,
+		model.INFORMATION_NOT_DELETED).Order("id DESC").Offset(offset).Limit(pageSize).Find(&informations).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 获取用户消息
+func GetUserAllInformation(uid int, page int, pageSize int) (informations []model.Information, err error) {
+	offset := (page - 1) * pageSize
+	err = DB.Model(&model.Information{}).Where("send_id=? or receive_id=? and isdeleted=?", uid, uid, model.INFORMATION_NOT_DELETED).Order("id DESC").
+		Offset(offset).Limit(pageSize).Find(&informations).Error
+	if err != nil {
+		return
+	}
+	return
 }
 
 // 通知

@@ -21,6 +21,21 @@ func GetInformationByUname(uname string) (information *model.Information, err er
 	return mysql.GetInformationByUname(uname)
 }
 
+// 获取用户接收消息
+func GetReceiveInformationByUid(uid int, sendId int, page int, pageSize int) (informations []model.Information, err error) {
+	return mysql.GetReceiveInformationByUid(uid, sendId, page, pageSize)
+}
+
+// 获取用户发送消息
+func GetSendInformationByUid(uid int, receiveId int, page int, pageSize int) (informations []model.Information, err error) {
+	return mysql.GetSendInformationByUid(uid, receiveId, page, pageSize)
+}
+
+// 获取用户消息
+func GetUserAllInformation(uid int, page int, pageSize int) (informations []model.Information, err error) {
+	return mysql.GetUserAllInformation(uid, page, pageSize)
+}
+
 // 创建和发送消息
 func MakeAndSendNotice(sendId int, uname string, content string, t time.Time) (err error) {
 	notice := &model.Information{

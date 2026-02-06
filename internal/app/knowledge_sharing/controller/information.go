@@ -48,7 +48,7 @@ func CreateInformationHandle(c *gin.Context) {
 	// 插入数据库
 	err := service.UserAddInformation(newInformation)
 	if err != nil {
-		service.Logger.Error("CreateInformation err", zap.Error(err))
+		service.Logger.Error("UserAddInformation err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -57,8 +57,8 @@ func CreateInformationHandle(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 用户获取消息
-func GetUserInformationHandler(c *gin.Context) {
+// 获取用户接收各消息
+func GetUserReceiveInformationHandler(c *gin.Context) {
 	//获取uid
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
@@ -66,31 +66,123 @@ func GetUserInformationHandler(c *gin.Context) {
 		return
 	}
 
-	//todo uid获取消息
+	sendIdStr := c.Query("send_id")
+	if sendIdStr == "" {
+		service.Logger.Error("GetsendId err", zap.String("err", "get sendId err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
 
-	//根据uname获取消息
-	// information, err := service.GetInformationByUname(uid)
-	// if err != nil {
-	// 	service.Logger.Error("GetInformationByUname", zap.Error(err))
-	// 	MakeApiResponseErrorDefault(c)
-	// 	return
-	// }
+	sendId, err := strconv.Atoi(sendIdStr)
+	if err != nil {
+		service.Logger.Error("Atoi sendIdStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+	}
 
-	// if information == nil {
-	// 	MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
-	// 	return
-	// }
+	page := c.GetInt("page")
+	if page == 0 {
+		page = 1
+	}
 
-	// data := map[string]interface{}{
-	// 	"information": information,
-	// }
+	pageSize := 10
 
-	// MakeApiResponseSuccess(c, data)
+	//根据uid获取接收的消息
+	informations, err := service.GetReceiveInformationByUid(uid, sendId, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetReceiveInformationByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if informations == nil {
+		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"informations": informations,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
-//todo 获取用户对每个人发送的消息 分页
-//获取用户的消息列表
-//获取每个人对用户的消息
+// 获取用户发送各消息
+func GetUserSendInformationHandler(c *gin.Context) {
+	//获取uid
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	receiveIdStr := c.Query("receive_id")
+	if receiveIdStr == "" {
+		service.Logger.Error("GetreceiveId err", zap.String("err", "get receiveId err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	receiveId, err := strconv.Atoi(receiveIdStr)
+	if err != nil {
+		service.Logger.Error("Atoi receiveIdStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		page = 1
+	}
+
+	pageSize := 10
+
+	//根据uid获取发送的消息
+	informations, err := service.GetSendInformationByUid(uid, receiveId, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetSendInformationByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if informations == nil {
+		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"informations": informations,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 获取用户的消息列表
+func GetUserAllInformationHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page == 0 {
+		page = 1
+	}
+
+	pageSize := 10
+
+	informations, err := service.GetUserAllInformation(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserAllInformation err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if informations == nil {
+		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+		return
+	}
+
+}
 
 // 删除发送的消息
 func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {
