@@ -89,33 +89,22 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	}
 
-	// sendId := 1111
-
-	// createTime := time.Now()
-
-	// notice := &model.Information{
-	// 	SendId: sendId,
-	// 	// ReceiveAccount: UserAccount,
-	// 	Content:  content, //用户加入圈子成功
-	// 	CreateAt: &createTime,
-	// }
-
-	// err = service.AddUserNotice(notice)
-	// if err != nil {
-	// 	service.Logger.Error("AddUserNotice", zap.Error(err))
-	// 	MakeApiResponseError(c, CODE_SYS_ERROR)
-	// }
-
 	MakeApiResponseSuccessDefault(c)
 }
 
 // 用户退出圈子
 func UserQuitCircleHandler(c *gin.Context) {
-	cid := c.GetInt("cid")
-	if cid == 0 {
-		service.Logger.Error("GetInt cid err", zap.String("err", "get cid err"))
-		MakeApiResponseErrorDefault(c)
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
+		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	uid, _ := service.GetUserFromCookie(c)

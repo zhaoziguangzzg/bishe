@@ -52,8 +52,6 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	//todo 收藏到收藏夹 表
-
 	createTime := time.Now()
 
 	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
@@ -64,14 +62,32 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		UpdateAt:   &createTime,
 	}
 
-	err = service.CreateUserEssayCollect(newUserEssayCollect)
+	collect, err := service.GetUserEssayCollect(uid, eid)
 	if err != nil {
-		service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
+		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	if collect == nil {
+		err = service.CreateUserEssayCollect(newUserEssayCollect)
+		if err != nil {
+			service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	if collect.IsDeleted == model.COLLECT_NOT_DELETED {
+		MakeApiResponseError(c, CODE_COLLECT_EXIST)
+		return
+	}
+
+	// 返回响应
+	MakeApiResponseError(c, CODE_COLLECT_DELETED)
 }
 
 // 获取用户文章是否收藏

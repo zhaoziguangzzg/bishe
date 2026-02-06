@@ -40,14 +40,34 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		UpdateAt: &createTime,
 	}
 
-	err = service.CreateUserEssayLike(newUserEssayLike)
+	MakeApiResponseSuccessDefault(c)
+
+	like, err := service.GetUserEssayLike(uid, eid)
 	if err != nil {
-		service.Logger.Error("CreateUserEssayLike err", zap.Error(err))
+		service.Logger.Error("GetUserEssayLike", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	if like == nil {
+		err = service.CreateUserEssayLike(newUserEssayLike)
+		if err != nil {
+			service.Logger.Error("CreateUserEssayLike err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
+	if like.IsDeleted == model.LIKE_NOT_DELETED {
+		MakeApiResponseError(c, CODE_LIKE_EXIST)
+		return
+	}
+
+	// 返回响应
+	MakeApiResponseError(c, CODE_LIKE_DELETED)
 }
 
 // 获取用户文章是否喜欢

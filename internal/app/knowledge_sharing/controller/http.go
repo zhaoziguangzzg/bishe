@@ -42,6 +42,10 @@ const (
 	CODE_INTERACT_FAVORITE_LEN_INVASLID int = 7003
 	CODE_LIKE_NOT_EXIST                 int = 7004
 	CODE_COLLECT_NOT_EXIST              int = 7005
+	CODE_COLLECT_EXIST                  int = 7006
+	CODE_LIKE_EXIST                     int = 7007
+	CODE_COLLECT_DELETED                int = 7008
+	CODE_LIKE_DELETED                   int = 7009
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID int = 8003
 	CODE_INFORMATION_NOT_EXIST            int = 8004
@@ -82,6 +86,10 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_INTERACT_FAVORITE_LEN_INVASLID: "文章收藏夹名长度错误",
 	CODE_LIKE_NOT_EXIST:                 "用户文章喜欢不存在",
 	CODE_COLLECT_NOT_EXIST:              "用户文章收藏不存在",
+	CODE_COLLECT_EXIST:                  "用户文章已收藏",
+	CODE_LIKE_EXIST:                     "用户文章已喜欢",
+	CODE_COLLECT_DELETED:                "用户文章喜欢已删除",
+	CODE_LIKE_DELETED:                   "用户文章收藏已删除",
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
 	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
