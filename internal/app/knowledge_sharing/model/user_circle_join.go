@@ -10,16 +10,16 @@ type UserCircleJoin struct {
 	//用户加入的圈子id
 	CircleId int `json:"circleId" gorm:"column:circle_id" mapstructure:"circleId"`
 
-	JoinTime      *time.Time `json:"joinTime" gorm:"column:join_time" mapstructure:""`
-	JoinTimeStr   string     `json:"-" gorm:"-" mapstructure:"joinTime"`
-	UpdateAt      *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`
-	UpdateAtStr   string     `json:"-" gorm:"-" mapstructure:"updateAt"`
-	NotJoinStatus int        `json:"notJoinStatus" gorm:"column:not_join_status" mapstructure:"notJoinStatus"`
+	JoinTime    *time.Time `json:"joinTime" gorm:"column:join_time" mapstructure:""`
+	JoinTimeStr string     `json:"-" gorm:"-" mapstructure:"joinTime"`
+	UpdateAt    *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`
+	UpdateAtStr string     `json:"-" gorm:"-" mapstructure:"updateAt"`
+	JoinStatus  int        `json:"joinStatus" gorm:"column:join_status" mapstructure:"joinStatus"`
 }
 
 const (
-	USER_CIRCLE_NOT_NO_JOIN int = 0 //加入
-	USER_CIRCLE_NOT_JOIN    int = 1 //未加入
+	USER_CIRCLE_JOIN_JOIN_STATUS_NO_JOIN int = 0 //未加入
+	USER_CIRCLE_JOIN_JOIN_STATUS_JOIN    int = 1 //加入
 )
 
 // 指定UserCircleJoin对应的表名

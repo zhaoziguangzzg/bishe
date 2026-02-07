@@ -36,6 +36,24 @@ func AddUserHandler(c *gin.Context) {
 
 	createTime := time.Now()
 
+	//查询用户是否存在
+	user, err := service.GetUserByName(name)
+	if err != nil {
+		service.Logger.Error("GetUserByName", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	if user != nil {
+		if user.IsDeleted == model.USER_NOT_DELETED {
+			MakeApiResponseError(c, CODE_USER_NAME_EXIST)
+			return
+		}
+
+		MakeApiResponseError(c, CODE_USER_REPLACE)
+		return
+	}
+
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
 		Name:     name,
@@ -45,7 +63,7 @@ func AddUserHandler(c *gin.Context) {
 	}
 
 	// 插入数据库
-	err := service.CreateUser(newUser)
+	err = service.CreateUser(newUser)
 	if err != nil {
 		service.Logger.Error("CreateUser err", zap.Error(err))
 		MakeApiResponseError(c, CODE_USER_NAME_EXIST)
@@ -65,8 +83,10 @@ func UserLoginHandler(c *gin.Context) {
 	password := c.PostForm("password")
 
 	// 数据验证
-	if name == "" {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+	// 验证长度
+	nameLen := len(name)
+	if nameLen == 0 || nameLen > 20 {
+		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
 		return
 	}
 

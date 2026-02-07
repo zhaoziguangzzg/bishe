@@ -15,7 +15,8 @@ func CreateUserEssayCollect(newUserEssayCollect *model.UserEssayCollect) (err er
 // 根据uid,eid获取文章收藏
 func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCollect, err error) {
 	userEssayCollect = new(model.UserEssayCollect)
-	err = DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).
+	err = DB.Model(&model.UserEssayCollect{}).
+		Where("user_id=? and essay_id=? and is_deleted=?", uid, eid, model.COLLECT_NOT_DELETED).
 		First(&userEssayCollect).Error
 
 	if err != nil {
@@ -45,8 +46,8 @@ func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects 
 }
 
 // 取消收藏
-func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
-	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).
+func DeleteCollectById(id int) (int64, error) {
+	result := DB.Model(&model.UserEssayCollect{}).Where("id=?", id).
 		Update("is_deleted", model.COLLECT_IS_DELETED)
 
 	return result.RowsAffected, result.Error

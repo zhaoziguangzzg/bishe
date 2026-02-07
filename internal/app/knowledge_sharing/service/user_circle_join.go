@@ -16,16 +16,11 @@ func GetUserJoinCircleByUidCid(uid int, cid int) (userCircleJoin *model.UserCirc
 }
 
 // 获取用户圈子
-func GetUserCircleJoinByJoin(uid int, cid int) (join *model.UserCircleJoin, err error) {
-	return mysql.GetUserCircleJoinByJoin(uid, cid)
+func GetUserCircleJoinByUidCid(uid int, cid int) (join *model.UserCircleJoin, err error) {
+	return mysql.GetUserCircleJoinByUidCid(uid, cid)
 }
 
-// 用户退出圈子
-func UpdateUserCircleNotJoinStatusByUidCid(uid int, cid int) (int64, error) {
-	return mysql.UpdateUserCircleNotJoinStatusByUidCid(uid, cid)
-}
-
-// 用户加入圈子
-func UpdateUserCircleJoinStatusByUidCid(uid int, cid int) (int64, error) {
-	return mysql.UpdateUserCircleJoinStatusByUidCid(uid, cid)
+// 修改用户参与圈子状态
+func UpdateUserCircleJoinStatusByJid(jid int, joinStatus int) (int64, error) {
+	return mysql.UpdateUserCircleJoinStatusByJid(jid, joinStatus)
 }

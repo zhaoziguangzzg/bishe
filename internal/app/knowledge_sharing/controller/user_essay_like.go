@@ -31,17 +31,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 	}
 
-	createTime := time.Now()
-
-	newUserEssayLike := &model.UserEssayLike{ //其中包含自动生成的id
-		UserId:   uid,
-		EssayId:  eid,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
-	}
-
-	MakeApiResponseSuccessDefault(c)
-
+	//查询对文章的点赞
 	like, err := service.GetUserEssayLike(uid, eid)
 	if err != nil {
 		service.Logger.Error("GetUserEssayLike", zap.Error(err))
@@ -50,6 +40,15 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 	}
 
 	if like == nil {
+		createTime := time.Now()
+
+		newUserEssayLike := &model.UserEssayLike{ //其中包含自动生成的id
+			UserId:   uid,
+			EssayId:  eid,
+			CreateAt: &createTime,
+			UpdateAt: &createTime,
+		}
+
 		err = service.CreateUserEssayLike(newUserEssayLike)
 		if err != nil {
 			service.Logger.Error("CreateUserEssayLike err", zap.Error(err))
@@ -59,15 +58,49 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 		MakeApiResponseSuccessDefault(c)
 		return
-	}
+	} else {
+		if like.IsDeleted == model.LIKE_NOT_DELETED {
+			MakeApiResponseError(c, CODE_LIKE_EXIST)
+			return
+		}
 
-	if like.IsDeleted == model.LIKE_NOT_DELETED {
-		MakeApiResponseError(c, CODE_LIKE_EXIST)
+		// 返回响应
+		MakeApiResponseError(c, CODE_LIKE_DELETED)
+	}
+}
+
+// 取消用户喜欢
+func CancelUserEssayLikeHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
-	// 返回响应
-	MakeApiResponseError(c, CODE_LIKE_DELETED)
+	eidStr := c.Query("eid")
+	if eidStr == "" {
+		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		service.Logger.Error("Atoi eidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+	}
+
+	//TODO 获取喜欢
+
+	//喜欢转不喜欢
+	affectRows, err := service.UpdateUserEssayLikeIsToNot(uid, eid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateUserEssayLikeIsToNot err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 获取用户文章是否喜欢
@@ -108,7 +141,6 @@ func GetUserEssayLikeHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
-
 }
 
 // 获取用户全部喜欢
@@ -120,7 +152,7 @@ func GetUserAllLikeHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 
@@ -134,68 +166,13 @@ func GetUserAllLikeHandler(c *gin.Context) {
 		return
 	}
 
+	if essays == nil {
+		essays = make([]model.Essay, 0)
+	}
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"essays": essays,
 	})
-}
-
-// 更新用户喜欢
-func UpdateUserEssayLike(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	deleteStr := c.Query("delete")
-	if deleteStr == "" {
-		service.Logger.Error("Getdelete err", zap.String("err", "get delete err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	delete, err := strconv.Atoi(deleteStr)
-	if err != nil {
-		service.Logger.Error("Atoi deleteStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-	}
-
-	eidStr := c.Query("eid")
-	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	eid, err := strconv.Atoi(eidStr)
-	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-	}
-
-	//喜欢转不喜欢
-	if delete == model.LIKE_NOT_DELETED {
-		affectRows, err := service.UpdateUserEssayLikeIsToNot(uid, eid)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateUserEssayLikeIsToNot err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		MakeApiResponseSuccessDefault(c)
-		return
-	}
-
-	//不喜欢转喜欢
-	affectRows, err := service.UpdateUserEssayLikeNotToIs(uid, eid)
-	if err != nil || affectRows == 0 {
-		service.Logger.Error("UpdateUserEssayLikeNotToIs err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccessDefault(c)
-
 }
 
 // func UpdateUserEssayInteract(c *gin.Context) {

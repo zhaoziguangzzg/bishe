@@ -18,7 +18,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
@@ -38,7 +38,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 	// 	return
 	// }
 
-	fidStr := c.Query("fid")
+	fidStr := c.PostForm("fid")
 	if fidStr == "" {
 		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
@@ -52,6 +52,19 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
+	//is_deleted 直查询有效的
+	collect, err := service.GetUserEssayCollect(uid, eid)
+	if err != nil {
+		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if collect != nil {
+		MakeApiResponseError(c, CODE_COLLECT_EXIST)
+		return
+	}
+
 	createTime := time.Now()
 
 	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
@@ -62,36 +75,48 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		UpdateAt:   &createTime,
 	}
 
-	collect, err := service.GetUserEssayCollect(uid, eid)
+	//TODO 去唯一键，可以重复
+
+	err = service.CreateUserEssayCollect(newUserEssayCollect)
 	if err != nil {
-		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
+		service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if collect == nil {
-		err = service.CreateUserEssayCollect(newUserEssayCollect)
-		if err != nil {
-			service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	MakeApiResponseSuccessDefault(c)
+}
 
-		MakeApiResponseSuccessDefault(c)
+// 取消用户收藏
+func CancelEssayCollectHandler(c *gin.Context) {
+	//删除时，一定知道id
+	collectIdStr := c.PostForm("collectId")
+	if collectIdStr == "" {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	if collect.IsDeleted == model.COLLECT_NOT_DELETED {
-		MakeApiResponseError(c, CODE_COLLECT_EXIST)
+	collectId, err := strconv.Atoi(collectIdStr)
+	if err != nil {
+		service.Logger.Error("Atoi collectIdStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	// 返回响应
-	MakeApiResponseError(c, CODE_COLLECT_DELETED)
+	//取消收藏
+	affectRows, err := service.DeleteCollectById(collectId)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("DeleteCollectById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+
 }
 
 // 获取用户文章是否收藏
-func GetUserEssayCollectHandler(c *gin.Context) {
+func GetEssayCollectHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
@@ -111,6 +136,7 @@ func GetUserEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 	}
 
+	// TODO 仅查询有效的
 	collect, err := service.GetUserEssayCollect(uid, eid)
 	if err != nil {
 		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
@@ -133,6 +159,8 @@ func GetUserEssayCollectHandler(c *gin.Context) {
 
 // 获取用户全部收藏
 func GetUserAllCollectHandler(c *gin.Context) {
+	//TODO 获取收藏夹参数
+
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
@@ -140,7 +168,7 @@ func GetUserAllCollectHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 
@@ -157,77 +185,4 @@ func GetUserAllCollectHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"collects": collects,
 	})
-}
-
-// 更新用户收藏
-func UpdateUserEssayCollectHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	eidStr := c.Query("eid")
-	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	eid, err := strconv.Atoi(eidStr)
-	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-	}
-
-	deleteStr := c.Query("delete")
-	if deleteStr == "" {
-		service.Logger.Error("Getdelete err", zap.String("err", "get delete err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	delete, err := strconv.Atoi(deleteStr)
-	if err != nil {
-		service.Logger.Error("Atoi deleteStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-	}
-
-	fidStr := c.Query("fid")
-	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	fid, err := strconv.Atoi(fidStr)
-	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	//取消收藏
-	if delete == model.COLLECT_NOT_DELETED {
-		affectRows, err := service.UpdateUserEssayCollectIsToNot(uid, eid)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateUserEssayCollectIsToNot err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		MakeApiResponseSuccessDefault(c)
-		return
-	}
-
-	//添加收藏
-	affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, fid)
-	if err != nil || affectRows == 0 {
-		service.Logger.Error("UpdateUserEssayCollectNotToIs err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccessDefault(c)
-
 }

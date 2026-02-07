@@ -17,7 +17,7 @@ func GetAllFavoriteByUid(uid int, page int, pagesize int) (favorites []model.Fav
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Favorite{}).Where("user_id=? and is_deleted=?", uid, model.FAVORITE_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pagesize).Find(&favorites).Error
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&favorites).Error
 	if err != nil {
 		return
 	}

@@ -21,8 +21,8 @@ func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 }
 
 // get 付费圈子
-func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
-	return mysql.GetCircleAllChargeByJoinNum(page, pagesize)
+func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCircleAllChargeOrderByJoinNum(page, pagesize)
 }
 
 // get 免费圈子

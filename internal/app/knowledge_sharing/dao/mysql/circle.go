@@ -30,7 +30,8 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 // 根据title获取圈子
 func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 	circle = new(model.Circle)
-	err = DB.Model(&model.Circle{}).Where("title=?", title).First(&circle).Error
+	// 只查询正常
+	err = DB.Model(&model.Circle{}).Where("title=? and is_deleted=?", title, model.CIRCLE_NOT_DELETED).First(&circle).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -43,7 +44,7 @@ func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 }
 
 // get 付费圈子
-func GetCircleAllChargeByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Circle{}).Where("price>?", 0).Order("join_num DESC").
@@ -96,8 +97,8 @@ func GetUserJoinCircleListByUid(uid int, page int, pagesize int) (circles []mode
 	var cids []int
 	offset := (page - 1) * pagesize
 
-	err = DB.Model(&model.UserCircleJoin{}).Where("user_id=? and not_join_status=?", uid, model.
-		USER_CIRCLE_NOT_NO_JOIN).Order("join_time DESC").Offset(offset).Limit(pagesize).Pluck("circle_id", &cids).Error
+	err = DB.Model(&model.UserCircleJoin{}).Where("user_id=? and join_status=?", uid, model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN).
+		Order("join_time DESC").Offset(offset).Limit(pagesize).Pluck("circle_id", &cids).Error
 	if err != nil {
 		return
 	}

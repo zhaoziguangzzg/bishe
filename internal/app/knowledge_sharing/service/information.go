@@ -37,13 +37,13 @@ func GetUserAllInformation(uid int, page int, pageSize int) (informations []mode
 }
 
 // 创建和发送消息
-func MakeAndSendNotice(sendId int, uname string, content string, t time.Time) (err error) {
+func MakeAndSendNotice(sendId int, receiveId int, content string, t time.Time) (err error) {
 	notice := &model.Information{
-		SendId:      sendId,
-		ReceiveName: uname,
-		Content:     content,
-		CreateAt:    &t,
-		UpdateAt:    &t,
+		SendId:    sendId,
+		ReceiveId: receiveId,
+		Content:   content,
+		CreateAt:  &t,
+		UpdateAt:  &t,
 	}
 
 	err = AddUserNotice(notice)

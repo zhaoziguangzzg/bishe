@@ -50,47 +50,63 @@ func main() {
 
 	//用户模块
 	r.POST("/api/user/add", controller.AddUserHandler)       //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
+	r.POST("/api/user/update", controller.UpdateUserHandler) //更新用户信息
 	r.POST("/api/user/login", controller.UserLoginHandler)   //用户登录
 	r.GET("/api/user/get", controller.GetUserHandler)        //获取某用户信息
-	r.POST("/api/user/update", controller.UpdateUserHandler) //更新用户信息
 	r.GET("/api/user/logout", controller.UserLogoutHandler)  //用户退出登录
 
 	//圈子模块
 	r.POST("/api/circle/add", controller.AddCircleHandler)             //创建圈子
+	r.POST("/api/circle/update", controller.UpdateCircleHandler)       //更新圈子信息
 	r.GET("/api/circle/all", controller.GetAllCircleHandler)           //获取全部圈子
 	r.GET("/api/circle/get", controller.GetCircleHandler)              //获取圈子详情
 	r.GET("/api/circle/create", controller.GetUserCreateCircleHandler) //获取用户创建的圈子
 	r.GET("/api/circle/join", controller.GetUserJoinCircleHandler)     //获取用户加入的圈子
 	r.GET("/api/circle/charge", controller.GetChargeCircleRankHandler) //获取全部付费圈子
-	r.POST("/api/circle/update", controller.UpdateCircleHandler)       //更新圈子信息
 
 	//用户加入圈子
 	r.POST("/api/usercircle/add", controller.AddUserCircleJoinHandle) //创建用户加入圈子
-	r.POST("/api/usercircle/quit", controller.UserQuitCircleHandler)  //用户退出圈子
+	r.POST("/api/usercircle/quit", controller.QuitCircleHandler)      //用户退出圈子
 
 	//文章模块
 	r.POST("/api/essay/add", controller.AddEssayHandler)                         //创建文章
-	r.GET("/api/essay/userall", controller.GetUserAllEssayHandler)               //获取用户全部文章
-	r.GET("/api/essay/get", controller.GetEssayHandler)                          //查看文章
 	r.POST("/api/essay/update", controller.UpdateEssayHandler)                   //更新文章
-	r.GET("/api/essay/circleall", controller.GetCircleAllEssayHandler)           //获取圈子全部文章
 	r.POST("/api/essay/delete", controller.DeletedEssayByUpdateIsDeletedHandler) //删除文章
+	r.GET("/api/essay/get", controller.GetEssayHandler)                          //查看文章
+	r.GET("/api/essay/circleall", controller.GetCircleAllEssayHandler)           //获取圈子全部文章
+	r.GET("/api/essay/userall", controller.GetUserAllEssayHandler)               //获取用户全部文章
 
 	//点赞
-	r.POST("/api/like/add", controller.AddUserEssayLikeHandler) //添加点赞
-	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)  //获取点赞
-	r.GET("/api/like/all", controller.GetUserAllLikeHandler)    //获取用户点赞
-	r.POST("/api/like/update", controller.UpdateUserEssayLike)  //更新点赞删除
+	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)       //添加点赞
+	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler) //更新点赞删除
+	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)        //获取点赞
+	r.GET("/api/like/all", controller.GetUserAllLikeHandler)          //获取用户点赞
+
+	//收藏夹
+	r.POST("/api/favorite/add", controller.AddFavoriteHandler) //添加收藏夹
+	//TODO 删除收藏夹
+	//TODO 修改收藏夹名
+	r.GET("/api/favorite/get", controller.GetFavoriteHandler)        //获取收藏夹
+	r.GET("/api/favorite/all", controller.GetUserAllFavoriteHandler) //获取用户全部收藏夹
 
 	//收藏
-	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)       //添加收藏
-	r.GET("/api/collect/get", controller.GetUserEssayCollectHandler)        //获取收藏
-	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)          //获取用户的全部收藏
-	r.POST("/api/collect/update", controller.UpdateUserEssayCollectHandler) //更新收藏删除状态
+	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)   //添加收藏
+	r.POST("/api/collect/cancel", controller.CancelEssayCollectHandler) //更新收藏删除状态
+	r.GET("/api/collect/get", controller.GetEssayCollectHandler)        //获取收藏
+	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)      //获取用户的全部收藏
+
+	//评论
+	r.POST("/api/comment/add", controller.AddUserEssayCommentHandle)                  //创建用户评论
+	r.POST("/api/comment/deleted", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
+	r.GET("/api/comment/essayall", controller.GetEssayAllCommentHandle)               //获取文章全部评论
+	r.GET("/api/comment/userall", controller.GetUserAllCommentHandler)                //获取用户全部评论
 
 	//消息
-	r.POST("/api/information/add", controller.CreateInformationHandle)  //添加消息
-	r.GET("/api/information/get", controller.GetUserInformationHandler) //获取消息
+	r.POST("/api/information/add", controller.CreateInformationHandle) //添加消息
+	//TODO 联系人列表（send-receive）
+	//TODO 与某人消息记录
+	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
+	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))

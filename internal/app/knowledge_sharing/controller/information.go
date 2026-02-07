@@ -21,11 +21,12 @@ func CreateInformationHandle(c *gin.Context) {
 		return
 	}
 
-	uname := c.GetString("uname")
-	unameLen := len(uname)
-	if unameLen > model.INFORMATION_MAX_RECEIVE_NAME || unameLen == 0 {
-		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
-		return
+	receiveIdStr := c.PostForm("receive_id")
+
+	receiveId, err := strconv.Atoi(receiveIdStr)
+	if err != nil {
+		service.Logger.Error("Atoi receiveIdStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 	}
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -38,15 +39,15 @@ func CreateInformationHandle(c *gin.Context) {
 
 	// 构造消息
 	newInformation := &model.Information{ //其中包含自动生成的id
-		SendId:      uid,
-		ReceiveName: uname,
-		Content:     content,
-		CreateAt:    &createTime,
-		UpdateAt:    &createTime,
+		SendId:    uid,
+		ReceiveId: receiveId,
+		Content:   content,
+		CreateAt:  &createTime,
+		UpdateAt:  &createTime,
 	}
 
 	// 插入数据库
-	err := service.UserAddInformation(newInformation)
+	err = service.UserAddInformation(newInformation)
 	if err != nil {
 		service.Logger.Error("UserAddInformation err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -57,7 +58,7 @@ func CreateInformationHandle(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 获取用户接收各消息
+// 获取用户接收消息
 func GetUserReceiveInformationHandler(c *gin.Context) {
 	//获取uid
 	uid, _ := service.GetUserFromCookie(c)
@@ -80,7 +81,7 @@ func GetUserReceiveInformationHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 
@@ -106,7 +107,7 @@ func GetUserReceiveInformationHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// 获取用户发送各消息
+// 获取与某人消息
 func GetUserSendInformationHandler(c *gin.Context) {
 	//获取uid
 	uid, _ := service.GetUserFromCookie(c)
@@ -129,7 +130,7 @@ func GetUserSendInformationHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 
@@ -144,7 +145,7 @@ func GetUserSendInformationHandler(c *gin.Context) {
 	}
 
 	if informations == nil {
-		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
+		informations = make([]model.Information, 0)
 		return
 	}
 
@@ -155,7 +156,7 @@ func GetUserSendInformationHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// 获取用户的消息列表
+// 获取用户的消息记录
 func GetUserAllInformationHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
@@ -164,7 +165,7 @@ func GetUserAllInformationHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 

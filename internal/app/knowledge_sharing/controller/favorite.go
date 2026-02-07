@@ -27,16 +27,6 @@ func AddFavoriteHandler(c *gin.Context) { //c
 		return
 	}
 
-	createTime := time.Now()
-
-	// 收藏夹
-	newFavorite := &model.Favorite{ //其中包含自动生成的id
-		Title:    title,
-		UserId:   uid,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
-	}
-
 	// 用户创建收藏夹之前，判断Favorite
 	favorite, err := service.GetFavoriteByTitle(title, uid)
 	if err != nil {
@@ -45,26 +35,36 @@ func AddFavoriteHandler(c *gin.Context) { //c
 		return
 	}
 
-	if favorite == nil {
-		err = service.CreateFavorite(newFavorite)
-		if err != nil {
-			service.Logger.Error("CreateFavorite err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
+	if favorite != nil {
+		if favorite.IsDeleted == model.FAVORITE_NOT_DELETED {
+			MakeApiResponseError(c, CODE_FAVORITE_EXIST)
 			return
 		}
 
-		MakeApiResponseSuccessDefault(c)
+		//TODO 去掉唯一键
+	}
+
+	createTime := time.Now()
+
+	// 收藏夹
+	newFavorite := &model.Favorite{ //其中包含自动生成的id
+		Title:    title,
+		UserId:   uid,
+		CreateAt: &createTime,
+		UpdateAt: &createTime,
+		//TODO 状态
+		FavoriteStatus: model.FAVORITE_STATUS_NORMAL,
+		IsDeleted:      model.FAVORITE_NOT_DELETED,
+	}
+
+	err = service.CreateFavorite(newFavorite)
+	if err != nil {
+		service.Logger.Error("CreateFavorite err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if favorite.IsDeleted == model.FAVORITE_NOT_DELETED {
-		MakeApiResponseError(c, CODE_FAVORITE_EXIST)
-		return
-	}
-
-	// 返回响应
-	MakeApiResponseError(c, CODE_TITLE_REPLACE)
-
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 获取用户全部的收藏夹
@@ -76,7 +76,7 @@ func GetUserAllFavoriteHandler(c *gin.Context) {
 	}
 
 	page := c.GetInt("page")
-	if page == 0 {
+	if page < 1 {
 		page = 1
 	}
 
@@ -88,6 +88,10 @@ func GetUserAllFavoriteHandler(c *gin.Context) {
 		service.Logger.Error("GetAllFavoriteByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	if favorites == nil {
+		favorites = make([]model.Favorite, 0)
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{

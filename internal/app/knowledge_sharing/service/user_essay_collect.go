@@ -21,8 +21,8 @@ func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects 
 }
 
 // 取消收藏
-func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
-	return mysql.UpdateUserEssayCollectIsToNot(uid, eid)
+func DeleteCollectById(id int) (int64, error) {
+	return mysql.DeleteCollectById(id)
 }
 
 // 进行收藏

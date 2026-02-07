@@ -17,7 +17,7 @@ func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, er
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Essay{}).Where("author_id=? and is_deleted=?", uid, model.ESSAY_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pagesize).Find(&essays).Error
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
 	if err != nil {
 		return
 	}
@@ -51,6 +51,23 @@ func GetEssayByEid(eid int) (essay *model.Essay, err error) {
 	}
 
 	return essay, nil
+}
+
+// 根据eids获取文章
+func GetEssayByEids(eids []int) (newEssays []model.Essay, err error) {
+	//TODO in取的数据为乱序，需要排序
+	var essays []model.Essay
+	err = DB.Where("id IN (?)", eids).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
+	//TODO 按eids 排序
+	for {
+
+	}
+
+	return
 }
 
 // 根据title获取文章

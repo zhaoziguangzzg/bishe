@@ -8,7 +8,7 @@ type Information struct {
 	//发送uid
 	SendId int `json:"sendId" gorm:"column:send_id" mapstructure:"sendId"`
 	//接收name
-	ReceiveName string `json:"receiveName" gorm:"column:receive_name" mapstructure:"receiveName"`
+	ReceiveId int `json:"receiveId" gorm:"column:receive_id" mapstructure:"receiveId"` //TODO 修改数据库
 	//消息内容
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 

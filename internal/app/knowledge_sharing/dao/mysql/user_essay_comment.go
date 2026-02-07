@@ -17,17 +17,11 @@ func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserE
 }
 
 //get 用户全部comment
-func GetUserAllCommentEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
-	var eids []int
+func GetUserAllCommentIdByUid(uid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
 	offset := (page - 1) * pageSize
 
 	err = DB.Model(&model.UserEssayComment{}).Where("user_id and is_deleted=?", uid, model.COMMENT_NOT_DELETED).
-		Order("id ASC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
-	if err != nil {
-		return
-	}
-
-	err = DB.Where("id IN (?)", eids).Error
+		Order("id DESC").Offset(offset).Limit(pageSize).Find(&comments).Error
 	if err != nil {
 		return
 	}

@@ -32,23 +32,52 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	}
 
-	joinTime := time.Now()
-	newUserCircle := &model.UserCircleJoin{
-		UserId:   uid,
-		CircleId: cid,
-		JoinTime: &joinTime,
-		UpdateAt: &joinTime,
-	}
-
 	// 用户加入圈子之前，判断join_status 是否=1
-	join, err := service.GetUserCircleJoinByJoin(uid, cid)
+	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 	if err != nil {
-		service.Logger.Error("GetUserCircleJoinByJoin err", zap.Error(err))
+		service.Logger.Error("GetUserCircleJoinByUidCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if join == nil {
+	if join != nil {
+		//join非空,加入过
+		if join.JoinStatus == model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN {
+			//TODO 提示已加入
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//用户加入圈子
+		//更新join_status
+		affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN)
+		if affectRows == 0 || err != nil {
+			service.Logger.Error("UpdateUserCircleJoinStatusByJid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//更新circle join_num+1
+		affectRows, err = service.IncrUpdateCircleJoinNumByCid(cid)
+		if affectRows == 0 || err != nil {
+			service.Logger.Error("IncrUpdateCircleJoinNumByCid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+		return
+	} else {
+		//空，未加入过
+		joinTime := time.Now()
+		newUserCircle := &model.UserCircleJoin{
+			UserId:     uid,
+			CircleId:   cid,
+			JoinTime:   &joinTime,
+			UpdateAt:   &joinTime,
+			JoinStatus: model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN,
+		}
+
 		err = service.CreateUserCircleJoin(newUserCircle)
 		if err != nil {
 			service.Logger.Error("CreateUserCircleJoin err", zap.Error(err))
@@ -67,33 +96,10 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	}
 
-	if join.NotJoinStatus == model.USER_CIRCLE_NOT_NO_JOIN {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	//用户加入圈子
-	//更新join_status
-	affectRows, err := service.UpdateUserCircleJoinStatusByUidCid(uid, cid)
-	if affectRows == 0 || err != nil {
-		service.Logger.Error("UpdateUserCircleJoinStatusByUidCid err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	//更新circle join_num+1
-	affectRows, err = service.IncrUpdateCircleJoinNumByCid(cid)
-	if affectRows == 0 || err != nil {
-		service.Logger.Error("IncrUpdateCircleJoinNumByCid err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccessDefault(c)
 }
 
 // 用户退出圈子
-func UserQuitCircleHandler(c *gin.Context) {
+func QuitCircleHandler(c *gin.Context) {
 	cidStr := c.Query("cid")
 	if cidStr == "" {
 		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
@@ -113,11 +119,25 @@ func UserQuitCircleHandler(c *gin.Context) {
 		return
 	}
 
+	//TODO 获取用户是否加入圈子
+	// 用户加入圈子之前，判断join_status 是否=1
+	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetUserCircleJoinByUidCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if join == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_JOIN_CIRCLE)
+		return
+	}
+
 	//退出用户加入圈子
 	//更新join_status
-	affectRows, err := service.UpdateUserCircleNotJoinStatusByUidCid(uid, cid)
+	affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_JOIN_STATUS_NO_JOIN)
 	if affectRows == 0 || err != nil {
-		service.Logger.Error("UpdateUserCircleNotJoinStatusByUidCid err", zap.Error(err))
+		service.Logger.Error("UpdateUserCircleJoinStatusByJid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

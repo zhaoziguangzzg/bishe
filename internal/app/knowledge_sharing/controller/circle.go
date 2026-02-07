@@ -48,6 +48,23 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
+	// 用户创建圈子之前，判断isdelete
+
+	// 删除唯一键，通过获取判断只有一个
+	circle, err := service.GetCircleByTitle(title)
+	if err != nil {
+		service.Logger.Error("GetCircleByTitle err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 有正常状态返回，没有就创建
+
+	if circle != nil {
+		MakeApiResponseError(c, CODE_CIRCLE_EXIST)
+		return
+	}
+
 	createTime := time.Now()
 	// 构造圈子对象
 	newCircle := &model.Circle{ //其中包含自动生成的id
@@ -59,194 +76,15 @@ func AddCircleHandler(c *gin.Context) {
 		UpdateAt:      &createTime,
 	}
 
-	// 用户创建圈子之前，判断isdelete
-	circle, err := service.GetCircleByTitle(title)
+	err = service.CreateCircle(newCircle)
 	if err != nil {
-		service.Logger.Error("GetCircleByTitle err", zap.Error(err))
+		service.Logger.Error("CreateCircle err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if circle == nil {
-		err = service.CreateCircle(newCircle)
-		if err != nil {
-			service.Logger.Error("CreateCircle err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	MakeApiResponseSuccessDefault(c)
 
-		MakeApiResponseSuccessDefault(c)
-		return
-	}
-
-	if circle.CircleStatus == model.CIRCLE_NOT_DELETED {
-		MakeApiResponseError(c, CODE_CIRCLE_EXIST)
-		return
-	}
-
-	MakeApiResponseError(c, CODE_TITLE_REPLACE)
-}
-
-// 获取圈子列表
-func GetAllCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page == 0 {
-		page = 1
-	}
-
-	pagesize := 10
-
-	//获取全部circle，按joinnum倒叙
-	circles, err := service.GetCircleAllByJoinNum(page, pagesize)
-	if err != nil {
-		service.Logger.Error("GetCircleAllByJoinNum", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circles": circles,
-	})
-}
-
-// 获取圈子详情
-func GetCircleHandler(c *gin.Context) {
-	cidStr := c.Query("cid")
-	if cidStr == "" {
-		service.Logger.Error("Query cidStr err", zap.String("err", "get cidStr err"))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	//根据uidcid获取用户加入
-	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
-	if err != nil {
-		service.Logger.Error("GetUserJoinCircleByUidCid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	//如果用户已加入圈子
-	if userCircleJoin != nil {
-		//进入圈子
-		return
-	}
-
-	//用户未加入圈子
-	//根据cid获取圈子
-	circle, err := service.GetCircleByCid(cid)
-	if err != nil {
-		service.Logger.Error("GetCircleByCid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if circle == nil {
-		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
-		return
-	}
-
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circle": circle,
-	})
-}
-
-// 获取用户创建的圈子列表
-func GetUserCreateCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page == 0 {
-		page = 1
-	}
-
-	pagesize := 5
-
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	circles, err := service.GetUserCreateCircleByUid(uid, page, pagesize)
-	if err != nil {
-		service.Logger.Error("GetUserCreateCircleByUid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if circles == nil {
-		MakeApiResponseError(c, CODE_USER_NOT_CREATE_CIRCLE)
-		return
-	}
-
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circles": circles,
-	})
-
-}
-
-// 获取用户已加入圈子的列表
-func GetUserJoinCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page == 0 {
-		service.Logger.Error("GetInt page err", zap.String("err", "get page err"))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	pagesize := 5
-
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	//根据uid获取用户加入的圈子列表
-	circles, err := service.GetUserJoinCircleListByUid(uid, page, pagesize)
-	if err != nil {
-		service.Logger.Error("GetUserJoinCircleListByUid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circle": circles,
-	})
-}
-
-// 获取付费圈子排行
-func GetChargeCircleRankHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page == 0 {
-		page = 1
-	}
-
-	pagesize := 10
-
-	//获取付费circle，按joinnum倒叙
-	circles, err := service.GetCircleAllChargeByJoinNum(page, pagesize)
-	if err != nil {
-		service.Logger.Error("GetCircleAllChargeByJoinNum", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circles": circles,
-	})
 }
 
 // 更新圈子信息
@@ -316,4 +154,174 @@ func UpdateCircleHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取圈子列表
+func GetAllCircleHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pagesize := 10
+
+	//获取全部circle，按joinnum倒叙
+	circles, err := service.GetCircleAllByJoinNum(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetCircleAllByJoinNum", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circles": circles,
+	})
+}
+
+// 获取圈子详情
+func GetCircleHandler(c *gin.Context) {
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		service.Logger.Error("Query cidStr err", zap.String("err", "get cidStr err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		service.Logger.Error("Atoi cidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//根据uidcid获取用户加入
+	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetUserJoinCircleByUidCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//是否已加入
+	isJoin := false
+
+	//如果用户已加入圈子
+	if userCircleJoin != nil {
+		isJoin = true
+	}
+
+	//用户未加入圈子
+	//根据cid获取圈子
+	circle, err := service.GetCircleByCid(cid)
+	if err != nil {
+		service.Logger.Error("GetCircleByCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"is_join": isJoin,
+		"circle":  circle,
+	})
+}
+
+// 获取用户创建的圈子列表
+func GetUserCreateCircleHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pagesize := 5
+
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	circles, err := service.GetUserCreateCircleByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetUserCreateCircleByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//如果circles为nil，make保证circles不为空
+	if circles == nil {
+		circles = make([]model.Circle, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circles": circles,
+	})
+
+}
+
+// 获取用户已加入圈子的列表
+func GetUserJoinCircleHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pagesize := 5
+
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//根据uid获取用户加入的圈子列表
+	circles, err := service.GetUserJoinCircleListByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetUserJoinCircleListByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//make保证json化时为[],而不是null
+	if circles == nil {
+		circles = make([]model.Circle, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circle": circles,
+	})
+}
+
+// 获取付费圈子排行
+func GetChargeCircleRankHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pagesize := 10
+
+	//获取付费circle，按joinnum倒叙
+	circles, err := service.GetCircleAllChargeOrderByJoinNum(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetCircleAllChargeOrderByJoinNum", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//TODO nil
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circles": circles,
+	})
 }
