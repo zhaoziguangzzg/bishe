@@ -67,6 +67,78 @@ func AddFavoriteHandler(c *gin.Context) { //c
 	MakeApiResponseSuccessDefault(c)
 }
 
+// 更新收藏夹名
+func UpdateFavoriteTitleHandler(c *gin.Context) {
+	title := c.PostForm("title")
+
+	titleLen := len(title)
+	if titleLen == 0 || titleLen > 100 {
+		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
+		return
+	}
+
+	fidStr := c.PostForm("fid")
+	if fidStr == "" {
+		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	fid, err := strconv.Atoi(fidStr)
+	if err != nil {
+		service.Logger.Error("Atoi fidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+	}
+
+	//根据fid获取收藏夹
+	favorite, err := service.GetFavoriteByFid(fid)
+	if err != nil {
+		service.Logger.Error("GetFavoriteByFid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if favorite == nil {
+		MakeApiResponseError(c, CODE_FAVORITE_NOT_EXIST)
+		return
+	}
+
+	affectRows, err := service.UpdateFavoriteTitleByFid(fid, title)
+	if err != nil || affectRows != 0 {
+		service.Logger.Error("UpdateFavoriteTitleByFid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 删除收藏夹
+func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
+	//更新字段
+	fidStr := c.PostForm("fid")
+	if fidStr == "" {
+		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	fid, err := strconv.Atoi(fidStr)
+	if err != nil {
+		service.Logger.Error("Atoi fidStr err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+	}
+
+	affectRows, err := service.UpdateFavoriteIsDeleted(fid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateFavoriteIsDeleted err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
 // 获取用户全部的收藏夹
 func GetUserAllFavoriteHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)

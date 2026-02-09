@@ -28,7 +28,7 @@ func GetAllFavoriteByUid(uid int, page int, pagesize int) (favorites []model.Fav
 // 根据fid获取收藏夹
 func GetFavoriteByFid(fid int) (favorite *model.Favorite, err error) {
 	favorite = new(model.Favorite)
-	err = DB.Model(&model.Favorite{}).Where("id=? and is_deleted=?", fid, model.FAVORITE_NOT_DELETED).First(&favorite).Error
+	err = DB.Model(&model.Favorite{}).Where("id=?", fid, model.FAVORITE_NOT_DELETED).First(&favorite).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -53,4 +53,16 @@ func GetFavoriteByTitle(title string, uid int) (favorite *model.Favorite, err er
 	}
 
 	return favorite, nil
+}
+
+// 根据fid更新收藏夹标题
+func UpdateFavoriteTitleByFid(fid int, title string) (int64, error) {
+	result := DB.Model(&model.Favorite{}).Where("id=?", fid).Update("title", title)
+	return result.RowsAffected, result.Error
+}
+
+// 更新IsDeleted删除收藏夹
+func UpdateFavoriteIsDeleted(fid int) (int64, error) {
+	result := DB.Model(&model.Favorite{}).Where("id=?", fid).Update("is_deleted", model.FAVORITE_IS_DELETED)
+	return result.RowsAffected, result.Error
 }

@@ -24,3 +24,13 @@ func GetFavoriteByTitle(title string, uid int) (favorite *model.Favorite, err er
 func GetFavoriteByFid(fid int) (favorite *model.Favorite, err error) {
 	return mysql.GetFavoriteByFid(fid)
 }
+
+// 根据fid更新收藏夹标题
+func UpdateFavoriteTitleByFid(fid int, title string) (int64, error) {
+	return mysql.UpdateFavoriteTitleByFid(fid, title)
+}
+
+// 更新IsDeleted删除收藏夹
+func UpdateFavoriteIsDeleted(fid int) (int64, error) {
+	return mysql.UpdateFavoriteIsDeleted(fid)
+}

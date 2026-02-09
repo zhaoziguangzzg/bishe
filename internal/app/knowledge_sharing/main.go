@@ -83,11 +83,11 @@ func main() {
 	r.GET("/api/like/all", controller.GetUserAllLikeHandler)          //获取用户点赞
 
 	//收藏夹
-	r.POST("/api/favorite/add", controller.AddFavoriteHandler) //添加收藏夹
-	//TODO 删除收藏夹
-	//TODO 修改收藏夹名
-	r.GET("/api/favorite/get", controller.GetFavoriteHandler)        //获取收藏夹
-	r.GET("/api/favorite/all", controller.GetUserAllFavoriteHandler) //获取用户全部收藏夹
+	r.POST("/api/favorite/add", controller.AddFavoriteHandler)                         //添加收藏夹
+	r.POST("/api/favorite/update", controller.UpdateFavoriteTitleHandler)              //修改收藏夹名
+	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler) //删除收藏夹
+	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                          //获取收藏夹
+	r.GET("/api/favorite/all", controller.GetUserAllFavoriteHandler)                   //获取用户全部收藏夹
 
 	//收藏
 	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)   //添加收藏
@@ -103,7 +103,7 @@ func main() {
 
 	//消息
 	r.POST("/api/information/add", controller.CreateInformationHandle) //添加消息
-	//TODO 联系人列表（send-receive）
+	//TODO 联系人列表（send-receive）   建联系人表
 	//TODO 与某人消息记录
 	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
 	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息
