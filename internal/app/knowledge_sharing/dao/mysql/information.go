@@ -12,6 +12,20 @@ func UserAddInformation(information *model.Information) (err error) {
 	return
 }
 
+// 获取消息用户列表
+func GetUserInformation(uid int, page int, pageSize int) (informations []model.Information, err error) {
+	offset := (page - 1) * pageSize
+
+	err = DB.Model(&model.Information{}).
+		Where("Send_id=? Or receive_id=? and is_deleted=?", uid, uid, model.INFORMATION_NOT_DELETED).
+		Order("id DESC").Offset(offset).Limit(pageSize).Find(&informations).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // 获取用户消息
 func GetInformationByUname(uname string) (information *model.Information, err error) {
 	information = new(model.Information)

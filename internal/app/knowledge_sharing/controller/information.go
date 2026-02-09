@@ -58,6 +58,41 @@ func CreateInformationHandle(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
+// 获取消息联系人列表
+func GetInformationUsersHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize := 10
+
+	//获取消息用户列表
+	informations, err := service.GetUserInformation(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserInformation", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if informations == nil {
+		informations = make([]model.Information, 0)
+	}
+
+	data := map[string]interface{}{
+		"informations": informations,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
+
 // 获取用户接收消息
 func GetUserReceiveInformationHandler(c *gin.Context) {
 	//获取uid
@@ -96,8 +131,7 @@ func GetUserReceiveInformationHandler(c *gin.Context) {
 	}
 
 	if informations == nil {
-		MakeApiResponseError(c, CODE_INFORMATION_NOT_EXIST)
-		return
+		informations = make([]model.Information, 0)
 	}
 
 	data := map[string]interface{}{
