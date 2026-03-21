@@ -42,15 +42,15 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 
 	if join != nil {
 		//join非空,加入过
-		if join.JoinStatus == model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN {
-			//TODO 提示已加入
-			MakeApiResponseErrorDefault(c)
+		if join.NotJoinStatus == model.USER_CIRCLE_JOIN_STATUS_JOIN {
+			// 提示已加入
+			MakeApiResponseError(c, CODE_USER_JOIN_CIRCLE)
 			return
 		}
 
 		//用户加入圈子
 		//更新join_status
-		affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN)
+		affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_STATUS_JOIN)
 		if affectRows == 0 || err != nil {
 			service.Logger.Error("UpdateUserCircleJoinStatusByJid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -71,11 +71,11 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		//空，未加入过
 		joinTime := time.Now()
 		newUserCircle := &model.UserCircleJoin{
-			UserId:     uid,
-			CircleId:   cid,
-			JoinTime:   &joinTime,
-			UpdateAt:   &joinTime,
-			JoinStatus: model.USER_CIRCLE_JOIN_JOIN_STATUS_JOIN,
+			UserId:        uid,
+			CircleId:      cid,
+			JoinTime:      &joinTime,
+			UpdateAt:      &joinTime,
+			NotJoinStatus: model.USER_CIRCLE_JOIN_STATUS_JOIN,
 		}
 
 		err = service.CreateUserCircleJoin(newUserCircle)
@@ -119,8 +119,8 @@ func QuitCircleHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO 获取用户是否加入圈子
-	// 用户加入圈子之前，判断join_status 是否=1
+	// 获取用户是否加入圈子
+	// 用户加入圈子之前，判断not_join_status 是否=0
 	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 	if err != nil {
 		service.Logger.Error("GetUserCircleJoinByUidCid err", zap.Error(err))
@@ -134,8 +134,8 @@ func QuitCircleHandler(c *gin.Context) {
 	}
 
 	//退出用户加入圈子
-	//更新join_status
-	affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_JOIN_STATUS_NO_JOIN)
+	//更新not_join_status
+	affectRows, err := service.UpdateUserCircleJoinStatusByJid(join.Id, model.USER_CIRCLE_JOIN_STATUS_NOT_JOIN)
 	if affectRows == 0 || err != nil {
 		service.Logger.Error("UpdateUserCircleJoinStatusByJid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

@@ -74,6 +74,8 @@ func AddCircleHandler(c *gin.Context) {
 		CircleOwnerId: uid,
 		CreateAt:      &createTime,
 		UpdateAt:      &createTime,
+		CircleStatus:  model.CIRCLE_STATUS_NORMAL,
+		IsDeleted:     model.CIRCLE_NOT_DELETED,
 	}
 
 	err = service.CreateCircle(newCircle)
@@ -101,6 +103,7 @@ func UpdateCircleHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	title := c.PostForm("title")
@@ -251,6 +254,7 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 		return
 	}
 
+	//获取用户创建的圈子
 	circles, err := service.GetUserCreateCircleByUid(uid, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetUserCreateCircleByUid", zap.Error(err))
@@ -298,7 +302,7 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circle": circles,
+		"circles": circles,
 	})
 }
 
@@ -319,7 +323,10 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO nil
+	// nil
+	if circles == nil {
+		circles = make([]model.Circle, 0)
+	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"circles": circles,

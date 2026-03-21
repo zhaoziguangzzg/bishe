@@ -24,8 +24,8 @@ func GetUserByUserId(UserId int) (user *model.User, err error) {
 }
 
 // 更新
-func UpdateUserByUid(uid int, name string, email string, phone int) (int64, error) {
-	return mysql.UpdateUserByUid(uid, name, email, phone)
+func UpdateUserByUid(uid int, name string, email string, age int, phone int) (int64, error) {
+	return mysql.UpdateUserByUid(uid, name, email, age, phone)
 }
 
 // 将用户信息设置到cookie

@@ -12,7 +12,7 @@ type User struct {
 	//邮箱
 	Email string `json:"email" gorm:"column:email" mapstructure:"email"`
 	//年龄
-	// Age int `json:"age" gorm:"column:age" mapstructure:"age"`
+	Age int `json:"age" gorm:"column:age" mapstructure:"age"`
 	//电话
 	Phone int `json:"phone" gorm:"column:phone" mapstructure:"phone"`
 	//创建时间
@@ -33,6 +33,8 @@ const (
 
 	USER_NOT_DELETED int = 0 //未被删除
 	USER_IS_DELETED  int = 1 //被删除
+
+	USER_MAX_AGE int = 150 //用户年龄最大150
 )
 
 // 指定User对应的表名

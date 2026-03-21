@@ -13,10 +13,11 @@ func CreateUser(newUser *model.User) (err error) {
 }
 
 // 更新
-func UpdateUserByUid(uid int, name string, email string, phone int) (int64, error) {
+func UpdateUserByUid(uid int, name string, email string, age int, phone int) (int64, error) {
 	user := model.User{
 		Name:  name,
 		Email: email,
+		Age:   age,
 		Phone: phone,
 	}
 	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(user)
@@ -26,7 +27,7 @@ func UpdateUserByUid(uid int, name string, email string, phone int) (int64, erro
 // 根据name获取用户
 func GetUserByName(name string) (user *model.User, err error) {
 	user = &model.User{}
-	err = DB.Model(&model.User{}).Where("name=?", name).First(&user).Error
+	err = DB.Model(&model.User{}).Where("name=? and is_deleted=?", name, model.USER_NOT_DELETED).First(&user).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -42,7 +43,7 @@ func GetUserByName(name string) (user *model.User, err error) {
 // 根据uid获取用户
 func GetUserByUserId(UserId int) (user *model.User, err error) {
 	user = new(model.User)
-	err = DB.Model(&model.User{}).Where("id=?", UserId).First(&user).Error
+	err = DB.Model(&model.User{}).Where("id=? and is_deleted=?", UserId, model.USER_NOT_DELETED).First(&user).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

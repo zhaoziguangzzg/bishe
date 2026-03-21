@@ -63,6 +63,7 @@ func main() {
 	r.GET("/api/circle/create", controller.GetUserCreateCircleHandler) //获取用户创建的圈子
 	r.GET("/api/circle/join", controller.GetUserJoinCircleHandler)     //获取用户加入的圈子
 	r.GET("/api/circle/charge", controller.GetChargeCircleRankHandler) //获取全部付费圈子
+	//获取全部免费圈子
 
 	//用户加入圈子
 	r.POST("/api/usercircle/add", controller.AddUserCircleJoinHandle) //创建用户加入圈子

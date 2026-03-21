@@ -56,10 +56,12 @@ func AddUserHandler(c *gin.Context) {
 
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
-		Name:     name,
-		Password: password,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
+		Name:       name,
+		Password:   password,
+		CreateAt:   &createTime,
+		UpdateAt:   &createTime,
+		UserStatus: model.USER_STATUS_NORMAL,
+		IsDeleted:  model.USER_NOT_DELETED,
 	}
 
 	// 插入数据库
@@ -100,6 +102,7 @@ func UserLoginHandler(c *gin.Context) {
 		return
 	}
 
+	//根据姓名获取用户信息
 	user, err := service.GetUserByName(name)
 	if err != nil {
 		service.Logger.Error("GetUserByName", zap.Error(err))
@@ -152,10 +155,12 @@ func GetUserHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"name":  user.Name,
-		"email": user.Email,
-		"phone": user.Phone})
+
+	data := map[string]interface{}{
+		"user": user,
+	}
+
+	MakeApiResponseSuccess(c, data)
 
 }
 
@@ -171,6 +176,7 @@ func UpdateUserHandler(c *gin.Context) {
 
 	userName := c.PostForm("name")
 	email := c.PostForm("email")
+	ageStr := c.PostForm("age")
 	phoneStr := c.PostForm("phone")
 
 	//检测name超长，name="",
@@ -186,6 +192,17 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
+	age, err := strconv.Atoi(ageStr)
+	if err != nil {
+		MakeApiResponseError(c, CODE_USER_AGE_INVALID)
+		return
+	}
+
+	if age > model.USER_MAX_AGE || age == 0 {
+		MakeApiResponseError(c, CODE_USER_AGE_INVALID)
+		return
+	}
+
 	//检测手机号长度11位
 	if len(phoneStr) != 11 {
 		MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
@@ -198,6 +215,7 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
+	//根据id获取用户
 	user, err := service.GetUserByUserId(uid)
 	if err != nil {
 		service.Logger.Error("GetUserByUserId", zap.Error(err))
@@ -214,7 +232,7 @@ func UpdateUserHandler(c *gin.Context) {
 	}
 
 	//更新用户信息
-	affectRows, err := service.UpdateUserByUid(uid, userName, email, phone)
+	affectRows, err := service.UpdateUserByUid(uid, userName, email, age, phone)
 	if !(affectRows > 0 && err == nil) {
 		service.Logger.Error("UpdateUserByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
