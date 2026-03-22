@@ -89,12 +89,13 @@ func main() {
 	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler) //删除收藏夹
 	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                          //获取收藏夹
 	r.GET("/api/favorite/all", controller.GetUserAllFavoriteHandler)                   //获取用户全部收藏夹
+	//TODO 去除唯一键，新建时判断该数量=1，就不能新建
 
 	//收藏
 	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)   //添加收藏
 	r.POST("/api/collect/cancel", controller.CancelEssayCollectHandler) //更新收藏删除状态
 	r.GET("/api/collect/get", controller.GetEssayCollectHandler)        //获取收藏
-	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)      //获取用户的全部收藏
+	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)      //获取用户收藏夹的全部收藏
 
 	//评论
 	r.POST("/api/comment/add", controller.AddUserEssayCommentHandle)                  //创建用户评论

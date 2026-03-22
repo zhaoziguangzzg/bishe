@@ -15,9 +15,7 @@ func CreateUserEssayCollect(newUserEssayCollect *model.UserEssayCollect) (err er
 // 根据uid,eid获取文章收藏
 func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCollect, err error) {
 	userEssayCollect = new(model.UserEssayCollect)
-	err = DB.Model(&model.UserEssayCollect{}).
-		Where("user_id=? and essay_id=? and is_deleted=?", uid, eid, model.COLLECT_NOT_DELETED).
-		First(&userEssayCollect).Error
+	err = DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).First(&userEssayCollect).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -30,34 +28,33 @@ func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCol
 	return userEssayCollect, nil
 }
 
-// get 用户全部收藏
-func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects []model.UserEssayCollect, err error) {
-	var eids []int
+// get 用户收藏夹全部收藏
+func GetUserAllCollectByUidFid(uid int, fid int, page int, pageSize int) (eids []int, err error) {
 	offset := (page - 1) * pageSize
 
-	err = DB.Model(&model.UserEssayCollect{}).Where("user_id and is_deleted=?", uid, model.COLLECT_NOT_DELETED).
+	err = DB.Model(&model.UserEssayCollect{}).
+		Where("user_id=? and favorite_id=? and collect_status=?", uid, fid, model.COLLECT_STATUS_NORMAL).
 		Order("id ASC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
 	if err != nil {
 		return
 	}
 
-	err = DB.Where("id IN (?)", eids).Error
 	return
 }
 
 // 取消收藏
-func DeleteCollectById(id int) (int64, error) {
-	result := DB.Model(&model.UserEssayCollect{}).Where("id=?", id).
-		Update("is_deleted", model.COLLECT_IS_DELETED)
+func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
+	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).
+		Update("collect_status", model.COLLECT_STATUS_REVIEW)
 
 	return result.RowsAffected, result.Error
 }
 
 // 进行收藏
 func UpdateUserEssayCollectNotToIs(uid int, eid int, fid int) (int64, error) {
-	collect := model.UserEssayCollect{
-		FavoriteId: fid,
-		IsDeleted:  model.COLLECT_NOT_DELETED,
+	collect := map[string]interface{}{
+		"favorite_id":    fid,
+		"collect_status": model.COLLECT_STATUS_NORMAL,
 	}
 
 	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).Updates(collect)

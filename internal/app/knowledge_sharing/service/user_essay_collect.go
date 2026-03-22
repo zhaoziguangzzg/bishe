@@ -15,14 +15,27 @@ func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCol
 	return mysql.GetUserEssayCollect(uid, eid)
 }
 
-// get 用户全部收藏
-func GetUserAllCollectByUid(uid int, page int, pageSize int) (userEssayCollects []model.UserEssayCollect, err error) {
-	return mysql.GetUserAllCollectByUid(uid, page, pageSize)
+// get 用户收藏夹全部收藏
+func GetUserAllCollectByUidFid(uid int, fid int, page int, pageSize int) (essays []model.Essay, err error) {
+	eids, err := mysql.GetUserAllCollectByUidFid(uid, fid, page, pageSize)
+	if err != nil {
+		return
+	}
+
+	if eids == nil {
+		return
+	}
+
+	essays, err = mysql.GetEssayByEids(eids)
+	if err != nil {
+		return
+	}
+	return
 }
 
 // 取消收藏
-func DeleteCollectById(id int) (int64, error) {
-	return mysql.DeleteCollectById(id)
+func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
+	return mysql.UpdateUserEssayCollectIsToNot(uid, eid)
 }
 
 // 进行收藏
