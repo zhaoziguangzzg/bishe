@@ -30,11 +30,11 @@ func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err
 }
 
 // get 用户全部点赞文章
-func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (likes []model.UserEssayLike, err error) {
+func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (eids []int, err error) {
 	offset := (page - 1) * pageSize
 
-	err = DB.Model(&model.UserEssayLike{}).Where("user_id and is_deleted=?", uid, model.LIKE_NOT_DELETED).
-		Order("id DESC").Offset(offset).Limit(pageSize).Find(&likes).Error
+	err = DB.Model(&model.UserEssayLike{}).Where("user_id=? and like_status=?", uid, model.LIKE_STATUS_NORMAL).
+		Order("essay_id DESC").Offset(offset).Limit(pageSize).Pluck("essay_id", &eids).Error
 	if err != nil {
 		return
 	}
@@ -45,14 +45,14 @@ func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (likes []model.Us
 // 取消喜欢
 func UpdateUserEssayLikeIsToNot(uid int, eid int) (int64, error) {
 	result := DB.Model(&model.UserEssayLike{}).Where("user_id=? and essay_id=?", uid, eid).
-		Update("is_deleted", model.LIKE_IS_DELETED)
+		Update("like_status", model.LIKE_STATUS_REVIEW)
 	return result.RowsAffected, result.Error
 }
 
 // 进行喜欢
 func UpdateUserEssayLikeNotToIs(uid int, eid int) (int64, error) {
 	result := DB.Model(&model.UserEssayLike{}).Where("user_id=? and essay_id=?", uid, eid).
-		Update("is_deleted", model.LIKE_NOT_DELETED)
+		Update("like_status", model.LIKE_STATUS_NORMAL)
 	return result.RowsAffected, result.Error
 }
 

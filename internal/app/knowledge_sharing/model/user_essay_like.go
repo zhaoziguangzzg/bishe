@@ -15,18 +15,15 @@ type UserEssayLike struct {
 	UpdateAt    *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`
 	UpdateAtStr string     `json:"-" gorm:"-" mapstructure:"updateAt"`
 	LikeStatus  int        `json:"likeStatus" gorm:"column:like_status" mapstructure:"likeStatus"`
-	IsDeleted   int        `json:"isDeleted" gorm:"column:is_deleted" mapstructture:"isDeleted"`
 }
 
 const (
-	LIKE_STATUS_NORMAL int = 0 //正常
-	LIKE_STATUS_REVIEW int = 1 //审核
+	LIKE_STATUS_NORMAL int = 0 //喜欢
+	LIKE_STATUS_REVIEW int = 1 //不喜欢
 
-	LIKE_NOT_DELETED int = 0 //未被删除
-	LIKE_IS_DELETED  int = 1 //被删除
 )
 
 // 指定UserEssayLike对应的表名
 func (UserEssayLike) TableName() string {
-	return "user_essay_Like"
+	return "user_essay_like"
 }

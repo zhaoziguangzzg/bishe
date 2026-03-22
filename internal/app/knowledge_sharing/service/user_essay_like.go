@@ -12,14 +12,13 @@ func CreateUserEssayLike(newUserEssayLike *model.UserEssayLike) (err error) {
 
 // get 用户全部点赞
 func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
-	likes, err := mysql.GetUserAllLikeEssayByUid(uid, page, pageSize)
+	eids, err := mysql.GetUserAllLikeEssayByUid(uid, page, pageSize)
 	if err != nil {
 		return
 	}
 
-	var eids []int
-	for _, v := range likes {
-		eids = append(eids, v.EssayId)
+	if eids == nil {
+		return
 	}
 
 	essays, err = mysql.GetEssayByEids(eids)

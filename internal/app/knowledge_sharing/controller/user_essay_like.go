@@ -39,14 +39,16 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
+	//仅 不存在，存在状态为删除 两种
 	if like == nil {
 		createTime := time.Now()
 
 		newUserEssayLike := &model.UserEssayLike{ //其中包含自动生成的id
-			UserId:   uid,
-			EssayId:  eid,
-			CreateAt: &createTime,
-			UpdateAt: &createTime,
+			UserId:     uid,
+			EssayId:    eid,
+			CreateAt:   &createTime,
+			UpdateAt:   &createTime,
+			LikeStatus: model.LIKE_STATUS_NORMAL,
 		}
 
 		err = service.CreateUserEssayLike(newUserEssayLike)
@@ -59,13 +61,17 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		MakeApiResponseSuccessDefault(c)
 		return
 	} else {
-		if like.IsDeleted == model.LIKE_NOT_DELETED {
-			MakeApiResponseError(c, CODE_LIKE_EXIST)
+
+		//不喜欢转喜欢
+		affectRows, err := service.UpdateUserEssayLikeNotToIs(uid, eid)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateUserEssayLikeNotToIs err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
 			return
 		}
 
-		// 返回响应
-		MakeApiResponseError(c, CODE_LIKE_DELETED)
+		MakeApiResponseSuccessDefault(c)
+		return
 	}
 }
 
@@ -88,9 +94,8 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
-
-	//TODO 获取喜欢
 
 	//喜欢转不喜欢
 	affectRows, err := service.UpdateUserEssayLikeIsToNot(uid, eid)

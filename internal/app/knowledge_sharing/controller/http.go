@@ -96,8 +96,8 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_COLLECT_NOT_EXIST:              "用户文章收藏不存在",
 	CODE_COLLECT_EXIST:                  "用户文章已收藏",
 	CODE_LIKE_EXIST:                     "用户文章已喜欢",
-	CODE_COLLECT_DELETED:                "用户文章喜欢已删除",
-	CODE_LIKE_DELETED:                   "用户文章收藏已删除",
+	CODE_COLLECT_DELETED:                "用户文章收藏已删除",
+	CODE_LIKE_DELETED:                   "用户文章喜欢已删除",
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
 	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
