@@ -18,7 +18,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.PostForm("eid")
+	eidStr := c.Query("eid")
 	if eidStr == "" {
 		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
@@ -29,6 +29,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	content := c.PostForm("content")
@@ -41,14 +42,14 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	createTime := time.Now()
 
 	newUserEssayComment := &model.UserEssayComment{ //其中包含自动生成的id
-		UserId:   uid,
-		EssayId:  eid,
-		Content:  content,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
+		UserId:        uid,
+		EssayId:       eid,
+		Content:       content,
+		CreateAt:      &createTime,
+		UpdateAt:      &createTime,
+		CommentStatus: model.COMMENT_STATUS_NORMAL,
+		IsDeleted:     model.COMMENT_NOT_DELETED,
 	}
-
-	//TODO 去唯一键
 
 	err = service.CreateUserEssayComment(newUserEssayComment)
 	if err != nil {
@@ -62,7 +63,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 
 // 删除评论
 func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
-	commentIdStr := c.PostForm("comment_id")
+	commentIdStr := c.Query("comment_id")
 	if commentIdStr == "" {
 		service.Logger.Error("GetcommentId err", zap.String("err", "get commentId err"))
 		MakeApiResponseErrorParams(c)
@@ -73,6 +74,7 @@ func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi commentIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//更新isDeleted
@@ -141,16 +143,16 @@ func GetUserAllCommentHandler(c *gin.Context) {
 	pageSize := 10
 
 	//获取用户全部评论文章
-	commentEssays, err := service.GetUserAllCommentIdByUid(uid, page, pageSize)
+	essays, err := service.GetUserAllCommentIdByUid(uid, page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetEssayAllCommentByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if commentEssays == nil {
-		commentEssays = make([]model.CommentEssay, 0)
+	if essays == nil {
+		essays = make([]model.Essay, 0)
 	}
 
-	MakeApiResponseSuccess(c, commentEssays)
+	MakeApiResponseSuccess(c, essays)
 }

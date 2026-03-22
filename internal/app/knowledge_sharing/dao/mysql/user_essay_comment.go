@@ -11,7 +11,7 @@ func CreateUserEssayComment(newUserEssayComment *model.UserEssayComment) (err er
 //get 文章的评论
 func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
 	offset := (page - 1) * pageSize
-	err = DB.Model(&model.UserEssayComment{}).Where("essay_id and is_deleted=?", eid, model.COMMENT_NOT_DELETED).
+	err = DB.Model(&model.UserEssayComment{}).Where("essay_id=? and is_deleted=?", eid, model.COMMENT_NOT_DELETED).
 		Order("id ASC").Offset(offset).Limit(pageSize).Find(&comments).Error
 	return
 }
@@ -20,7 +20,7 @@ func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserE
 func GetUserAllCommentIdByUid(uid int, page int, pageSize int) (comments []model.UserEssayComment, err error) {
 	offset := (page - 1) * pageSize
 
-	err = DB.Model(&model.UserEssayComment{}).Where("user_id and is_deleted=?", uid, model.COMMENT_NOT_DELETED).
+	err = DB.Model(&model.UserEssayComment{}).Where("user_id=? and is_deleted=?", uid, model.COMMENT_NOT_DELETED).
 		Order("id DESC").Offset(offset).Limit(pageSize).Find(&comments).Error
 	if err != nil {
 		return
