@@ -36,23 +36,18 @@ func AddFavoriteHandler(c *gin.Context) { //c
 	}
 
 	if favorite != nil {
-		if favorite.IsDeleted == model.FAVORITE_NOT_DELETED {
-			MakeApiResponseError(c, CODE_FAVORITE_EXIST)
-			return
-		}
-
-		//TODO 去掉唯一键
+		MakeApiResponseError(c, CODE_FAVORITE_EXIST)
+		return
 	}
 
 	createTime := time.Now()
 
 	// 收藏夹
 	newFavorite := &model.Favorite{ //其中包含自动生成的id
-		Title:    title,
-		UserId:   uid,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
-		//TODO 状态
+		Title:          title,
+		UserId:         uid,
+		CreateAt:       &createTime,
+		UpdateAt:       &createTime,
 		FavoriteStatus: model.FAVORITE_STATUS_NORMAL,
 		IsDeleted:      model.FAVORITE_NOT_DELETED,
 	}
@@ -77,7 +72,7 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 		return
 	}
 
-	fidStr := c.PostForm("fid")
+	fidStr := c.Query("fid")
 	if fidStr == "" {
 		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
@@ -116,7 +111,7 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 // 删除收藏夹
 func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	fidStr := c.PostForm("fid")
+	fidStr := c.Query("fid")
 	if fidStr == "" {
 		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
