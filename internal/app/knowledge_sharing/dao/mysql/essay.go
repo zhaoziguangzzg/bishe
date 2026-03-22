@@ -54,17 +54,12 @@ func GetEssayByEid(eid int) (essay *model.Essay, err error) {
 }
 
 // 根据eids获取文章
-func GetEssayByEids(eids []int) (newEssays []model.Essay, err error) {
-	//TODO in取的数据为乱序，需要排序
-	var essays []model.Essay
-	err = DB.Where("id IN (?)", eids).Find(&essays).Error
+func GetEssayByEids(eids []int) (essays []model.Essay, err error) {
+
+	//in取的数据为乱序，需要排序
+	err = DB.Model(&model.Essay{}).Where("id IN (?)", eids).Find(&essays).Error
 	if err != nil {
 		return
-	}
-
-	//TODO 按eids 排序
-	for {
-
 	}
 
 	return
@@ -73,7 +68,8 @@ func GetEssayByEids(eids []int) (newEssays []model.Essay, err error) {
 // 根据title获取文章
 func GetEssayByTitle(title string, cid int) (essay *model.Essay, err error) {
 	essay = new(model.Essay)
-	err = DB.Model(&model.Essay{}).Where("title=? and cid=? and is_deleted=?", title, cid, model.ESSAY_NOT_DELETED).First(&essay).Error
+	err = DB.Model(&model.Essay{}).Where("title=? and cid=? and is_deleted=?", title, cid, model.ESSAY_NOT_DELETED).
+		First(&essay).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil

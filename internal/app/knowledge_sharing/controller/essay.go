@@ -11,7 +11,7 @@ import (
 )
 
 // 文章
-func AddEssayHandler(c *gin.Context) { //c
+func AddEssayHandler(c *gin.Context) {
 	// 从表单中获取用户信息
 	title := c.PostForm("title")
 	content := c.PostForm("content")
@@ -28,7 +28,7 @@ func AddEssayHandler(c *gin.Context) { //c
 		return
 	}
 
-	cidStr := c.PostForm("cid")
+	cidStr := c.Query("cid")
 	if cidStr == "" {
 		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
@@ -39,6 +39,7 @@ func AddEssayHandler(c *gin.Context) { //c
 	if err != nil {
 		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -51,16 +52,15 @@ func AddEssayHandler(c *gin.Context) { //c
 
 	// 构造文章
 	newEssay := &model.Essay{ //其中包含自动生成的id
-		Title:    title,
-		Content:  content,
-		CircleId: cid,
-		AuthorId: uid,
-		CreateAt: &createTime,
-		UpdateAt: &createTime,
+		Title:       title,
+		Content:     content,
+		CircleId:    cid,
+		AuthorId:    uid,
+		CreateAt:    &createTime,
+		UpdateAt:    &createTime,
+		EssayStatus: model.ESSAY_STATUS_NORMAL,
+		IsDeleted:   model.ESSAY_NOT_DELETED,
 	}
-
-	// 用户创建文章之前，判断Essay标题是否重复
-	// TODO 标题允许重复
 
 	err = service.CreateEssay(newEssay)
 	if err != nil {
@@ -89,7 +89,7 @@ func UpdateEssayHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.PostForm("eid")
+	eidStr := c.Query("eid")
 	if eidStr == "" {
 		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
@@ -115,6 +115,7 @@ func UpdateEssayHandler(c *gin.Context) {
 		return
 	}
 
+	//根据eid更新文章
 	affectRows, err := service.UpdateEssayByEid(eid, title, content)
 	if err != nil || affectRows != 0 {
 		service.Logger.Error("UpdateEssayByEid err", zap.Error(err))
@@ -139,8 +140,10 @@ func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
+	//更新删除字段来删除文章
 	affectRows, err := service.UpdateEssayIsDeleted(eid)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateEssayIsDeleted err", zap.Error(err))
@@ -197,6 +200,7 @@ func GetEssayHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//根据eid获取文章
@@ -232,6 +236,7 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	if err != nil {
 		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	page := c.GetInt("page")
