@@ -332,3 +332,30 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 		"circles": circles,
 	})
 }
+
+// 获取免费圈子排行
+func GetFreeCircleRankHandler(c *gin.Context) {
+	page := c.GetInt("page")
+	if page < 1 {
+		page = 1
+	}
+
+	pagesize := 10
+
+	//获取免费circle，按join num 倒叙
+	circles, err := service.GetCricleAllFreeOrderByJoinNum(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetCricleAllFreeOrderByJoinNum", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// nil
+	if circles == nil {
+		circles = make([]model.Circle, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"circles": circles,
+	})
+}

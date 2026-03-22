@@ -26,8 +26,8 @@ func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.C
 }
 
 // get 免费圈子
-func GetCricleAllFree(page int, pagesize int) (circles []model.Circle, err error) {
-	return mysql.GetCricleAllFree(page, pagesize)
+func GetCricleAllFreeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCricleAllFreeOrderByJoinNum(page, pagesize)
 }
 
 // get all圈子

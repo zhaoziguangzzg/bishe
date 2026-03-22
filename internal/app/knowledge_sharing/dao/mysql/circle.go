@@ -58,7 +58,7 @@ func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.C
 }
 
 // get 免费圈子
-func GetCricleAllFree(page int, pagesize int) (circles []model.Circle, err error) {
+func GetCricleAllFreeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Circle{}).Where("price=? and is_deleted=?", 0, model.CIRCLE_NOT_DELETED).Order("join_num DESC").
