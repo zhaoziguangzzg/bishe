@@ -98,14 +98,22 @@ func main() {
 	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)      //获取用户收藏夹的全部收藏
 
 	//评论
-	r.POST("/api/comment/add", controller.AddUserEssayCommentHandle)                  //创建用户评论
-	r.POST("/api/comment/deleted", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
-	r.GET("/api/comment/essayall", controller.GetEssayAllCommentHandle)               //获取文章全部评论
-	r.GET("/api/comment/userall", controller.GetUserAllCommentHandler)                //获取用户全部评论
+	r.POST("/api/comment/add", controller.AddUserEssayCommentHandle)                 //创建用户评论
+	r.POST("/api/comment/delete", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
+	r.GET("/api/comment/essayall", controller.GetEssayAllCommentHandle)              //获取文章全部评论
+	r.GET("/api/comment/userall", controller.GetUserAllCommentHandler)               //获取用户全部评论
+
+	//关注
+	r.POST("/api/follow/add", controller.AddUserFollowHandler)       //添加关注
+	r.POST("/api/follow/cancel", controller.CancelUserFollowHandler) //更新关注删除
+	r.GET("/api/follow/follow", controller.GetUserAllFollowHandler)  //获取用户关注列表
+	r.GET("/api/follow/fan", controller.GetUserAllFanHandler)        //获取用户粉丝列表
+
+	//TODO 联系人列表（send-receive）   建联系人表
+	r.POST("/api/contacts/add")
 
 	//消息
 	r.POST("/api/information/add", controller.CreateInformationHandle) //添加消息
-	//TODO 联系人列表（send-receive）   建联系人表
 	//TODO 与某人消息记录
 	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
 	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息
