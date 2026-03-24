@@ -15,7 +15,7 @@ func CreateUserFollow(newFollow *model.Follow) (err error) {
 // 根据uid,followid获取关注
 func GetUserFollow(uid int, followerId int) (follow *model.Follow, err error) {
 	follow = new(model.Follow)
-	err = DB.Model(&model.Follow{}).Where("fan_id=? and follower_id=?", uid, followerId).First(&follow).Error
+	err = DB.Model(&model.Follow{}).Where("fan_id=? and follower_id=? and follow_status=?", uid, followerId, model.FOLLOW_STATUS_NORMAL).First(&follow).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -38,7 +38,7 @@ func UpdateUserFollowNotToIs(uid int, followerId int) (int64, error) {
 // 取关
 func UpdateUserFollowIsToNot(uid int, followerId int) (int64, error) {
 	result := DB.Model(&model.Follow{}).Where("fan_id=? and follower_id=?", uid, followerId).
-		Update("follow_status", model.FOLLOW_STATUS_NORMAL)
+		Update("follow_status", model.FOLLOW_STATUS_REVIEW)
 	return result.RowsAffected, result.Error
 }
 

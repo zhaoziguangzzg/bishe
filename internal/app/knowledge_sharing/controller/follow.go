@@ -18,22 +18,20 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	followIdStr := c.Query("followId")
-	if followIdStr == "" {
-		service.Logger.Error("GetfollowId err", zap.String("err", "get followId err"))
+	followerIdStr := c.Query("followerId")
+	if followerIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	followId, err := strconv.Atoi(followIdStr)
+	followerId, err := strconv.Atoi(followerIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi followIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	//查询用户的关注
-	follow, err := service.GetUserFollow(uid, followId)
+	follow, err := service.GetUserFollow(uid, followerId)
 	if err != nil {
 		service.Logger.Error("GetUserFollow", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -46,7 +44,7 @@ func AddUserFollowHandler(c *gin.Context) {
 
 		newFollow := &model.Follow{ //其中包含自动生成的id
 			FanId:        uid,
-			FollowerId:   followId,
+			FollowerId:   followerId,
 			FollowTime:   &createTime,
 			CreateAt:     &createTime,
 			UpdateAt:     &createTime,
@@ -65,7 +63,7 @@ func AddUserFollowHandler(c *gin.Context) {
 	} else {
 
 		//未关注状态转关注
-		affectRows, err := service.UpdateUserFollowNotToIs(uid, followId)
+		affectRows, err := service.UpdateUserFollowNotToIs(uid, followerId)
 		if err != nil || affectRows == 0 {
 			service.Logger.Error("UpdateUserFollowNotToIs err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -87,14 +85,12 @@ func CancelUserFollowHandler(c *gin.Context) {
 
 	followerIdStr := c.Query("followerId")
 	if followerIdStr == "" {
-		service.Logger.Error("GetfollowerId err", zap.String("err", "get followerId err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	followerId, err := strconv.Atoi(followerIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi followerIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -108,6 +104,47 @@ func CancelUserFollowHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccessDefault(c)
+}
+
+// 用户关注状态
+func GetUserFollowHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	followerIdStr := c.Query("followerId")
+	if followerIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	followerId, err := strconv.Atoi(followerIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//查询用户的关注
+	follow, err := service.GetUserFollow(uid, followerId)
+	if err != nil {
+		service.Logger.Error("GetUserFollow", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	var isFollowed bool
+
+	if follow != nil {
+		isFollowed = true
+	}
+
+	data := map[string]bool{
+		"is_followed": isFollowed,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 用户关注列表
