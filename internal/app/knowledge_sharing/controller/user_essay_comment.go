@@ -20,14 +20,12 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -65,14 +63,12 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
 	commentIdStr := c.Query("comment_id")
 	if commentIdStr == "" {
-		service.Logger.Error("GetcommentId err", zap.String("err", "get commentId err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	commentId, err := strconv.Atoi(commentIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi commentIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -93,15 +89,14 @@ func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
 func GetEssayAllCommentHandle(c *gin.Context) {
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	page := c.GetInt("page")

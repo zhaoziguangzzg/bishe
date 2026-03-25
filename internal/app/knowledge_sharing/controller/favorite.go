@@ -74,15 +74,14 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 
 	fidStr := c.Query("fid")
 	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	fid, err := strconv.Atoi(fidStr)
 	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//根据fid获取收藏夹
@@ -113,14 +112,12 @@ func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
 	fidStr := c.Query("fid")
 	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	fid, err := strconv.Atoi(fidStr)
 	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 	}
 
@@ -171,15 +168,14 @@ func GetFavoriteHandler(c *gin.Context) {
 	//获取收藏夹id
 	fidStr := c.Query("fid")
 	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	fid, err := strconv.Atoi(fidStr)
 	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//根据fid获取收藏夹

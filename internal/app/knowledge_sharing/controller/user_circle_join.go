@@ -15,15 +15,14 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -102,15 +101,14 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 func QuitCircleHandler(c *gin.Context) {
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	uid, _ := service.GetUserFromCookie(c)

@@ -20,15 +20,14 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//查询对文章的点赞
@@ -85,14 +84,12 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -118,15 +115,14 @@ func GetUserEssayLikeHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	like, err := service.GetUserEssayLike(uid, eid)

@@ -94,14 +94,12 @@ func UpdateCircleHandler(c *gin.Context) {
 	// cid
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -125,7 +123,6 @@ func UpdateCircleHandler(c *gin.Context) {
 
 	price, err := strconv.Atoi(priceStr)
 	if err != nil {
-		service.Logger.Error("priceStrAtoi err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -176,23 +173,27 @@ func GetAllCircleHandler(c *gin.Context) {
 		return
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
+	if circles == nil {
+		circles = make([]model.Circle, 0)
+	}
+
+	data := map[string]interface{}{
 		"circles": circles,
-	})
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 获取圈子详情
 func GetCircleHandler(c *gin.Context) {
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Query cidStr err", zap.String("err", "get cidStr err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -267,9 +268,11 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 		circles = make([]model.Circle, 0)
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
+	data := map[string]interface{}{
 		"circles": circles,
-	})
+	}
+
+	MakeApiResponseSuccess(c, data)
 
 }
 

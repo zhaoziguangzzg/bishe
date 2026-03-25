@@ -21,12 +21,12 @@ func CreateInformationHandle(c *gin.Context) {
 		return
 	}
 
-	receiveIdStr := c.PostForm("receive_id")
+	receiveIdStr := c.Query("receive_id")
 
 	receiveId, err := strconv.Atoi(receiveIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi receiveIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -104,15 +104,14 @@ func GetUserReceiveInformationHandler(c *gin.Context) {
 
 	sendIdStr := c.Query("send_id")
 	if sendIdStr == "" {
-		service.Logger.Error("GetsendId err", zap.String("err", "get sendId err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	sendId, err := strconv.Atoi(sendIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi sendIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	page := c.GetInt("page")
@@ -152,15 +151,14 @@ func GetUserSendInformationHandler(c *gin.Context) {
 
 	receiveIdStr := c.Query("receive_id")
 	if receiveIdStr == "" {
-		service.Logger.Error("GetreceiveId err", zap.String("err", "get receiveId err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	receiveId, err := strconv.Atoi(receiveIdStr)
 	if err != nil {
-		service.Logger.Error("Atoi receiveIdStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	page := c.GetInt("page")
@@ -224,15 +222,14 @@ func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
 	iidStr := c.Query("iid")
 	if iidStr == "" {
-		service.Logger.Error("Getiid err", zap.String("err", "get iid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	iid, err := strconv.Atoi(iidStr)
 	if err != nil {
-		service.Logger.Error("Atoi iidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	affectRows, err := service.UpdateInformationIsDeleted(iid)

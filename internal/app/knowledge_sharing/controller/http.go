@@ -53,6 +53,12 @@ const (
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID int = 8003
 	CODE_INFORMATION_NOT_EXIST            int = 8004
+
+	CODE_USER_NOT_FOLLOW int = 9001
+
+	CODE_ACCUSATION_CONTENT_LEN_INVASLID int = 9006
+	CODE_ACCUSATION_EXIST                int = 9007
+	CODE_ACCUSATION_NOT_EXIST            int = 9008
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -101,6 +107,12 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
 	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
+
+	CODE_USER_NOT_FOLLOW: "该用户未关注",
+
+	CODE_ACCUSATION_CONTENT_LEN_INVASLID: "举报内容长度错误",
+	CODE_ACCUSATION_EXIST:                "举报已存在",
+	CODE_ACCUSATION_NOT_EXIST:            "举报不存在",
 }
 
 func GetMsgByCode(code int) (msg string) {

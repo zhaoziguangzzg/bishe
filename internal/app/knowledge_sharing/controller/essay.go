@@ -30,14 +30,12 @@ func AddEssayHandler(c *gin.Context) {
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -91,15 +89,14 @@ func UpdateEssayHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	//根据eid获取文章
@@ -131,14 +128,12 @@ func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -191,14 +186,12 @@ func GetEssayHandler(c *gin.Context) {
 	//获取文章id
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -227,14 +220,12 @@ func GetEssayHandler(c *gin.Context) {
 func GetCircleAllEssayHandler(c *gin.Context) {
 	cidStr := c.Query("cid")
 	if cidStr == "" {
-		service.Logger.Error("Getcid err", zap.String("err", "get cid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
-		service.Logger.Error("Atoi cidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

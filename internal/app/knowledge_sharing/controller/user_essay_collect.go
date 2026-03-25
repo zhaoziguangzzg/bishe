@@ -20,28 +20,24 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	fidStr := c.Query("fid")
 	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	fid, err := strconv.Atoi(fidStr)
 	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -101,14 +97,12 @@ func CancelEssayCollectHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -135,14 +129,12 @@ func GetEssayCollectHandler(c *gin.Context) {
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
-		service.Logger.Error("Geteid err", zap.String("err", "get eid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		service.Logger.Error("Atoi eidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -173,14 +165,12 @@ func GetUserAllCollectHandler(c *gin.Context) {
 	// 获取收藏夹参数
 	fidStr := c.Query("fid")
 	if fidStr == "" {
-		service.Logger.Error("Getfid err", zap.String("err", "get fid err"))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	fid, err := strconv.Atoi(fidStr)
 	if err != nil {
-		service.Logger.Error("Atoi fidStr err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
