@@ -73,6 +73,7 @@ func AddUserAccusationEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
+// 获取全部未审核举报
 func GetAllAccusationEssayHandler(c *gin.Context) {
 	page := c.GetInt("page")
 	if page < 1 {
@@ -99,7 +100,8 @@ func GetAllAccusationEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-func GetEssayContentByAccusation(c *gin.Context) {
+// 获取举报内容文章
+func GetEssayContentByAccusationHandler(c *gin.Context) {
 	aidStr := c.Query("accusation_id")
 	if aidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -146,4 +148,100 @@ func GetEssayContentByAccusation(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
+}
+
+// 更新accusation状态
+func UpdateAccusationStatusHandler(c *gin.Context) {
+	aidStr := c.Query("accusation_id")
+	if aidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	aid, err := strconv.Atoi(aidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	statusStr := c.Query("accusation_status")
+	if statusStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	status, err := strconv.Atoi(statusStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	userIdStr := c.Query("user_id")
+	if userIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	authorIdStr := c.Query("author_id")
+	if authorIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	authorId, err := strconv.Atoi(authorIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if status == model.ACCUSATION_STATUS_NORMAL {
+		// 更新举报信息为无违规
+		affectRows, err := service.UpdateAccusationNormalByAid(aid)
+		if err != nil || affectRows != 0 {
+			service.Logger.Error("UpdateAccusationNormalByAid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		content := "该举报文章无违规"
+		receiveId := userId
+
+		// 插入数据库
+		err = service.AddAccusationInformation(content, receiveId)
+		if err != nil {
+			service.Logger.Error("AddAccusationInformation err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
+
+		return
+	} else if status == model.ACCUSATION_STATUS_VIOLATE {
+		// 更新举报信息为有违规
+		affectRows, err := service.UpdateAccusationViolateByAid(aid)
+		if err != nil || affectRows != 0 {
+			service.Logger.Error("UpdateAccusationViolateByAid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		content := "该文章有违规，以被封禁"
+		receiveId := authorId
+
+		// 插入数据库
+		err = service.AddAccusationInformation(content, receiveId)
+		if err != nil {
+			service.Logger.Error("AddAccusationInformation err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		MakeApiResponseSuccessDefault(c)
+	}
 }

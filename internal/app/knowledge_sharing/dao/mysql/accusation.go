@@ -16,7 +16,7 @@ func CreateUserAccusation(newAccusation *model.Accusation) (err error) {
 func GetUserAccusationEssay(uid int, eid int) (accusation *model.Accusation, err error) {
 	accusation = new(model.Accusation)
 	err = DB.Model(&model.Accusation{}).
-		Where("user_id=? and essay_id=? and is_delete=?", uid, eid, model.ACCUSATION_NOT_DELETED).
+		Where("user_id=? and essay_id=? and is_deleted=?", uid, eid, model.ACCUSATION_NOT_DELETED).
 		First(&accusation).Error
 
 	if err != nil {
@@ -35,7 +35,7 @@ func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusati
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Accusation{}).
-		Where("accusation_status=? and is_delete=?", model.ACCUSATION_STATUS_WAIT, model.ACCUSATION_NOT_DELETED).
+		Where("accusation_status=? and is_deleted=?", model.ACCUSATION_STATUS_WAIT, model.ACCUSATION_NOT_DELETED).
 		Order("accusation_time DESC").Offset(offset).Limit(pagesize).Find(&accusations).Error
 	return
 }
@@ -43,7 +43,7 @@ func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusati
 // 获取文章举报内容
 func GetAccusationByAid(aid int) (accusation *model.Accusation, err error) {
 	accusation = new(model.Accusation)
-	err = DB.Model(&model.Accusation{}).Where("aid=?", aid).First(&accusation).Error
+	err = DB.Model(&model.Accusation{}).Where("id=?", aid).First(&accusation).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -54,4 +54,16 @@ func GetAccusationByAid(aid int) (accusation *model.Accusation, err error) {
 	}
 
 	return accusation, nil
+}
+
+// 更新举报信息为无违规
+func UpdateAccusationNormalByAid(aid int) (int64, error) {
+	result := DB.Model(&model.Accusation{}).Where("id=?", aid).Update("accusation_status", model.ACCUSATION_STATUS_NORMAL)
+	return result.RowsAffected, result.Error
+}
+
+// 更新举报信息为有违规
+func UpdateAccusationViolateByAid(aid int) (int64, error) {
+	result := DB.Model(&model.Accusation{}).Where("id=?", aid).Update("accusation_status", model.ACCUSATION_STATUS_VIOLATE)
+	return result.RowsAffected, result.Error
 }

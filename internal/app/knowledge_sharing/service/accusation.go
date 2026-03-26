@@ -24,3 +24,13 @@ func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusati
 func GetAccusationByAid(aid int) (accusation *model.Accusation, err error) {
 	return mysql.GetAccusationByAid(aid)
 }
+
+// 更新举报信息为无违规
+func UpdateAccusationNormalByAid(aid int) (int64, error) {
+	return mysql.UpdateAccusationNormalByAid(aid)
+}
+
+// 更新举报信息为有违规
+func UpdateAccusationViolateByAid(aid int) (int64, error) {
+	return mysql.UpdateAccusationViolateByAid(aid)
+}
