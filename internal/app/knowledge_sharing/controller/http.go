@@ -53,8 +53,8 @@ const (
 	CODE_COLLECT_DELETED                int = 7008
 	CODE_LIKE_DELETED                   int = 7009
 
-	CODE_INFORMATION_CONTENT_LEN_INVASLID int = 8003
-	CODE_INFORMATION_NOT_EXIST            int = 8004
+	CODE_CHAT_CONTENT_LEN_INVASLID int = 8003
+	CODE_INFORMATION_NOT_EXIST     int = 8004
 
 	CODE_FEEDBACK_CONTENT_LEN_INVASLID int = 8006
 	CODE_FEEDBACK_EXIST                int = 8007
@@ -113,8 +113,8 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_COLLECT_DELETED:                "用户文章收藏已删除",
 	CODE_LIKE_DELETED:                   "用户文章喜欢已删除",
 
-	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
-	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
+	CODE_CHAT_CONTENT_LEN_INVASLID: "消息内容长度错误",
+	CODE_INFORMATION_NOT_EXIST:     "消息不存在",
 
 	CODE_FEEDBACK_CONTENT_LEN_INVASLID: "反馈内容长度错误",
 	CODE_FEEDBACK_EXIST:                "反馈已存在",

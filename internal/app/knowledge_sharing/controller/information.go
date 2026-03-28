@@ -17,7 +17,7 @@ func CreateInformationHandle(c *gin.Context) {
 
 	contentLen := len(content)
 	if contentLen > model.INFORMATION_MAX_CONTENT || contentLen == 0 {
-		MakeApiResponseError(c, CODE_INFORMATION_CONTENT_LEN_INVASLID)
+		MakeApiResponseError(c, CODE_CHAT_CONTENT_LEN_INVASLID)
 		return
 	}
 
