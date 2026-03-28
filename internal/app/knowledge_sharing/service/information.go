@@ -11,6 +11,16 @@ func UserAddInformation(information *model.Information) (err error) {
 	return mysql.UserAddInformation(information)
 }
 
+// 创建通知举报违规消息
+func AddAccusationInformation(content string, receiveId int) (err error) {
+	return mysql.AddAccusationInformation(content, receiveId)
+}
+
+// 创建通知反馈消息
+func AddFeedbackInformation(content string, receiveId int) (err error) {
+	return mysql.AddFeedbackInformation(content, receiveId)
+}
+
 // 获取消息用户列表
 func GetUserInformation(uid int, page int, pageSize int) (informations []model.Information, err error) {
 	return mysql.GetUserInformation(uid, page, pageSize)

@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -9,6 +10,42 @@ import (
 // 用户创建消息
 func UserAddInformation(information *model.Information) (err error) {
 	err = DB.Model(&model.Information{}).Create(information).Error
+	return
+}
+
+// 创建通知举报违规消息
+func AddAccusationInformation(content string, receiveId int) (err error) {
+	createTime := time.Now()
+
+	// 构造消息
+	newInformation := &model.Information{ //其中包含自动生成的id
+		ReceiveId:         receiveId,
+		Content:           content,
+		CreateAt:          &createTime,
+		UpdateAt:          &createTime,
+		InformationStatus: model.INFORMATION_STATUS_NORMAL,
+		IsDeleted:         model.INFORMATION_NOT_DELETED,
+	}
+
+	err = DB.Model(&model.Information{}).Create(newInformation).Error
+	return
+}
+
+// 创建通知反馈消息
+func AddFeedbackInformation(content string, receiveId int) (err error) {
+	createTime := time.Now()
+
+	// 构造消息
+	newInformation := &model.Information{ //其中包含自动生成的id
+		ReceiveId:         receiveId,
+		Content:           content,
+		CreateAt:          &createTime,
+		UpdateAt:          &createTime,
+		InformationStatus: model.INFORMATION_STATUS_NORMAL,
+		IsDeleted:         model.INFORMATION_NOT_DELETED,
+	}
+
+	err = DB.Model(&model.Information{}).Create(newInformation).Error
 	return
 }
 
