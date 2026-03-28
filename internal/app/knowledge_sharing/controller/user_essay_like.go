@@ -18,7 +18,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -82,7 +82,7 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
