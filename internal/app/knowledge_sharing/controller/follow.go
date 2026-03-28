@@ -18,7 +18,7 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	followerIdStr := c.Query("followerId")
+	followerIdStr := c.PostForm("followerId")
 	if followerIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -83,7 +83,7 @@ func CancelUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	followerIdStr := c.Query("followerId")
+	followerIdStr := c.PostForm("followerId")
 	if followerIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -127,7 +127,7 @@ func GetUserFollowHandler(c *gin.Context) {
 	}
 
 	//查询用户的关注
-	follow, err := service.GetUserFollow(uid, followerId)
+	follow, err := service.GetUserFollowByStatus(uid, followerId)
 	if err != nil {
 		service.Logger.Error("GetUserFollow", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -141,7 +141,7 @@ func GetUserFollowHandler(c *gin.Context) {
 	}
 
 	data := map[string]bool{
-		"is_followed": isFollowed,
+		"isFollowed": isFollowed,
 	}
 
 	MakeApiResponseSuccess(c, data)
