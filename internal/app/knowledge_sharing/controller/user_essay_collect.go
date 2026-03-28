@@ -18,7 +18,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -30,7 +30,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	fidStr := c.Query("fid")
+	fidStr := c.PostForm("fid")
 	if fidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -95,7 +95,7 @@ func CancelEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
