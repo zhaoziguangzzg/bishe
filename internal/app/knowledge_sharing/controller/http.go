@@ -41,6 +41,8 @@ const (
 
 	CODE_COMMENT_CONTENT_LEN_INVASLID int = 6003
 
+	CODE_CONTACT_NOT_EXIST int = 6006
+
 	CODE_FAVORITE_NOT_EXIST             int = 7001
 	CODE_FAVORITE_EXIST                 int = 7002
 	CODE_INTERACT_FAVORITE_LEN_INVASLID int = 7003
@@ -53,6 +55,10 @@ const (
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID int = 8003
 	CODE_INFORMATION_NOT_EXIST            int = 8004
+
+	CODE_FEEDBACK_CONTENT_LEN_INVASLID int = 8006
+	CODE_FEEDBACK_EXIST                int = 8007
+	CODE_FEEDBACK_NOT_EXIST            int = 8008
 
 	CODE_USER_NOT_FOLLOW int = 9001
 
@@ -95,6 +101,8 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_COMMENT_CONTENT_LEN_INVASLID: "文章评论内容长度错误",
 
+	CODE_CONTACT_NOT_EXIST: "联系人不存在",
+
 	CODE_FAVORITE_NOT_EXIST:             "收藏夹不存在",
 	CODE_FAVORITE_EXIST:                 "收藏夹已存在",
 	CODE_INTERACT_FAVORITE_LEN_INVASLID: "文章收藏夹名长度错误",
@@ -107,6 +115,10 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_INFORMATION_CONTENT_LEN_INVASLID: "消息内容长度错误",
 	CODE_INFORMATION_NOT_EXIST:            "消息不存在",
+
+	CODE_FEEDBACK_CONTENT_LEN_INVASLID: "反馈内容长度错误",
+	CODE_FEEDBACK_EXIST:                "反馈已存在",
+	CODE_FEEDBACK_NOT_EXIST:            "反馈不存在",
 
 	CODE_USER_NOT_FOLLOW: "该用户未关注",
 
