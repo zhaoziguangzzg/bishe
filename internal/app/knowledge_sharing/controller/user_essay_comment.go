@@ -18,7 +18,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -61,7 +61,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 
 // 删除评论
 func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
-	commentIdStr := c.Query("comment_id")
+	commentIdStr := c.PostForm("comment_id")
 	if commentIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
