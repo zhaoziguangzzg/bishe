@@ -15,6 +15,11 @@ func GetUserFollow(uid int, followerId int) (follow *model.Follow, err error) {
 	return mysql.GetUserFollow(uid, followerId)
 }
 
+// 根据uid,followid获取关注
+func GetUserFollowByStatus(uid int, followerId int) (follow *model.Follow, err error) {
+	return mysql.GetUserFollowByStatus(uid, followerId)
+}
+
 // 进行关注
 func UpdateUserFollowNotToIs(uid int, followId int) (int64, error) {
 	return mysql.UpdateUserFollowNotToIs(uid, followId)
