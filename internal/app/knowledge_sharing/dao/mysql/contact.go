@@ -4,6 +4,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // create 用户联系人
@@ -53,6 +54,16 @@ func GetUserAllContact(uid int, page int, pagesize int) (contacts []model.Contac
 	if err != nil {
 		return
 	}
+
+	return
+}
+
+func CreateChatContact(newChatContact *model.ChatContact) (err error) {
+
+	err = DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "union_uid"}},          // 冲突检测列
+		DoUpdates: clause.AssignmentColumns([]string{"content"}), // 更新字段
+	}).Create(&newChatContact).Error
 
 	return
 }
