@@ -18,7 +18,7 @@ func AddUserAccusationEssayHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -56,6 +56,7 @@ func AddUserAccusationEssayHandler(c *gin.Context) {
 	newAccusation := &model.Accusation{ //其中包含自动生成的id
 		UserId:           uid,
 		EssayId:          eid,
+		Content:          content,
 		AccusationTime:   &createTime,
 		CreateAt:         &createTime,
 		UpdateAt:         &createTime,
@@ -152,7 +153,7 @@ func GetEssayContentByAccusationHandler(c *gin.Context) {
 
 // 更新accusation状态
 func UpdateAccusationStatusHandler(c *gin.Context) {
-	aidStr := c.Query("accusation_id")
+	aidStr := c.PostForm("accusation_id")
 	if aidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -164,7 +165,7 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		return
 	}
 
-	statusStr := c.Query("accusation_status")
+	statusStr := c.PostForm("accusation_status")
 	if statusStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -176,7 +177,7 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		return
 	}
 
-	userIdStr := c.Query("user_id")
+	userIdStr := c.PostForm("user_id")
 	if userIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -188,7 +189,7 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		return
 	}
 
-	authorIdStr := c.Query("author_id")
+	authorIdStr := c.PostForm("author_id")
 	if authorIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -203,7 +204,7 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 	if status == model.ACCUSATION_STATUS_NORMAL {
 		// 更新举报信息为无违规
 		affectRows, err := service.UpdateAccusationNormalByAid(aid)
-		if err != nil || affectRows != 0 {
+		if err != nil || affectRows == 0 {
 			service.Logger.Error("UpdateAccusationNormalByAid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
@@ -226,7 +227,7 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 	} else if status == model.ACCUSATION_STATUS_VIOLATE {
 		// 更新举报信息为有违规
 		affectRows, err := service.UpdateAccusationViolateByAid(aid)
-		if err != nil || affectRows != 0 {
+		if err != nil || affectRows == 0 {
 			service.Logger.Error("UpdateAccusationViolateByAid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
