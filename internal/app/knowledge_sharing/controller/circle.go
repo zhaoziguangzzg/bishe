@@ -92,7 +92,7 @@ func AddCircleHandler(c *gin.Context) {
 // 更新圈子信息
 func UpdateCircleHandler(c *gin.Context) {
 	// cid
-	cidStr := c.Query("cid")
+	cidStr := c.PostForm("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -147,7 +147,7 @@ func UpdateCircleHandler(c *gin.Context) {
 
 	//更新圈子信息
 	affectRows, err := service.UpdateCircleByCid(cid, title, price, introduction)
-	if err != nil || affectRows != 0 {
+	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateCircleByCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
