@@ -21,11 +21,15 @@ func CreateInformationHandle(c *gin.Context) {
 		return
 	}
 
-	receiveIdStr := c.Query("receive_id")
+	receiveIdStr := c.PostForm("receive_id")
+	if receiveIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
 
 	receiveId, err := strconv.Atoi(receiveIdStr)
 	if err != nil {
-		MakeApiResponseErrorDefault(c)
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
@@ -220,7 +224,7 @@ func GetUserAllInformationHandler(c *gin.Context) {
 // 删除发送的消息
 func DeletedInformationByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	iidStr := c.Query("iid")
+	iidStr := c.PostForm("iid")
 	if iidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
