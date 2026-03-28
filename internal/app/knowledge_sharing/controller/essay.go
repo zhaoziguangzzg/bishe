@@ -28,7 +28,7 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	cidStr := c.Query("cid")
+	cidStr := c.PostForm("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -87,7 +87,7 @@ func UpdateEssayHandler(c *gin.Context) {
 		return
 	}
 
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -114,7 +114,7 @@ func UpdateEssayHandler(c *gin.Context) {
 
 	//根据eid更新文章
 	affectRows, err := service.UpdateEssayByEid(eid, title, content)
-	if err != nil || affectRows != 0 {
+	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateEssayByEid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
@@ -126,7 +126,7 @@ func UpdateEssayHandler(c *gin.Context) {
 // 删除发布的文章
 func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	eidStr := c.Query("eid")
+	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
