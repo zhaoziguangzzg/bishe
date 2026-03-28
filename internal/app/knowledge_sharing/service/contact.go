@@ -14,3 +14,18 @@ func CreateUserContact(newContect *model.Contact) (err error) {
 func GetUserContact(uid int, receiveId int) (contact *model.Contact, err error) {
 	return mysql.GetUserContact(uid, receiveId)
 }
+
+// 根据id获取联系人
+func GetUserContactById(id int) (contact *model.Contact, err error) {
+	return mysql.GetUserContactById(id)
+}
+
+// 获取用户全部联系人
+func GetUserAllContact(uid int, page int, pagesize int) (contacts []model.Contact, err error) {
+	return mysql.GetUserAllContact(uid, page, pagesize)
+}
+
+// 删除联系人
+func DeleteUserContactByReceiveId(uid int, receiveId int) (int64, error) {
+	return mysql.DeleteUserContactByReceiveId(uid, receiveId)
+}

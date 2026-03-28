@@ -28,3 +28,38 @@ func GetUserContact(uid int, receiveId int) (contact *model.Contact, err error) 
 
 	return contact, nil
 }
+
+// 根据id获取联系人
+func GetUserContactById(id int) (contact *model.Contact, err error) {
+	contact = new(model.Contact)
+	err = DB.Model(&model.Contact{}).Where("id=?", id).First(&contact).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound { //没查到数据返回空
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return contact, nil
+}
+
+// 获取用户全部联系人
+func GetUserAllContact(uid int, page int, pagesize int) (contacts []model.Contact, err error) {
+	offset := (page - 1) * pagesize
+	err = DB.Model(&model.Contact{}).Where("send_id=? and is_deleted=?", uid, model.CONTACT_NOT_DELETED).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&contacts).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 删除联系人
+func DeleteUserContactByReceiveId(uid int, receiveId int) (int64, error) {
+	result := DB.Model(&model.Contact{}).Where("send_id and receive_id=?", uid, receiveId).
+		Update("is_deleted", model.CONTACT_IS_DELETED)
+	return result.RowsAffected, result.Error
+}
