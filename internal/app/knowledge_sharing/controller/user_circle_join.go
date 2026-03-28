@@ -13,7 +13,7 @@ import (
 // 用户参与圈子
 func AddUserCircleJoinHandle(c *gin.Context) {
 
-	cidStr := c.Query("cid")
+	cidStr := c.PostForm("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -99,7 +99,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 
 // 用户退出圈子
 func QuitCircleHandler(c *gin.Context) {
-	cidStr := c.Query("cid")
+	cidStr := c.PostForm("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
