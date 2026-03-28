@@ -34,7 +34,7 @@ func AddUserFeedbackHandler(c *gin.Context) {
 		FeedbackTime:   &createTime,
 		CreateAt:       &createTime,
 		UpdateAt:       &createTime,
-		FeedbackStatus: model.FEEDBACK_STATUS_WAIT,
+		FeedbackStatus: model.FEEDBACK_STATUS_OPEN,
 		IsDeleted:      model.FEEDBACK_NOT_DELETED,
 	}
 
@@ -123,65 +123,36 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 		return
 	}
 
-	statusStr := c.PostForm("feedback_status")
-	if statusStr == "" {
+	reply := c.PostForm("reply")
+	if reply == "" {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	status, err := strconv.Atoi(statusStr)
+	//根据id获取反馈
+	feedback, err := service.GetFeedbackById(id)
 	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	userIdStr := c.PostForm("user_id")
-	if userIdStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	userId, err := strconv.Atoi(userIdStr)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	receiveId := userId
-	var content string
-
-	if status == model.FEEDBACK_STATUS_NORMAL {
-		// 更新反馈状态为无问题
-		affectRows, err := service.UpdateFeedbackNormalById(id)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateFeedbackNormalById err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		content = "该反馈未查询到问题，期待您的再次反馈"
-
-	} else if status == model.FEEDBACK_STATUS_QUESTIONABLE {
-		// 更新反馈状态为有问题
-		affectRows, err := service.UpdateFeedbackViolateById(id)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateFeedbackViolateById err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		content = "该反馈已核实，感谢您的反馈"
-
-	}
-
-	// 插入数据库
-	err = service.AddFeedbackInformation(content, receiveId)
-	if err != nil {
-		service.Logger.Error("AddFeedbackInformation err", zap.Error(err))
+		service.Logger.Error("", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	if feedback == nil {
+		MakeApiResponseError(c, CODE_FEEDBACK_NOT_EXIST)
+		return
+	}
 
+	replyTime := time.Now()
+
+	//保存回复，更新状态
+	affectRows, err := service.UpdateFeedbackStatusReplyById(id, reply, replyTime)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateFeedbackStatusReplyById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//TODO 给用户发通知
+
+	MakeApiResponseSuccessDefault(c)
 }

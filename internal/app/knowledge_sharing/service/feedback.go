@@ -3,6 +3,7 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 )
 
 // create 用户反馈
@@ -20,12 +21,7 @@ func GetFeedbackById(id int) (feedback *model.Feedback, err error) {
 	return mysql.GetFeedbackById(id)
 }
 
-// 更新反馈状态为无问题
-func UpdateFeedbackNormalById(id int) (int64, error) {
-	return mysql.UpdateFeedbackNormalById(id)
-}
-
-// 更新反馈状态为有问题
-func UpdateFeedbackViolateById(id int) (int64, error) {
-	return mysql.UpdateFeedbackViolateById(id)
+// 更新反馈状态回复
+func UpdateFeedbackStatusReplyById(id int, reply string, replyTime time.Time) (int64, error) {
+	return mysql.UpdateFeedbackStatusReplyById(id, reply, replyTime)
 }

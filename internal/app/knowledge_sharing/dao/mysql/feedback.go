@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ func GetAllFeedback(page int, pagesize int) (feedbacks []model.Feedback, err err
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Feedback{}).
-		Where("feedback_status=? and is_deleted=?", model.FEEDBACK_STATUS_WAIT, model.FEEDBACK_NOT_DELETED).
+		Where("feedback_status=? and is_deleted=?", model.FEEDBACK_STATUS_OPEN, model.FEEDBACK_NOT_DELETED).
 		Order("feedback_time DESC").Offset(offset).Limit(pagesize).Find(&feedbacks).Error
 	return
 }
@@ -38,14 +39,14 @@ func GetFeedbackById(id int) (feedback *model.Feedback, err error) {
 	return feedback, nil
 }
 
-// 更新反馈状态为无问题
-func UpdateFeedbackNormalById(id int) (int64, error) {
-	result := DB.Model(&model.Feedback{}).Where("id=?", id).Update("feedback_status", model.FEEDBACK_STATUS_NORMAL)
-	return result.RowsAffected, result.Error
-}
+// 更新反馈状态回复
+func UpdateFeedbackStatusReplyById(id int, reply string, replyTime time.Time) (int64, error) {
+	feedback := map[string]interface{}{
+		"feedback_status": model.FEEDBACK_STATUS_CLOSE,
+		"reply":           reply,
+		"reply_time":      replyTime,
+	}
 
-// 更新反馈状态为有问题
-func UpdateFeedbackViolateById(id int) (int64, error) {
-	result := DB.Model(&model.Feedback{}).Where("id=?", id).Update("feedback_status", model.FEEDBACK_STATUS_QUESTIONABLE)
+	result := DB.Model(&model.Feedback{}).Where("id=?", id).Updates(feedback)
 	return result.RowsAffected, result.Error
 }

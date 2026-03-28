@@ -11,6 +11,10 @@ type Feedback struct {
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//反馈时间
 	FeedbackTime *time.Time `json:"feedbackTime" gorm:"column:feedback_time" mapstructure:"feedbackTime"`
+	//回复内容
+	Reply string `json:"reply" gorm:"column:reply" mapstructure:"reply"`
+	//回复时间
+	ReplyTime *time.Time `json:"replyTime" gorm:"column:reply_time" mapstructure:"replyTime"`
 
 	CreateAt       *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr    string     `json:"-" gorm:"-" mapstructure:"createAt"`
@@ -21,9 +25,8 @@ type Feedback struct {
 }
 
 const (
-	FEEDBACK_STATUS_WAIT         int = 0 //待处理
-	FEEDBACK_STATUS_NORMAL       int = 1 //无问题
-	FEEDBACK_STATUS_QUESTIONABLE int = 2 //有问题
+	FEEDBACK_STATUS_OPEN  int = 0 //打开，未处理
+	FEEDBACK_STATUS_CLOSE int = 1 //关闭，已处理
 
 	FEEDBACK_NOT_DELETED int = 0 //未被删除
 	FEEDBACK_IS_DELETED  int = 1 //被删除
