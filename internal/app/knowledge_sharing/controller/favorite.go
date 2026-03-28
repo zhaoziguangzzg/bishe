@@ -72,7 +72,7 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 		return
 	}
 
-	fidStr := c.Query("fid")
+	fidStr := c.PostForm("fid")
 	if fidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -98,7 +98,7 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 	}
 
 	affectRows, err := service.UpdateFavoriteTitleByFid(fid, title)
-	if err != nil || affectRows != 0 {
+	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateFavoriteTitleByFid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
@@ -110,7 +110,7 @@ func UpdateFavoriteTitleHandler(c *gin.Context) {
 // 删除收藏夹
 func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
 	//更新字段
-	fidStr := c.Query("fid")
+	fidStr := c.PostForm("fid")
 	if fidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
