@@ -106,11 +106,27 @@ func main() {
 	//关注
 	r.POST("/api/follow/add", controller.AddUserFollowHandler)       //添加关注
 	r.POST("/api/follow/cancel", controller.CancelUserFollowHandler) //更新关注删除
-	r.GET("/api/follow/follow", controller.GetUserAllFollowHandler)  //获取用户关注列表
-	r.GET("/api/follow/fan", controller.GetUserAllFanHandler)        //获取用户粉丝列表
+	r.GET("/api/follow/get", controller.GetUserFollowHandler)        //获取用户关注
+	r.GET("/api/follow/all", controller.GetUserAllFollowHandler)     //获取用户关注列表
+	r.GET("/api/follow/allfan", controller.GetUserAllFanHandler)     //获取用户粉丝列表
 
-	//TODO 联系人列表（send-receive）   建联系人表
-	r.POST("/api/contacts/add")
+	//举报
+	r.POST("/api/accusation/add", controller.AddUserAccusationEssayHandler)     //创建举报
+	r.GET("/api/accusation/all", controller.GetAllAccusationEssayHandler)       //获取全部未审核举报
+	r.GET("/api/accusation/get", controller.GetEssayContentByAccusationHandler) //获取举报内容文章
+	r.POST("/api/accusation/update", controller.UpdateAccusationStatusHandler)  //更新举报状态
+
+	//反馈
+	r.POST("/api/feedback/add", controller.AddUserFeedbackHandler)         //创建反馈
+	r.GET("/api/feedback/all", controller.GetAllFeedbackHandler)           //获取全部未处理反馈
+	r.GET("/api/feedback/get", controller.GetFeedbackContentHandler)       //获取反馈
+	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
+
+	//联系人列表（send-receive）
+	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
+	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
+	r.GET("/api/contact/all", controller.GetUserAllContactHandler)     //获取用户全部联系人
+	r.GET("/api/contact/get", controller.GetUserContactHandler)        //获取联系人
 
 	//消息
 	r.POST("/api/information/add", controller.CreateInformationHandle) //添加消息
