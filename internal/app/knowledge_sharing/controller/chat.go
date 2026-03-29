@@ -77,3 +77,47 @@ func AddChatHandler(c *gin.Context) {
 	// 返回成功响应
 	MakeApiResponseSuccessDefault(c)
 }
+
+// 获取私信记录
+func GetChatListHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+	pageSize := 10
+
+	chatUidStr := c.Query("chat_uid")
+	if chatUidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	chatUid, err := strconv.Atoi(chatUidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	chats, err := service.GetChatList(uid, chatUid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetChatList", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if chats == nil {
+		chats = make([]model.Chat, 0)
+	}
+
+	data := map[string]interface{}{
+		"chats": chats,
+		"uid":   uid,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
