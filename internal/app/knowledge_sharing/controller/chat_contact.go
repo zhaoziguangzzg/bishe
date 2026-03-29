@@ -10,6 +10,105 @@ import (
 	"go.uber.org/zap"
 )
 
+// 获取联系人列表
+func GetChatContactListHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+	pageSize := 10
+
+	chatContacts, err := service.GetChatContactList(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetChatContactList", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(chatContacts) == 0 {
+		chatContacts = make([]model.ChatContact, 0)
+		data := map[string]interface{}{
+			"chatContacts": chatContacts,
+		}
+
+		MakeApiResponseSuccess(c, data)
+		return
+	}
+
+	var uids []int
+	for _, v := range chatContacts {
+		if v.SendUid == uid {
+			uids = append(uids, v.ReceiveUid)
+		} else {
+			uids = append(uids, v.SendUid)
+		}
+	}
+
+	//根据uids获取userMap
+	userMap, err := service.GetUsersByUidMap(uids)
+	if err != nil {
+		service.Logger.Error("GetUsersByUids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userMap) == 0 {
+		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	userChatContacts := make([]model.UserChatContact, 0)
+
+	// for _, v := range uids {
+	// 	var userChatContact model.UserChatContact
+	// 	user, ok := userMap[v]
+	// 	if ok != true {
+	// 		service.Logger.Error("set uids err")
+	// 		MakeApiResponseErrorDefault(c)
+	// 		return
+	// 	}
+	// 	userChatContact.Name = user.Name
+	// 	userChatContacts = append(userChatContacts, userChatContact)
+	// }
+
+	for _, v := range chatContacts {
+		var vUid int
+		if v.SendUid == uid {
+			vUid = v.ReceiveUid
+		} else {
+			vUid = v.SendUid
+		}
+
+		vUser, ok := userMap[vUid]
+		if !ok {
+			service.Logger.Error("set uids err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		var userChatContact model.UserChatContact
+
+		updateAt := v.UpdateAt.Format("2006-01-02 15:04:05")
+		userChatContact.Uid = vUid
+		userChatContact.Name = vUser.Name
+		userChatContact.Content = v.Content
+		userChatContact.UpdateAt = updateAt
+		userChatContacts = append(userChatContacts, userChatContact)
+	}
+
+	data := map[string]interface{}{
+		"userChatContacts": userChatContacts,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
+
 // 添加联系人
 func AddUserContactHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)

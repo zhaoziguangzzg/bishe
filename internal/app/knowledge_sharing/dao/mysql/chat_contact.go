@@ -21,6 +21,19 @@ func ChatContactInsertUpdate(chatContact *model.ChatContact) (err error) {
 	return
 }
 
+// 获取联系人列表
+func GetChatContactList(uid int, page int, pageSize int) (chatContacts []model.ChatContact, err error) {
+	offset := (page - 1) * pageSize
+
+	err = DB.Model(&model.ChatContact{}).Where("send_uid=? or receive_uid=? and is_deleted=?", uid, uid, model.IS_DELETED_NO).
+		Order("id DESC").Offset(offset).Limit(pageSize).Find(&chatContacts).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // create 用户联系人
 func CreateUserContact(newContect *model.Contact) (err error) {
 	err = DB.Model(&model.Contact{}).Create(newContect).Error

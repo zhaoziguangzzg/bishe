@@ -122,15 +122,19 @@ func main() {
 	r.GET("/api/feedback/get", controller.GetFeedbackContentHandler)       //获取反馈
 	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
 
-	//联系人列表（send-receive）
-	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
-	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
-	r.GET("/api/contact/all", controller.GetUserAllContactHandler)     //获取用户全部联系人
-	r.GET("/api/contact/get", controller.GetUserContactHandler)        //获取联系人
-
 	//私信
 	r.POST("/api/chat/add", controller.AddChatHandler)    //添加私信
 	r.GET("/api/chat/get", controller.GetChatListHandler) //获取私信记录
+
+	//联系人
+	r.GET("/api/contact/all", controller.GetChatContactListHandler) //获取最近联系人列表
+
+	//联系人列表（send-receive）
+	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
+	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
+	//r.GET("/api/contact/all", controller.GetUserAllContactHandler)     //获取用户全部联系人
+	r.GET("/api/contact/get", controller.GetUserContactHandler) //获取联系人
+
 	//TODO 与某人消息记录
 	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
 	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息

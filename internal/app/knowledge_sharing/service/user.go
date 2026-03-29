@@ -62,3 +62,8 @@ func DeleteUserCookie(c *gin.Context) {
 	c.SetCookie("userId", "", -1, "/", "", true, true)
 	c.SetCookie("userName", "", -1, "/", "", true, true)
 }
+
+// 根据uids获取userMap
+func GetUsersByUidMap(uids []int) (userMap map[int]model.User, err error) {
+	return mysql.GetUsersByUidMap(uids)
+}

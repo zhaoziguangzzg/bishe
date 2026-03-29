@@ -10,6 +10,11 @@ func ChatContactInsertUpdate(chatContact *model.ChatContact) (err error) {
 	return mysql.ChatContactInsertUpdate(chatContact)
 }
 
+// 获取联系人列表
+func GetChatContactList(uid int, page int, pageSize int) (chatContacts []model.ChatContact, err error) {
+	return mysql.GetChatContactList(uid, page, pageSize)
+}
+
 // create 用户联系人
 func CreateUserContact(newContect *model.Contact) (err error) {
 	return mysql.CreateUserContact(newContect)

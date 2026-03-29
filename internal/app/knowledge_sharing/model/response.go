@@ -10,3 +10,10 @@ type CommentEssay struct {
 	Comment UserEssayComment `json:"comment"`
 	Essay   Essay            `json:"essay"`
 }
+
+type UserChatContact struct {
+	Uid      int    `json:"uid"`
+	Name     string `json:"userName"`
+	Content  string `json:"content"`
+	UpdateAt string `json:"updateAt"`
+}
