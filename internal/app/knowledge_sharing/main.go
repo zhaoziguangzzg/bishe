@@ -129,7 +129,7 @@ func main() {
 	r.GET("/api/contact/get", controller.GetUserContactHandler)        //获取联系人
 
 	//消息
-	r.POST("/api/information/add", controller.CreateInformationHandle) //添加消息
+	r.POST("/api/chat/add", controller.AddChatHandler) //添加私信
 	//TODO 与某人消息记录
 	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
 	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息

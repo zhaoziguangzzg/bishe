@@ -7,6 +7,20 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// 添加或更新联系人
+func ChatContactInsertUpdate(chatContact *model.ChatContact) (err error) {
+
+	unionUid := model.MakeChatContactUnionUid(chatContact.SendUid, chatContact.ReceiveUid)
+	chatContact.UnionUid = unionUid
+
+	err = DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "union_uid"}},          // 冲突检测列
+		DoUpdates: clause.AssignmentColumns([]string{"content"}), // 更新字段
+	}).Create(&chatContact).Error
+
+	return
+}
+
 // create 用户联系人
 func CreateUserContact(newContect *model.Contact) (err error) {
 	err = DB.Model(&model.Contact{}).Create(newContect).Error
@@ -54,16 +68,6 @@ func GetUserAllContact(uid int, page int, pagesize int) (contacts []model.Contac
 	if err != nil {
 		return
 	}
-
-	return
-}
-
-func CreateChatContact(newChatContact *model.ChatContact) (err error) {
-
-	err = DB.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "union_uid"}},          // 冲突检测列
-		DoUpdates: clause.AssignmentColumns([]string{"content"}), // 更新字段
-	}).Create(&newChatContact).Error
 
 	return
 }

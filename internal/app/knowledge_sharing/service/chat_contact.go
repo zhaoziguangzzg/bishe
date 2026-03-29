@@ -5,6 +5,11 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 )
 
+// 添加或更新联系人
+func ChatContactInsertUpdate(chatContact *model.ChatContact) (err error) {
+	return mysql.ChatContactInsertUpdate(chatContact)
+}
+
 // create 用户联系人
 func CreateUserContact(newContect *model.Contact) (err error) {
 	return mysql.CreateUserContact(newContect)
