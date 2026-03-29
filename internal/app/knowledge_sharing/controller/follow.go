@@ -155,10 +155,8 @@ func GetUserAllFollowHandler(c *gin.Context) {
 		return
 	}
 
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pageSize := 10
 
@@ -187,10 +185,8 @@ func GetUserAllFanHandler(c *gin.Context) {
 		return
 	}
 
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pageSize := 10
 

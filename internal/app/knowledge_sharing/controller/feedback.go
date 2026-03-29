@@ -50,10 +50,8 @@ func AddUserFeedbackHandler(c *gin.Context) {
 
 // 获取全部未处理反馈
 func GetAllFeedbackHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pagesize := 10
 

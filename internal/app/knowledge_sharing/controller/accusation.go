@@ -76,14 +76,11 @@ func AddUserAccusationEssayHandler(c *gin.Context) {
 
 // 获取全部未审核举报
 func GetAllAccusationEssayHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+	pageSize := 10
 
-	pagesize := 10
-
-	accusations, err := service.GetAllAccusationEssay(page, pagesize)
+	accusations, err := service.GetAllAccusationEssay(page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetAllAccusationEssay", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

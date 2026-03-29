@@ -158,15 +158,12 @@ func UpdateCircleHandler(c *gin.Context) {
 
 // 获取圈子列表
 func GetAllCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
-
-	pagesize := 10
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+	pageSize := 10
 
 	//获取全部circle，按joinnum倒叙
-	circles, err := service.GetCircleAllByJoinNum(page, pagesize)
+	circles, err := service.GetCircleAllByJoinNum(page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetCircleAllByJoinNum", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -242,11 +239,8 @@ func GetCircleHandler(c *gin.Context) {
 
 // 获取用户创建的圈子列表
 func GetUserCreateCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
-
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 	pagesize := 5
 
 	uid, _ := service.GetUserFromCookie(c)
@@ -278,10 +272,8 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 
 // 获取用户已加入圈子的列表
 func GetUserJoinCircleHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pagesize := 5
 
@@ -311,10 +303,8 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 
 // 获取付费圈子排行
 func GetChargeCircleRankHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pagesize := 10
 
@@ -338,10 +328,8 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 
 // 获取免费圈子排行
 func GetFreeCircleRankHandler(c *gin.Context) {
-	page := c.GetInt("page")
-	if page < 1 {
-		page = 1
-	}
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
 	pagesize := 10
 
