@@ -12,8 +12,8 @@ import (
 
 // 添加关注
 func AddUserFollowHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
+	uid, userName := service.GetUserFromCookie(c)
+	if uid == 0 || userName == "" {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
@@ -54,6 +54,17 @@ func AddUserFollowHandler(c *gin.Context) {
 		err = service.CreateUserFollow(newFollow)
 		if err != nil {
 			service.Logger.Error("CreateUserFollow err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		content := "又有新用户" + userName + "关注啦"
+		typei := model.NOTICE_TYPE_FOLLOW
+
+		//添加通知
+		err = service.UserAddNotice(followerId, content, typei, createTime)
+		if err != nil {
+			service.Logger.Error("UserAddNotice err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
 		}

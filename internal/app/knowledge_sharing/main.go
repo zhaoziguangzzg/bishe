@@ -129,6 +129,10 @@ func main() {
 	//联系人
 	r.GET("/api/contact/all", controller.GetChatContactListHandler) //获取最近联系人列表
 
+	//通知
+	r.GET("/api/notice/all", controller.GetNoticeListHandler)           //获取通知列表
+	r.GET("/api/notice/alltype", controller.GetNoticeListByTypeHandler) //获取某类型通知列表
+
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
 	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人

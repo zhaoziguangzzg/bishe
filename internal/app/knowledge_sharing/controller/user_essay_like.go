@@ -12,7 +12,7 @@ import (
 
 // 用户在文章的喜欢
 func AddUserEssayLikeHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
+	uid, name := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
@@ -26,7 +26,25 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 	eid, err := strconv.Atoi(eidStr)
 	if err != nil {
-		MakeApiResponseErrorDefault(c)
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	title := c.PostForm("title")
+	if title == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	authorIdStr := c.PostForm("author_id")
+	if authorIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	authorId, err := strconv.Atoi(authorIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
@@ -53,6 +71,17 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		err = service.CreateUserEssayLike(newUserEssayLike)
 		if err != nil {
 			service.Logger.Error("CreateUserEssayLike err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		content := "又有新用户" + name + "点赞你的标题为" + title + "的文章了"
+		typei := model.NOTICE_TYPE_LIKE
+
+		//添加通知
+		err = service.UserAddNotice(authorId, content, typei, createTime)
+		if err != nil {
+			service.Logger.Error("UserAddNotice err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
 		}
