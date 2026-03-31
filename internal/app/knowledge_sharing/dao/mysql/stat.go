@@ -1,0 +1,73 @@
+package mysql
+
+import (
+	"bishe/internal/app/knowledge_sharing/model"
+	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
+// 添加或更新各类型用户数据
+func StatInsertUpdate(statUid int, num int, typei int, createTime time.Time) (err error) {
+	stat := &model.Stat{
+		StatUid:   statUid,
+		Sum:       num,
+		Type:      typei,
+		CreateAt:  &createTime,
+		UpdateAt:  &createTime,
+		IsDeleted: model.IS_DELETED_NO,
+	}
+
+	err = DB.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "stat_uid"},
+			{Name: "type"},
+		}, // 冲突检测列
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"sum": gorm.Expr("sum + ?", num),
+		}),
+	}).Create(&stat).Error
+
+	return
+}
+
+// 获取用户数据列表
+func GetUserStatList(uid int) (stats []model.Stat, err error) {
+
+	err = DB.Model(&model.Stat{}).Where("stat_uid=? and is_deleted=?", uid, model.IS_DELETED_NO).
+		Order("id DESC").Find(&stats).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 添加各类型数据详情
+func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error) {
+	statDetail := &model.StatDetails{
+		StatUid:   statUid,
+		Type:      typei,
+		CreateAt:  &createTime,
+		UpdateAt:  &createTime,
+		IsDeleted: model.IS_DELETED_NO,
+	}
+
+	err = DB.Model(&model.StatDetails{}).Create(statDetail).Error
+
+	return
+}
+
+// 获取近期各类型数据
+func GetStatDetailsByType(uid int, stime time.Time) (results []model.StatDetailsTypeCount, err error) {
+
+	err = DB.Model(&model.StatDetails{}).Select("type, COUNT(*) AS total").
+		Where("stat_uid = ? AND is_deleted = ? AND create_at > ?", uid, model.IS_DELETED_NO, stime).
+		Group("type").Find(&results).Error
+	if err != nil {
+		return
+	}
+
+	return
+}

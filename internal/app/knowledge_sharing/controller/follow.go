@@ -69,6 +69,39 @@ func AddUserFollowHandler(c *gin.Context) {
 			return
 		}
 
+		num := 1
+		//添加关注数
+		err = service.StatInsertUpdate(uid, num, typei, createTime)
+		if err != nil {
+			service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//添加被关注数
+		err = service.StatInsertUpdate(followerId, num, model.STAT_TYPE_FAN, createTime)
+		if err != nil {
+			service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//添加关注数详情
+		err = service.StatDetailsInsert(uid, typei, createTime)
+		if err != nil {
+			service.Logger.Error("StatDetailsInsert err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//添加被关注数详情
+		err = service.StatDetailsInsert(followerId, model.STAT_TYPE_FAN, createTime)
+		if err != nil {
+			service.Logger.Error("StatDetailsInsert err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
 		MakeApiResponseSuccessDefault(c)
 		return
 	} else {

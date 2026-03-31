@@ -133,6 +133,9 @@ func main() {
 	r.GET("/api/notice/all", controller.GetNoticeListHandler)           //获取通知列表
 	r.GET("/api/notice/alltype", controller.GetNoticeListByTypeHandler) //获取某类型通知列表
 
+	//统计
+	r.GET("/api/stat/all", controller.GetUserStatListHandler) //获取全部统计数据列表
+
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
 	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
