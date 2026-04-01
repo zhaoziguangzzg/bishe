@@ -53,6 +53,10 @@ func GetUserStatListHandler(c *gin.Context) {
 		return
 	}
 
+	if len(results) == 0 {
+		results = make([]model.StatDetailsTypeCount, 0)
+	}
+
 	data := map[string]interface{}{
 		"stats":   stats,
 		"results": results,

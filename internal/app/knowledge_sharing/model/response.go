@@ -25,3 +25,10 @@ type UserNotice struct {
 	Type     int    `json:"type"`
 	UpdateAt string `json:"updateAt"`
 }
+
+type UserEssay struct {
+	Uid   int    `json:"uid"`
+	Name  string `json:"userName"`
+	Level int    `json:"level"`
+	Essay Essay  `json:"essay"`
+}

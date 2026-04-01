@@ -48,6 +48,20 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
+	cidStr := c.PostForm("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	var relateId int
+
 	//查询对文章的点赞
 	like, err := service.GetUserEssayLike(uid, eid)
 	if err != nil {
@@ -56,9 +70,10 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
+	createTime := time.Now()
+
 	//仅 不存在，存在状态为删除 两种
 	if like == nil {
-		createTime := time.Now()
 
 		newUserEssayLike := &model.UserEssayLike{ //其中包含自动生成的id
 			UserId:     uid,
@@ -86,8 +101,41 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 			return
 		}
 
-		MakeApiResponseSuccessDefault(c)
-		return
+		relateId = newUserEssayLike.Id
+		score := 2
+		//点赞 更新等级分数 增加2
+		affectRows, err := service.IncrUpdateLevelScoreByUidCid(uid, cid, score)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("IncrUpdateLevelScoreByUidCid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//增加等级详情
+		err = service.UserAddLevelScoreRecord(uid, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKE, createTime)
+		if err != nil {
+			service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		score = 3
+		//被点赞 更新等级分数 增加3
+		affectRows, err = service.IncrUpdateLevelScoreByUidCid(authorId, cid, score)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("IncrUpdateLevelScoreByUidCid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//增加等级详情
+		err = service.UserAddLevelScoreRecord(authorId, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKED, createTime)
+		if err != nil {
+			service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
 	} else {
 
 		//不喜欢转喜欢
@@ -98,9 +146,9 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 			return
 		}
 
-		MakeApiResponseSuccessDefault(c)
-		return
 	}
+
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 取消用户喜欢

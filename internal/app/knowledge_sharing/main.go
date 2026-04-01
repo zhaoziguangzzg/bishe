@@ -136,6 +136,9 @@ func main() {
 	//统计
 	r.GET("/api/stat/all", controller.GetUserStatListHandler) //获取全部统计数据列表
 
+	//等级
+	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情
+
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
 	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人

@@ -91,6 +91,13 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 			return
 		}
 
+		err = service.UserAddLevelScore(uid, cid, joinTime)
+		if err != nil {
+			service.Logger.Error("UserAddLevelScore err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
 		MakeApiResponseSuccessDefault(c)
 		return
 	}

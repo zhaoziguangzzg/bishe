@@ -241,11 +241,82 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 		return
 	}
 
-	if essays == nil {
+	if len(essays) == 0 {
 		essays = make([]model.Essay, 0)
+		data := map[string]interface{}{
+			"essays": essays,
+		}
+
+		MakeApiResponseSuccess(c, data)
+		return
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"essays": essays,
-	})
+	var uids []int
+	for _, v := range essays {
+		uids = append(uids, v.AuthorId)
+	}
+
+	//根据uids获取userMap
+	userMap, err := service.GetUsersByUidMap(uids)
+	if err != nil {
+		service.Logger.Error("GetUsersByUids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userMap) == 0 {
+		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//根据uids获取levelScoreMap
+	levelScoreMap, err := service.GetLevelScoreMapByUids(uids)
+	if err != nil {
+		service.Logger.Error("GetLevelScoreMapByUids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(levelScoreMap) == 0 {
+		service.Logger.Error("GetLevelScoreMapByUids len(levelScoreMap) == 0")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	userEssays := make([]model.UserEssay, 0)
+
+	for _, v := range essays {
+		vUid := v.AuthorId
+
+		vUser, ok := userMap[vUid]
+		if !ok {
+			service.Logger.Error("get user err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		vLevelScore, ok := levelScoreMap[vUid]
+		if !ok {
+			service.Logger.Error("get levelScore err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		level := vLevelScore.Score / 1000
+
+		var userEssay model.UserEssay
+
+		userEssay.Uid = vUid
+		userEssay.Name = vUser.Name
+		userEssay.Level = level
+		userEssay.Essay = v
+		userEssays = append(userEssays, userEssay)
+	}
+
+	data := map[string]interface{}{
+		"userEssays": userEssays,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
