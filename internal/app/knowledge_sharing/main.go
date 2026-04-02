@@ -139,6 +139,13 @@ func main() {
 	//等级
 	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情
 
+	//管理员用户
+	r.POST("/api/adminuser/add", controller.AddAdminUserHandler)       //添加管理员用户信息
+	r.POST("/api/adminuser/update", controller.UpdateAdminUserHandler) //更新管理员用户信息
+	r.POST("/api/adminuser/login", controller.AdminUserLoginHandler)   //管理员用户登录
+	r.GET("/api/adminuser/get", controller.GetAdminUserHandler)        //获取某管理员用户信息
+	r.GET("/api/adminuser/logout", controller.AdminUserLogoutHandler)  //管理员用户退出登录
+
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
 	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
