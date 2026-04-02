@@ -37,9 +37,9 @@ func GetUserLevelScoreByUidCid(uid int, cid int) (levelScore *model.LevelScore, 
 }
 
 // 根据uids获取LevelScoreMap
-func GetLevelScoreMapByUids(uids []int) (levelScoreMap map[int]model.LevelScore, err error) {
+func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.LevelScore, err error) {
 	levelScores := make([]model.LevelScore, 0)
-	err = DB.Model(&model.LevelScore{}).Where("id IN (?)", uids).Find(&levelScores).Error
+	err = DB.Model(&model.LevelScore{}).Where("cid=? and uid IN (?)", cid, uids).Find(&levelScores).Error
 	if err != nil {
 		return
 	}

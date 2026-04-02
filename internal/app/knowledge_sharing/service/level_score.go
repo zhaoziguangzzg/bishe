@@ -17,8 +17,8 @@ func GetUserLevelScoreByUidCid(uid int, cid int) (levelScore *model.LevelScore, 
 }
 
 // 根据uids获取LevelMap
-func GetLevelScoreMapByUids(uids []int) (levelScoreMap map[int]model.LevelScore, err error) {
-	return mysql.GetLevelScoreMapByUids(uids)
+func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.LevelScore, err error) {
+	return mysql.GetLevelScoreMapByUids(uids, cid)
 }
 
 // 更新等级分数 增加
