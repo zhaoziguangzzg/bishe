@@ -271,7 +271,7 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	}
 
 	//根据uids获取levelScoreMap
-	levelScoreMap, err := service.GetLevelScoreMapByUids(uids)
+	levelScoreMap, err := service.GetLevelScoreMapByUids(uids, cid)
 	if err != nil {
 		service.Logger.Error("GetLevelScoreMapByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
