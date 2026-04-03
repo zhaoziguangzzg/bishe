@@ -97,3 +97,43 @@ func UpdateEssayIsDeleted(eid int) (int64, error) {
 	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_deleted", model.ESSAY_IS_DELETED)
 	return result.RowsAffected, result.Error
 }
+
+// 将文章添加周刊
+func AddEssayWeekly(eid int) (int64, error) {
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_weekly", model.ESSAY_IS_WEEKLY)
+	return result.RowsAffected, result.Error
+}
+
+// 获取文章周刊
+func GetEssayWeeklyList(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Essay{}).
+		Where("circle_id=? and is_deleted=? and is_weekly=?", cid, model.ESSAY_NOT_DELETED, model.ESSAY_IS_ESSENCE).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 将文章添加精粹
+func AddEssayEssence(eid int) (int64, error) {
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_essence", model.ESSAY_IS_ESSENCE)
+	return result.RowsAffected, result.Error
+}
+
+// 获取文章精粹
+func GetEssayEssenceList(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Essay{}).
+		Where("circle_id=? and is_deleted=? and is_essence=?", cid, model.ESSAY_NOT_DELETED, model.ESSAY_IS_ESSENCE).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
+	return
+}

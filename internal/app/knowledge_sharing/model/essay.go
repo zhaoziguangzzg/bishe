@@ -13,6 +13,10 @@ type Essay struct {
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//作者id
 	AuthorId int `json:"authorId" gorm:"column:author_id" mapstructure:"authorId"`
+	//周刊
+	IsWeekly int `json:"isWeekly" gorm:"column:is_weekly" mapstructure:"isWeekly"`
+	//精华
+	IsEssence int `json:"isEssence" gorm:"column:is_essence" mapstructure:"isEssence"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
@@ -31,6 +35,12 @@ const (
 
 	ESSAY_NOT_DELETED int = 0 //未被删除
 	ESSAY_IS_DELETED  int = 1 //被删除
+
+	ESSAY_IS_WEEKLY  int = 1 //是周刊
+	ESSAY_NOT_WEEKLY int = 0 //不是周刊
+
+	ESSAY_IS_ESSENCE  int = 1 //是精华
+	ESSAY_NOT_ESSENCE int = 0 //不是精华
 
 	ESSAY_MAX_TITLE   int = 100 //文章标题最长100字
 	ESSAY_MAX_CONTENT int = 200 //文章内容最长200字

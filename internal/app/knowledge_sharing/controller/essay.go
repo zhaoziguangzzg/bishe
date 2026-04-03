@@ -320,3 +320,128 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 }
+
+// 将文章添加周刊
+func AddEssayWeeklyHandler(c *gin.Context) {
+	eidStr := c.PostForm("eid")
+	if eidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	// 更新IsWeekly 添加文章周刊
+	affectRows, err := service.AddEssayWeekly(eid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("AddEssayWeekly err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取文章周刊
+func GetEssayWeeklylistHandler(c *gin.Context) {
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	essays, err := service.GetEssayWeeklyList(cid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetEssayWeeklyList err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(essays) == 0 {
+		essays = make([]model.Essay, 0)
+	}
+
+	data := map[string][]model.Essay{
+		"essays": essays,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
+
+// 将文章添加精粹
+func AddEssayEssenceHandler(c *gin.Context) {
+	eidStr := c.PostForm("eid")
+	if eidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	// 将文章添加精粹
+	affectRows, err := service.AddEssayEssence(eid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("AddEssayEssence err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取文章精粹
+func GetEssayEssonceHandler(c *gin.Context) {
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	essays, err := service.GetEssayEssenceList(cid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetEssayEssenceList err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(essays) == 0 {
+		essays = make([]model.Essay, 0)
+	}
+
+	data := map[string][]model.Essay{
+		"essays": essays,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}

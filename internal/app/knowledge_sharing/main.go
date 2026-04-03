@@ -77,6 +77,13 @@ func main() {
 	r.GET("/api/essay/circleall", controller.GetCircleAllEssayHandler)           //获取圈子全部文章
 	r.GET("/api/essay/userall", controller.GetUserAllEssayHandler)               //获取用户全部文章
 
+	//周刊
+	r.POST("/api/essay/addweekly", controller.AddEssayWeeklyHandler)    //将文章添加周刊
+	r.GET("/api/essay/getweekly", controller.GetEssayWeeklylistHandler) //获取文章周刊
+	//精粹
+	r.POST("/api/essay/addessence", controller.AddEssayEssenceHandler) //将文章添加精粹
+	r.GET("/api/essay/getessence", controller.GetEssayEssonceHandler)  //获取文章精粹
+
 	//点赞
 	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)       //添加点赞
 	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler) //更新点赞删除
@@ -145,6 +152,10 @@ func main() {
 	r.POST("/api/adminuser/login", controller.AdminUserLoginHandler)   //管理员用户登录
 	r.GET("/api/adminuser/get", controller.GetAdminUserHandler)        //获取某管理员用户信息
 	r.GET("/api/adminuser/logout", controller.AdminUserLogoutHandler)  //管理员用户退出登录
+	r.POST("/api/adminuser/delete", controller.DeleteAdminUserHandler) // 删除管理员用户
+
+	// TODO 角色
+	// TODO 菜单权限
 
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人

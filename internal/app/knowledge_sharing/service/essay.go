@@ -39,3 +39,23 @@ func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
 func UpdateEssayIsDeleted(eid int) (int64, error) {
 	return mysql.UpdateEssayIsDeleted(eid)
 }
+
+// 将文章添加周刊
+func AddEssayWeekly(eid int) (int64, error) {
+	return mysql.AddEssayWeekly(eid)
+}
+
+// 获取文章周刊
+func GetEssayWeeklyList(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	return mysql.GetEssayWeeklyList(cid, page, pagesize)
+}
+
+// 将文章添加精粹
+func AddEssayEssence(eid int) (int64, error) {
+	return mysql.AddEssayEssence(eid)
+}
+
+// 获取文章精粹
+func GetEssayEssenceList(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	return mysql.GetEssayEssenceList(cid, page, pagesize)
+}
