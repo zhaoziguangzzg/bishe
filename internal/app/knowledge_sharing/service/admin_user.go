@@ -28,6 +28,11 @@ func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	return mysql.GetAdminUserByUserId(uid)
 }
 
+// 更新IsDeleted删除
+func UpdateAdminUserIsDeleted(uid int) (int64, error) {
+	return mysql.UpdateAdminUserIsDeleted(uid)
+}
+
 // 将管理员用户信息设置到cookie
 func SetAdminUserCookie(c *gin.Context, uid int, name string) {
 	c.SetCookie("adminUserId", strconv.Itoa(uid), 7*86400, "/", "", true, true)

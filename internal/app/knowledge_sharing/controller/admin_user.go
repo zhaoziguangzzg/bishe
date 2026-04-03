@@ -231,3 +231,29 @@ func UpdateAdminUserHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 
 }
+
+// 删除管理员用户
+func DeleteAdminUserHandler(c *gin.Context) {
+	//更新字段
+	uidStr := c.PostForm("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 更新IsDeleted删除
+	affectRows, err := service.UpdateAdminUserIsDeleted(uid)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateAdminUserIsDeleted err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
