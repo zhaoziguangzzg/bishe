@@ -153,9 +153,22 @@ func main() {
 	r.GET("/api/adminuser/get", controller.GetAdminUserHandler)        //获取某管理员用户信息
 	r.GET("/api/adminuser/logout", controller.AdminUserLogoutHandler)  //管理员用户退出登录
 	r.POST("/api/adminuser/delete", controller.DeleteAdminUserHandler) // 删除管理员用户
-
 	// TODO 角色
 	// TODO 菜单权限
+
+	//公告
+	r.POST("/api/announce/add", controller.AddAnnounceHandler)                         //创建公告
+	r.GET("/api/announce/all", controller.GetAllAnnounceHandler)                       //获取全部公告
+	r.GET("/api/announce/get", controller.GetAnnounceHandler)                          //查看公告
+	r.POST("/api/announce/update", controller.UpdateAnnounceHandler)                   //更新公告
+	r.POST("/api/announce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler) //删除公告
+
+	//广告
+	r.POST("/api/advert/add", controller.AddAdvertHandler)                         //创建广告
+	r.GET("/api/advert/all", controller.GetAllAdvertHandler)                       //获取全部广告
+	r.GET("/api/advert/get", controller.GetAdvertHandler)                          //查看广告
+	r.POST("/api/advert/update", controller.UpdateAdvertHandler)                   //更新广告
+	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
 
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
