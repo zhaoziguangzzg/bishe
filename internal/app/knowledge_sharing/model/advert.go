@@ -7,6 +7,8 @@ type Advert struct {
 	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
 	//广告位置
 	Position string `json:"position" gorm:"column:position" mapstructure:"position"`
+	//广告地址
+	AdvertAddr string `json:"advertAddr" gorm:"column:advert_addr" mapstructure:"advertAddr"`
 	//广告内容
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//广告开始时间
@@ -22,6 +24,7 @@ type Advert struct {
 }
 
 const (
+	ADVERT_MAX_ADDR     int = 200 //广告地址最长200字
 	ADVERT_MAX_CONTENT  int = 100 //广告内容最长100字
 	ADVERT_MAX_POSITION int = 100 //广告位置最长100字
 )

@@ -42,12 +42,13 @@ func GetAdvertById(id int) (advert *model.Advert, err error) {
 }
 
 // 根据id更新广告
-func UpdateAdvertById(id int, position string, content string, startTime time.Time, endTime time.Time) (int64, error) {
+func UpdateAdvertById(id int, position string, advertAddr string, content string, startTime time.Time, endTime time.Time) (int64, error) {
 	advert := model.Advert{
-		Position:  position,
-		Content:   content,
-		StartTime: &startTime,
-		EndTime:   &endTime,
+		Position:   position,
+		AdvertAddr: advertAddr,
+		Content:    content,
+		StartTime:  &startTime,
+		EndTime:    &endTime,
 	}
 
 	result := DB.Model(&model.Advert{}).Where("id=?", id).Updates(advert)

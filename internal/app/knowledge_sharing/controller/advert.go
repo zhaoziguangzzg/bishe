@@ -14,6 +14,7 @@ import (
 func AddAdvertHandler(c *gin.Context) {
 	position := c.PostForm("position")
 	content := c.PostForm("content")
+	advertAddr := c.PostForm("addvert_addr")
 
 	positionLen := len(position)
 	if positionLen > model.ADVERT_MAX_POSITION || positionLen == 0 {
@@ -24,6 +25,12 @@ func AddAdvertHandler(c *gin.Context) {
 	contentLen := len(content)
 	if contentLen > model.ADVERT_MAX_CONTENT || contentLen == 0 {
 		MakeApiResponseError(c, CODE_ADVERT_CONTENT_LEN_INVASLID)
+		return
+	}
+
+	advertAddrLen := len(advertAddr)
+	if advertAddrLen > model.ADVERT_MAX_ADDR || advertAddrLen == 0 {
+		MakeApiResponseError(c, CODE_ADVERT_ADDR_LEN_INVASLID)
 		return
 	}
 
@@ -66,13 +73,14 @@ func AddAdvertHandler(c *gin.Context) {
 
 	// 构造广告
 	advert := &model.Advert{ //其中包含自动生成的id
-		Position:  position,
-		Content:   content,
-		StartTime: &startTime,
-		EndTime:   &endTime,
-		CreateAt:  &createTime,
-		UpdateAt:  &createTime,
-		IsDeleted: model.IS_DELETED_NO,
+		Position:   position,
+		AdvertAddr: advertAddr,
+		Content:    content,
+		StartTime:  &startTime,
+		EndTime:    &endTime,
+		CreateAt:   &createTime,
+		UpdateAt:   &createTime,
+		IsDeleted:  model.IS_DELETED_NO,
 	}
 
 	err = service.CreateAdvert(advert)
@@ -157,6 +165,7 @@ func GetAdvertHandler(c *gin.Context) {
 func UpdateAdvertHandler(c *gin.Context) {
 	position := c.PostForm("position")
 	content := c.PostForm("content")
+	advertAddr := c.PostForm("addvert_addr")
 
 	positionLen := len(position)
 	if positionLen > model.ADVERT_MAX_POSITION || positionLen == 0 {
@@ -167,6 +176,12 @@ func UpdateAdvertHandler(c *gin.Context) {
 	contentLen := len(content)
 	if contentLen > model.ADVERT_MAX_CONTENT || contentLen == 0 {
 		MakeApiResponseError(c, CODE_ADVERT_CONTENT_LEN_INVASLID)
+		return
+	}
+
+	advertAddrLen := len(advertAddr)
+	if advertAddrLen > model.ADVERT_MAX_ADDR || advertAddrLen == 0 {
+		MakeApiResponseError(c, CODE_ADVERT_ADDR_LEN_INVASLID)
 		return
 	}
 
@@ -226,7 +241,7 @@ func UpdateAdvertHandler(c *gin.Context) {
 	}
 
 	//根据id更新广告
-	affectRows, err := service.UpdateAdvertById(advertId, position, content, startTime, endTime)
+	affectRows, err := service.UpdateAdvertById(advertId, position, advertAddr, content, startTime, endTime)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateAdvertById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

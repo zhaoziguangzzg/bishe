@@ -22,8 +22,8 @@ func GetAdvertById(id int) (advert *model.Advert, err error) {
 }
 
 // 根据id更新广告
-func UpdateAdvertById(id int, position string, content string, startTime time.Time, endTime time.Time) (int64, error) {
-	return mysql.UpdateAdvertById(id, position, content, startTime, endTime)
+func UpdateAdvertById(id int, position string, advertAddr string, content string, startTime time.Time, endTime time.Time) (int64, error) {
+	return mysql.UpdateAdvertById(id, position, advertAddr, content, startTime, endTime)
 }
 
 // 根据id删除广告
