@@ -170,6 +170,10 @@ func main() {
 	r.POST("/api/advert/update", controller.UpdateAdvertHandler)                   //更新广告
 	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
 
+	//搜素
+	r.GET("/api/search/circle", controller.GetCircleByTitleHandler) //搜索圈子
+	r.GET("/api/search/essay", controller.GetEssayByTitleHandler)   //搜索文章
+
 	//联系人列表（send-receive）
 	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
 	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人

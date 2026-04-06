@@ -350,3 +350,54 @@ func GetFreeCircleRankHandler(c *gin.Context) {
 		"circles": circles,
 	})
 }
+
+// 获取圈子
+func GetCircleByTitleHandler(c *gin.Context) {
+
+	title := c.PostForm("title")
+	if title == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	titleLen := len(title)
+	if titleLen > model.CIRCLE_MAX_TITLE || titleLen == 0 {
+		MakeApiResponseError(c, CODE_CIRCLE_TITLE_LEN_INVASLID)
+		return
+	}
+
+	//根据title获取圈子
+	circle, err := service.GetCircleByTitle(title)
+	if err != nil {
+		service.Logger.Error("GetCircleByTitle", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
+
+	//根据id获取用户
+	user, err := service.GetUserByUserId(circle.CircleOwnerId)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if user == nil {
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	data := map[string]interface{}{
+		"circle": circle,
+		//被搜索的用户
+		"user": user,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}

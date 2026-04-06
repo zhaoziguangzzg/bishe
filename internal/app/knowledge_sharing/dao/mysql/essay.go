@@ -68,7 +68,7 @@ func GetEssayByEids(eids []int) (essays []model.Essay, err error) {
 // 根据title获取文章
 func GetEssayByTitle(title string, cid int) (essay *model.Essay, err error) {
 	essay = new(model.Essay)
-	err = DB.Model(&model.Essay{}).Where("title=? and cid=? and is_deleted=?", title, cid, model.ESSAY_NOT_DELETED).
+	err = DB.Model(&model.Essay{}).Where("title=? and circle_id=? and is_deleted=?", title, cid, model.ESSAY_NOT_DELETED).
 		First(&essay).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

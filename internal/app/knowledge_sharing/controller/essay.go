@@ -445,3 +445,64 @@ func GetEssayEssonceHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 }
+
+// 获取文章
+func GetEssayByTitleHandler(c *gin.Context) {
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	title := c.Query("title")
+	if title == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	titleLen := len(title)
+	if titleLen > model.CIRCLE_MAX_TITLE || titleLen == 0 {
+		MakeApiResponseError(c, CODE_CIRCLE_TITLE_LEN_INVASLID)
+		return
+	}
+
+	//根据title获取圈子文章
+	essay, err := service.GetEssayByTitle(title, cid)
+	if err != nil {
+		service.Logger.Error("GetEssayByTitle", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if essay == nil {
+		MakeApiResponseError(c, CODE_ESSAY_NOT_EXIST)
+		return
+	}
+
+	//根据id获取用户
+	user, err := service.GetUserByUserId(essay.AuthorId)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if user == nil {
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	data := map[string]interface{}{
+		"essay": essay,
+		"user":  user,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
+}
