@@ -44,6 +44,19 @@ func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 	return circle, nil
 }
 
+// 通过like title关键词获取圈子
+func GetCircleByLikeTitle(title string, page int, pagesize int) (circles []model.Circle, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Circle{}).Where("title like ? and is_deleted=?", "%"+title+"%", model.IS_DELETED_NO).
+		Order("join_num DESC").Offset(offset).Limit(pagesize).Find(&circles).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // get 付费圈子
 func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	offset := (page - 1) * pagesize

@@ -20,6 +20,11 @@ func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 	return mysql.GetCircleByTitle(title)
 }
 
+// 通过like title关键词获取圈子
+func GetCircleByLikeTitle(title string, page int, pagesize int) (circles []model.Circle, err error) {
+	return mysql.GetCircleByLikeTitle(title, page, pagesize)
+}
+
 // get 付费圈子
 func GetCircleAllChargeOrderByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
 	return mysql.GetCircleAllChargeOrderByJoinNum(page, pagesize)

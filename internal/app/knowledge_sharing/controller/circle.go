@@ -353,8 +353,7 @@ func GetFreeCircleRankHandler(c *gin.Context) {
 
 // 获取圈子
 func GetCircleByTitleHandler(c *gin.Context) {
-
-	title := c.PostForm("title")
+	title := c.Query("title")
 	if title == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -366,36 +365,70 @@ func GetCircleByTitleHandler(c *gin.Context) {
 		return
 	}
 
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 5
+
 	//根据title获取圈子
-	circle, err := service.GetCircleByTitle(title)
+	circles, err := service.GetCircleByLikeTitle(title, page, pagesize)
 	if err != nil {
-		service.Logger.Error("GetCircleByTitle", zap.Error(err))
+		service.Logger.Error("GetCircleByLikeTitle", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if circle == nil {
-		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+	if len(circles) == 0 {
+		circles = make([]model.Circle, 0)
+		data := map[string]interface{}{
+			"circles": circles,
+		}
+
+		MakeApiResponseSuccess(c, data)
 		return
 	}
 
-	//根据id获取用户
-	user, err := service.GetUserByUserId(circle.CircleOwnerId)
+	var uids []int
+	for _, v := range circles {
+		uids = append(uids, v.CircleOwnerId)
+	}
+
+	//根据uids获取userMap
+	userMap, err := service.GetUsersByUidMap(uids)
 	if err != nil {
-		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		service.Logger.Error("GetUsersByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if user == nil {
-		MakeApiResponseError(c, CODE_SYS_ERROR)
+	if len(userMap) == 0 {
+		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	userCircles := make([]model.UserCircle, 0)
+
+	for _, v := range circles {
+		vUid := v.CircleOwnerId
+
+		vUser, ok := userMap[vUid]
+		if !ok {
+			service.Logger.Error("get user err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		var userCircle model.UserCircle
+
+		userCircle.Uid = vUid
+		userCircle.Name = vUser.Name
+		userCircle.Circle = v
+		userCircles = append(userCircles, userCircle)
 	}
 
 	data := map[string]interface{}{
-		"circle": circle,
-		//被搜索的用户
-		"user": user,
+		"userCircles": userCircles,
 	}
 
 	MakeApiResponseSuccess(c, data)

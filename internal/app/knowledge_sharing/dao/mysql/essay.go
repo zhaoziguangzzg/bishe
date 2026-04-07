@@ -81,6 +81,20 @@ func GetEssayByTitle(title string, cid int) (essay *model.Essay, err error) {
 	return essay, nil
 }
 
+// 根据title关键词like获取文章
+func GetEssayByLikeTitle(title string, cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Essay{}).
+		Where("title like ? and is_deleted=?", "%"+title+"%", model.IS_DELETED_NO).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // 根据eid更新文章信息
 func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
 	essay := model.Essay{

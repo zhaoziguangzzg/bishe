@@ -467,40 +467,99 @@ func GetEssayByTitleHandler(c *gin.Context) {
 	}
 
 	titleLen := len(title)
-	if titleLen > model.CIRCLE_MAX_TITLE || titleLen == 0 {
-		MakeApiResponseError(c, CODE_CIRCLE_TITLE_LEN_INVASLID)
+	if titleLen > model.ESSAY_MAX_TITLE || titleLen == 0 {
+		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
 		return
 	}
 
-	//根据title获取圈子文章
-	essay, err := service.GetEssayByTitle(title, cid)
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	//根据title关键词like获取文章
+	essays, err := service.GetEssayByLikeTitle(title, cid, page, pagesize)
 	if err != nil {
-		service.Logger.Error("GetEssayByTitle", zap.Error(err))
+		service.Logger.Error("GetEssayByLikeTitle", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if essay == nil {
-		MakeApiResponseError(c, CODE_ESSAY_NOT_EXIST)
+	if len(essays) == 0 {
+		essays = make([]model.Essay, 0)
+		data := map[string]interface{}{
+			"essays": essays,
+		}
+
+		MakeApiResponseSuccess(c, data)
 		return
 	}
 
-	//根据id获取用户
-	user, err := service.GetUserByUserId(essay.AuthorId)
+	var uids []int
+	for _, v := range essays {
+		uids = append(uids, v.AuthorId)
+	}
+
+	//根据uids获取userMap
+	userMap, err := service.GetUsersByUidMap(uids)
 	if err != nil {
-		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		service.Logger.Error("GetUsersByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if user == nil {
-		MakeApiResponseError(c, CODE_SYS_ERROR)
+	if len(userMap) == 0 {
+		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	//根据uids获取levelScoreMap
+	levelScoreMap, err := service.GetLevelScoreMapByUids(uids, cid)
+	if err != nil {
+		service.Logger.Error("GetLevelScoreMapByUids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(levelScoreMap) == 0 {
+		service.Logger.Error("GetLevelScoreMapByUids len(levelScoreMap) == 0")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	userEssays := make([]model.UserEssay, 0)
+
+	for _, v := range essays {
+		vUid := v.AuthorId
+
+		vUser, ok := userMap[vUid]
+		if !ok {
+			service.Logger.Error("get user err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		vLevelScore, ok := levelScoreMap[vUid]
+		if !ok {
+			service.Logger.Error("get levelScore err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		level := vLevelScore.Score / 1000
+
+		var userEssay model.UserEssay
+
+		userEssay.Uid = vUid
+		userEssay.Name = vUser.Name
+		userEssay.Level = level
+		userEssay.Essay = v
+		userEssays = append(userEssays, userEssay)
 	}
 
 	data := map[string]interface{}{
-		"essay": essay,
-		"user":  user,
+		"userEssays": userEssays,
 	}
 
 	MakeApiResponseSuccess(c, data)

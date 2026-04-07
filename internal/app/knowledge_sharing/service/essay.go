@@ -30,6 +30,11 @@ func GetEssayByTitle(title string, cid int) (essay *model.Essay, err error) {
 	return mysql.GetEssayByTitle(title, cid)
 }
 
+// 根据title关键词like获取文章
+func GetEssayByLikeTitle(title string, cid int, page int, pagesize int) (essays []model.Essay, err error) {
+	return mysql.GetEssayByLikeTitle(title, cid, page, pagesize)
+}
+
 // 根据eid更新文章信息
 func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
 	return mysql.UpdateEssayByEid(eid, title, content)
