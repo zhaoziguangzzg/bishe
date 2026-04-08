@@ -37,6 +37,8 @@ const (
 	CODE_CIRCLE_NOT_EXIST                 int = 4005
 	CODE_USER_NOT_JOIN_CIRCLE             int = 4006
 	CODE_USER_JOIN_CIRCLE                 int = 4007
+	CODE_CIRCLE_FREE                      int = 4008
+	CODE_USER_CIRCLE_RENEW                int = 4009
 
 	CODE_ESSAY_EXIST                int = 5001
 	CODE_ESSAY_TITLE_LEN_INVASLID   int = 5002
@@ -74,6 +76,8 @@ const (
 	CODE_ACCUSATION_CONTENT_LEN_INVASLID int = 9006
 	CODE_ACCUSATION_EXIST                int = 9007
 	CODE_ACCUSATION_NOT_EXIST            int = 9008
+
+	CODE_ORDERS_NOT_EXIST int = 9011
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -106,6 +110,8 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_CIRCLE_NOT_EXIST:                 "圈子不存在",
 	CODE_USER_NOT_JOIN_CIRCLE:             "用户未加入圈子",
 	CODE_USER_JOIN_CIRCLE:                 "用户已加入圈子",
+	CODE_CIRCLE_FREE:                      "免费圈子",
+	CODE_USER_CIRCLE_RENEW:                "用户圈子需要付费",
 
 	CODE_ESSAY_EXIST:                "文章已存在",
 	CODE_ESSAY_TITLE_LEN_INVASLID:   "文章标题长度错误",
@@ -143,6 +149,8 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_ACCUSATION_CONTENT_LEN_INVASLID: "举报内容长度错误",
 	CODE_ACCUSATION_EXIST:                "举报已存在",
 	CODE_ACCUSATION_NOT_EXIST:            "举报不存在",
+
+	CODE_ORDERS_NOT_EXIST: "用户支付不存在",
 }
 
 func GetMsgByCode(code int) (msg string) {

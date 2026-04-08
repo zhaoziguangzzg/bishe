@@ -65,8 +65,6 @@ func AddOrdersHandler(c *gin.Context) {
 		Cid:         cid,
 		Price:       price,
 		Discount:    discount,
-		StartTime:   &createTime,
-		EndTime:     &createTime,
 		CreateAt:    &createTime,
 		UpdateAt:    &createTime,
 		OrderStatus: model.ORDER_STATUS_WAIT,
@@ -168,18 +166,6 @@ func UpdateUserOrdersHandler(c *gin.Context) {
 		return
 	}
 
-	orders, err := service.GetUserOrdersByUidCid(uid, cid)
-	if err != nil {
-		service.Logger.Error("GetOrdersById", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if orders == nil {
-		MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
-		return
-	}
-
 	ordersIdStr := c.PostForm("orders_id")
 	if ordersIdStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -192,10 +178,31 @@ func UpdateUserOrdersHandler(c *gin.Context) {
 		return
 	}
 
+	//根据id更新支付
+	affectRows, err := service.UpdateOrderById(ordersId)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateOrderById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//获取用户圈子
+	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetUserCircleJoinByUidCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if join == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_JOIN_CIRCLE)
+		return
+	}
+
 	var startTime time.Time
 	var endTime time.Time
 
-	LastEndTime := *orders.EndTime
+	LastEndTime := *join.EndTime
 	nowTime := time.Now()
 
 	//开始时间大于当前时间
@@ -208,13 +215,97 @@ func UpdateUserOrdersHandler(c *gin.Context) {
 
 	endTime = startTime.AddDate(1, 0, 0)
 
-	//根据id更新支付
-	affectRows, err := service.UpdateOrderById(ordersId, startTime, endTime)
+	//更新join starttime
+	affectRows, err = service.UpdateUserCircleJoinTimeByUidCid(uid, cid, startTime, endTime)
 	if err != nil || affectRows == 0 {
-		service.Logger.Error("UpdateOrderById err", zap.Error(err))
+		service.Logger.Error("UpdateUserCircleJoinTimeByUidCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取圈子待续费
+func GetUserOrdersCircleHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//付费圈子
+	circle, err := service.GetCircleByCid(cid)
+	if err != nil {
+		service.Logger.Error("GetCircleByCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
+
+	if circle.Price == 0 {
+		MakeApiResponseError(c, CODE_CIRCLE_FREE)
+		return
+	}
+
+	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetUserJoinCircleByUidCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if userCircleJoin == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_JOIN_CIRCLE)
+		return
+	}
+
+	nowTime := time.Now()
+	var endTime time.Time
+	endTime = *userCircleJoin.EndTime
+	eTime := endTime.AddDate(0, -1, 0)
+
+	if nowTime.After(endTime) {
+		MakeApiResponseError(c, CODE_USER_CIRCLE_RENEW)
+		return
+	} else if eTime.After(nowTime) {
+		MakeApiResponseError(c, CODE_USER_CIRCLE_RENEW)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+
+	// joinMap := make(map[int]model.UserCircleJoin, 0)
+	// for _, v := range userCircleJoins {
+	// 	joinMap[v.CircleId] = v
+	// }
+
+	// var userJoins []model.UserCircleJoin
+	// for _, v := range circles {
+	// 	userCircleJoin, ok := joinMap[v.Id]
+	// 	if ok {
+	// 		userJoins = append(userJoins, userCircleJoin)
+	// 	}
+	// }
+
+	// for _, v := range userJoins {
+
+	// }
+
 }

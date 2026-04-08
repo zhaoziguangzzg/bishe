@@ -3,7 +3,6 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
-	"time"
 )
 
 // create支付
@@ -27,6 +26,6 @@ func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
 }
 
 // 根据id更新支付
-func UpdateOrderById(id int, startTime time.Time, endTime time.Time) (int64, error) {
-	return mysql.UpdateOrderById(id, startTime, endTime)
+func UpdateOrderById(id int) (int64, error) {
+	return mysql.UpdateOrderById(id)
 }

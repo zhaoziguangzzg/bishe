@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -53,13 +52,8 @@ func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
 }
 
 // 根据id更新支付
-func UpdateOrderById(id int, startTime time.Time, endTime time.Time) (int64, error) {
-	orders := model.Orders{
-		StartTime:   &startTime,
-		EndTime:     &endTime,
-		OrderStatus: model.ORDER_STATUS_PAID,
-	}
+func UpdateOrderById(id int) (int64, error) {
 
-	result := DB.Model(&model.Orders{}).Where("id=?", id).Updates(orders)
+	result := DB.Model(&model.Orders{}).Where("id=?", id).Update("order_status", model.ORDER_STATUS_PAID)
 	return result.RowsAffected, result.Error
 }

@@ -32,3 +32,9 @@ type UserEssay struct {
 	Level int    `json:"level"`
 	Essay Essay  `json:"essay"`
 }
+
+type UserCircle struct {
+	Uid    int    `json:"uid"`
+	Name   string `json:"userName"`
+	Circle Circle `json:"circle"`
+}

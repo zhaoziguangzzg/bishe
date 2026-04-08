@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -43,6 +44,32 @@ func GetUserCircleJoinByUidCid(uid int, cid int) (join *model.UserCircleJoin, er
 	}
 
 	return join, nil
+}
+
+// 根据uid查询用户加入圈子
+func GetUserJoinCircleByUid(uid int, page int, pagesize int) (userCircleJoins []model.UserCircleJoin, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.UserCircleJoin{}).
+		Where("user_id=?  and not_join_status=?", uid, model.USER_CIRCLE_JOIN_STATUS_JOIN).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&userCircleJoins).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 修改用户参与圈子时间
+func UpdateUserCircleJoinTimeByUidCid(uid int, cid int, startTime time.Time, endTime time.Time) (int64, error) {
+	userCircleJoin := &model.UserCircleJoin{
+		StartTime: &startTime,
+		EndTime:   &endTime,
+	}
+
+	result := DB.Model(&model.UserCircleJoin{}).Where("user_id=? and circle_id=?", uid, cid).
+		Updates(userCircleJoin)
+	return result.RowsAffected, result.Error
 }
 
 // 修改用户参与圈子状态

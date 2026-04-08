@@ -9,6 +9,10 @@ type UserCircleJoin struct {
 	UserId int `json:"userId" gorm:"column:user_id" mapstructure:"userId"`
 	//用户加入的圈子id
 	CircleId int `json:"circleId" gorm:"column:circle_id" mapstructure:"circleId"`
+	//加入圈子开始时间
+	StartTime *time.Time `json:"startTime" gorm:"column:start_time" mapstructure:"startTime"`
+	//加入圈子结束时间
+	EndTime *time.Time `json:"endTime" gorm:"column:end_time" mapstructure:"endTime"`
 
 	JoinTime      *time.Time `json:"joinTime" gorm:"column:join_time" mapstructure:""`
 	JoinTimeStr   string     `json:"-" gorm:"-" mapstructure:"joinTime"`

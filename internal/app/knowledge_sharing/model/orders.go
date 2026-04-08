@@ -13,10 +13,6 @@ type Orders struct {
 	Price int `json:"price" gorm:"column:price" mapstructure:"price"`
 	//折扣金额
 	Discount float64 `json:"discount" gorm:"column:discount" mapstructure:"discount"`
-	//加入圈子开始时间
-	StartTime *time.Time `json:"startTime" gorm:"column:start_time" mapstructure:"startTime"`
-	//加入圈子结束时间
-	EndTime *time.Time `json:"endTime" gorm:"column:end_time" mapstructure:"endTime"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
