@@ -136,12 +136,7 @@ func UserLogoutHandler(c *gin.Context) {
 // 获取用户
 func GetUserHandler(c *gin.Context) {
 	//从cookie获取用户信息
-	uid, name := service.GetUserFromCookie(c)
-	if uid == 0 || name == "" {
-		//用户未登录
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	//从数据库获取用户信息
 	user, err := service.GetUserByUserId(uid)

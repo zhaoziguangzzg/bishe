@@ -2,6 +2,7 @@ package main
 
 import (
 	"bishe/internal/app/knowledge_sharing/controller"
+	"bishe/internal/app/knowledge_sharing/middleware"
 	"bishe/internal/app/knowledge_sharing/service"
 
 	"github.com/gin-gonic/gin"
@@ -46,14 +47,12 @@ func main() {
 
 	r.Static("/static", "./static")
 
-	// 注册路由
-
 	//用户模块
-	r.POST("/api/user/add", controller.AddUserHandler)       //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
-	r.POST("/api/user/update", controller.UpdateUserHandler) //更新用户信息
-	r.POST("/api/user/login", controller.UserLoginHandler)   //用户登录
-	r.GET("/api/user/get", controller.GetUserHandler)        //获取某用户信息
-	r.GET("/api/user/logout", controller.UserLogoutHandler)  //用户退出登录
+	r.POST("/api/user/add", controller.AddUserHandler)                                  //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
+	r.POST("/api/user/update", controller.UpdateUserHandler)                            //更新用户信息
+	r.POST("/api/user/login", controller.UserLoginHandler)                              //用户登录
+	r.GET("/api/user/get", middleware.UserLoginMiddleware(), controller.GetUserHandler) //获取某用户信息
+	r.GET("/api/user/logout", controller.UserLogoutHandler)                             //用户退出登录
 
 	//圈子模块
 	r.POST("/api/circle/add", controller.AddCircleHandler)             //创建圈子
