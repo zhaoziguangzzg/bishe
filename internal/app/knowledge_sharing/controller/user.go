@@ -4,6 +4,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -201,10 +202,10 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	// if age > model.USER_MAX_AGE || age == 0 {
-	// 	MakeApiResponseError(c, CODE_USER_AGE_INVALID)
-	// 	return
-	// }
+	if age > model.USER_MAX_AGE || age == 0 {
+		MakeApiResponseError(c, CODE_USER_AGE_INVALID)
+		return
+	}
 
 	//检测手机号长度11位
 	if len(phoneStr) != 11 {
@@ -246,14 +247,17 @@ func UpdateUserHandler(c *gin.Context) {
 
 	// 处理头像上传
 	avatarPath := ""
-	file, header, err := c.Request.FormFile("img")
-	if err != nil {
+	file, header, err := c.Request.FormFile("avatar")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile err", zap.Error(err))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	if header.Size != 0 {
-		avatarPath, err = service.FilePath(file, header, fileType, timeNow)
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		avatarPath, err = service.FileSave(file, header, fileType, timeNow)
 		if err != nil {
 			MakeApiResponseErrorDefault(c)
 			return

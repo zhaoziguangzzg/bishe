@@ -16,7 +16,7 @@ const (
 	FILE_TYPE_ADVERT_IMG  int = 2
 )
 
-func FilePath(file multipart.File, header *multipart.FileHeader, fileType int, timeNow time.Time) (avatarPath string, err error) {
+func FileSave(file multipart.File, header *multipart.FileHeader, fileType int, timeNow time.Time) (avatarPath string, err error) {
 	defer file.Close()
 
 	// 获取文件扩展名
