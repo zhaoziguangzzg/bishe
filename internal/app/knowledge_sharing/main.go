@@ -68,6 +68,10 @@ func main() {
 	r.GET("/api/user/logout", controller.UserLogoutHandler)                             //用户退出登录
 
 	//圈子模块
+	r.GET("/page/circle/add", controller.AddCirclePageHandler)
+	r.GET("/page/circle/detail", controller.CircleDetailPageHandler)
+	r.GET("/page/circle/index", controller.CircleIndexPageHandler)
+
 	r.POST("/api/circle/add", controller.AddCircleHandler)             //创建圈子
 	r.POST("/api/circle/update", controller.UpdateCircleHandler)       //更新圈子信息
 	r.GET("/api/circle/all", controller.GetAllCircleHandler)           //获取全部圈子
