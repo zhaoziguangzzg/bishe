@@ -11,6 +11,32 @@ func CreateUserCircleJoin(newUserCircle *model.UserCircleJoin) (err error) {
 	return mysql.CreateUserCircleJoin(newUserCircle)
 }
 
+// 用户加入圈子并更新参与人数
+func CreateUserJoinCircleAndUpdateJoinNum(uid int, cid int, joinTime time.Time, endTime time.Time) (joinid int, err error) {
+
+	newUserCircle := &model.UserCircleJoin{
+		UserId:        uid,
+		CircleId:      cid,
+		StartTime:     &joinTime,
+		EndTime:       &endTime,
+		JoinTime:      &joinTime,
+		UpdateAt:      &joinTime,
+		NotJoinStatus: model.USER_CIRCLE_JOIN_STATUS_JOIN,
+	}
+
+	err = CreateUserCircleJoin(newUserCircle)
+	if err != nil {
+		return
+	}
+
+	affectRows, err := IncrUpdateCircleJoinNumByCid(cid)
+	if affectRows == 0 || err != nil {
+		return
+	}
+	joinid = newUserCircle.Id
+	return joinid, err
+}
+
 // 查询用户加入圈子
 func GetUserJoinCircleByUidCid(uid int, cid int) (userCircleJoin *model.UserCircleJoin, err error) {
 	return mysql.GetUserJoinCircleByUidCid(uid, cid)

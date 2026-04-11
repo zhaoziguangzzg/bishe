@@ -13,6 +13,9 @@ type Circle struct {
 	CircleOwnerId int `json:"circleOwnerId" gorm:"column:circle_owner_id" mapstructure:"circleOwnerId"`
 	//圈子简介
 	Introduction string `json:"introduction" gorm:"column:introduction" mapstructure:"introduction"`
+	//圈子收款码
+	PayImg string `json:"payImg" gorm:"column:pay_img" mapstructure:"payImg"`
+
 	//加入圈子人数
 	JoinNum int `json:"joinNum" gorm:"column:join_num" mapstructure:"joinNum"`
 

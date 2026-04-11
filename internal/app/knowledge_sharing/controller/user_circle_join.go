@@ -69,24 +69,15 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 	} else {
 		//空，未加入过
 		joinTime := time.Now()
-		newUserCircle := &model.UserCircleJoin{
-			UserId:        uid,
-			CircleId:      cid,
-			JoinTime:      &joinTime,
-			UpdateAt:      &joinTime,
-			NotJoinStatus: model.USER_CIRCLE_JOIN_STATUS_JOIN,
-		}
-
-		err = service.CreateUserCircleJoin(newUserCircle)
+		endTime := joinTime.AddDate(1, 0, 0)
+		joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, cid, joinTime, endTime)
 		if err != nil {
-			service.Logger.Error("CreateUserCircleJoin err", zap.Error(err))
+			service.Logger.Error("CreateUserJoinCircleAndUpdateJoinNum err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
 		}
 
-		affectRows, err := service.IncrUpdateCircleJoinNumByCid(cid)
-		if affectRows == 0 || err != nil {
-			service.Logger.Error("IncrUpdateCircleJoinNumByCid err", zap.Error(err))
+		if joinId == 0 {
 			MakeApiResponseErrorDefault(c)
 			return
 		}

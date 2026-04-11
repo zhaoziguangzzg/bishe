@@ -65,6 +65,8 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
+	//TODO 添加/更新收款码
+
 	createTime := time.Now()
 	// 构造圈子对象
 	newCircle := &model.Circle{ //其中包含自动生成的id
@@ -85,7 +87,23 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	endTime := createTime.AddDate(100, 0, 0)
+	//圈主加入圈子并更新加入人数
+	joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, newCircle.Id, createTime, endTime)
+	if err != nil {
+		service.Logger.Error("CreateUserJoinCircleAndUpdateJoinNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if joinId == 0 {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"cid": newCircle.Id,
+	})
 
 }
 
