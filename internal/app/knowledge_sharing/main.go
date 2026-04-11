@@ -4,9 +4,9 @@ import (
 	"bishe/internal/app/knowledge_sharing/controller"
 	"bishe/internal/app/knowledge_sharing/middleware"
 	"bishe/internal/app/knowledge_sharing/service"
+	"html/template"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -47,20 +47,9 @@ func main() {
 
 	//创建 Gin 路由引擎
 	r := gin.Default()
+	// 给 Gin 设置自定义模板引擎
+	r.SetHTMLTemplate(tpl)
 
-	_, currentFile, _, _ := runtime.Caller(0)
-	baseDir := filepath.Dir(currentFile)
-	projectRoot := filepath.Dir(filepath.Dir(baseDir))
-	viewsPath := filepath.Join(projectRoot, "web", "views", "*.html")
-
-	if _, err := os.Stat(viewsPath); os.IsNotExist(err) {
-		wd, _ := os.Getwd()
-		viewsPath = filepath.Join(wd, "web", "views", "*.html")
-	}
-
-	r.LoadHTMLGlob(viewsPath)
-
-	r.Static("/static", "./static")
 	r.Static("/img", "web/img")
 
 	//页面路由
@@ -69,6 +58,8 @@ func main() {
 	r.GET("/page/user/register", controller.RegisterPageHandler)
 	r.GET("/page/user/profile", controller.ProfilePageHandler)
 	r.GET("/page/user/edit", controller.EditPageHandler)
+	r.GET("/page/user/edit-password", controller.EditPasswordPageHandler)
+
 	r.POST("/api/user/login", controller.UserLoginHandler)                              //用户登录
 	r.POST("/api/user/add", controller.AddUserHandler)                                  //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
 	r.POST("/api/user/update", controller.UpdateUserHandler)                            //更新用户信息
@@ -215,4 +206,31 @@ func main() {
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
 	service.Logger.Error("Default error", zap.Error(r.Run(":8080")))
+}
+
+// 全局模板
+var tpl *template.Template
+
+func init() {
+	// 根目录
+	root := "./web/views"
+	tpl = template.New("")
+
+	// 遍历所有 HTML
+	filepath.Walk(root, func(path string, f os.FileInfo, _ error) error {
+		if !f.IsDir() && filepath.Ext(path) == ".html" {
+			// --------------------------
+			// 🔥 核心：强制模板名 = user/edit.html
+			// --------------------------
+			rel, _ := filepath.Rel(root, path)
+			name := filepath.ToSlash(rel)
+
+			// 读文件内容
+			content, _ := os.ReadFile(path)
+
+			// 解析
+			template.Must(tpl.New(name).Parse(string(content)))
+		}
+		return nil
+	})
 }
