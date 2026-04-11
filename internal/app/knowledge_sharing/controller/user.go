@@ -73,6 +73,8 @@ func AddUserHandler(c *gin.Context) {
 		IsDeleted:  model.IS_DELETED_NO,
 	}
 
+	//密码加密
+
 	// 插入数据库
 	err = service.CreateUser(newUser)
 	if err != nil {
@@ -317,6 +319,7 @@ func UpdateUserPasswordHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
+	//密码加密
 
 	//更新用户信息
 	affectRows, err := service.UpdateUserPasswordByUid(uid, password)
