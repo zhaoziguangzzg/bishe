@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圈子详情 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .circle-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+        .circle-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .circle-price {
+            font-size: 28px;
+            color: #f56c6c;
+            font-weight: bold;
+        }
+        .circle-price span {
+            font-size: 14px;
+            font-weight: normal;
+        }
+        .circle-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 16px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .circle-info {
+            margin-bottom: 30px;
+        }
+        .info-item {
+            margin-bottom: 16px;
+        }
+        .info-label {
+            font-size: 14px;
+            color: #909399;
+            margin-bottom: 8px;
+        }
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .action-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #f5f7fa;
+            color: #666;
+            border: 1px solid #dcdfe6;
+        }
+        .btn-secondary:hover {
+            background: #ebeef5;
+        }
+        .btn-joined {
+            background: #67c23a;
+            color: white;
+            cursor: default;
+        }
+        .btn-joined:hover {
+            opacity: 1;
+        }
+        .error-tip {
+            color: #f56c6c;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #67c23a;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #909399;
+        }
+        .not-found {
+            text-align: center;
+            padding: 60px;
+        }
+        .not-found h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .modal-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>知识分享平台</span>
+        <a href="/page/index">返回首页</a>
+    </div>
+
+    <div class="container">
+        <div class="detail-card" id="content">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="payModal">
+        <div class="modal-content">
+            <h3>请扫码支付</h3>
+            <img id="payImg" src="" alt="支付二维码">
+            <div class="modal-btns">
+                <button class="btn btn-primary" onclick="goToCircleIndex()">已加入</button>
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cid = urlParams.get('cid');
+
+        if (!cid) {
+            alert('缺少圈子ID参数');
+            window.location.href = '/';
+        } else {
+            loadCircleDetail();
+        }
+
+        async function loadCircleDetail() {
+            try {
+                const response = await axios.get('/api/circle/get', {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    renderCircleDetail(response.data.data);
+                } else {
+                    document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '圈子不存在') + '</h2><a href="/page/index">返回首页</a></div>';
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/index">返回首页</a></div>';
+            }
+        }
+
+        function renderCircleDetail(data) {
+            const circle = data.circle;
+            const isJoin = data.is_join;
+
+            const html = `
+                <div class="circle-header">
+                    <h1 class="circle-title">${escapeHtml(circle.title)}</h1>
+                    <div class="circle-price">${circle.price}<span> 元</span></div>
+                    <div class="circle-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${circle.joinNum || 0}</div>
+                            <div class="stat-label">加入人数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${getStatusText(circle.circleStatus)}</div>
+                            <div class="stat-label">状态</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="circle-info">
+                    <div class="info-item">
+                        <div class="info-label">圈子简介</div>
+                        <div class="info-value">${escapeHtml(circle.introduction) || '暂无简介'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">创建时间</div>
+                        <div class="info-value">${formatDate(circle.createAt)}</div>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <div class="error-tip" id="actionError"></div>
+                    <div class="success-tip" id="actionSuccess"></div>
+                    ${renderActionButton(isJoin, circle)}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function renderActionButton(isJoin, circle) {
+            if (isJoin) {
+                return '<button class="btn btn-primary" onclick="window.location.href=\'/page/circle/index?cid=' + circle.id + '\'">已加入</button>';
+            } else {
+                return `
+                    <button class="btn btn-primary" onclick="joinCircle()">加入圈子</button>
+                    <button class="btn btn-secondary" onclick="window.history.back()">返回</button>
+                `;
+            }
+        }
+
+        async function joinCircle() {
+            const errorTip = document.getElementById('actionError');
+            const successTip = document.getElementById('actionSuccess');
+            errorTip.classList.remove('show');
+            successTip.classList.remove('show');
+
+            try {
+                const response = await axios.get('/api/circle/get', {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    const circle = response.data.data.circle;
+                    if (circle.payImg) {
+                        document.getElementById('payImg').src = circle.payImg;
+                        document.getElementById('payModal').classList.add('show');
+                    } else {
+                        errorTip.textContent = '暂无支付信息，请稍后重试';
+                        errorTip.classList.add('show');
+                    }
+                } else {
+                    errorTip.textContent = response.data.msg || '获取圈子信息失败';
+                    errorTip.classList.add('show');
+                }
+            } catch (error) {
+                errorTip.textContent = '网络错误，请稍后重试';
+                errorTip.classList.add('show');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('payModal').classList.remove('show');
+        }
+
+        function goToCircleIndex() {
+            closeModal();
+            window.location.href = '/page/circle/index?cid=' + cid;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '未知';
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN');
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 0: return '正常';
+                case 1: return '审核中';
+                default: return '未知';
+            }
+        }
+    </script>
+</body>
+</html>
