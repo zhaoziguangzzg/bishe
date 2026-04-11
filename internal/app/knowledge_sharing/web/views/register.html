@@ -215,7 +215,7 @@
                 if (response.data.code === 0) {
                     successMsg.textContent = '注册成功，跳转到登录页...';
                     successMsg.classList.add('show');
-                    window.location.href = '/page/user/login';
+                    window.location.href = '/';
                     
                 } else {
                     errorMsg.textContent = response.data.message || '注册失败';

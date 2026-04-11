@@ -4,6 +4,9 @@ import (
 	"bishe/internal/app/knowledge_sharing/controller"
 	"bishe/internal/app/knowledge_sharing/middleware"
 	"bishe/internal/app/knowledge_sharing/service"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -45,12 +48,31 @@ func main() {
 	//创建 Gin 路由引擎
 	r := gin.Default()
 
-	r.Static("/static", "./static")
+	_, currentFile, _, _ := runtime.Caller(0)
+	baseDir := filepath.Dir(currentFile)
+	projectRoot := filepath.Dir(filepath.Dir(baseDir))
+	viewsPath := filepath.Join(projectRoot, "web", "views", "*.html")
 
-	//用户模块
+	if _, err := os.Stat(viewsPath); os.IsNotExist(err) {
+		wd, _ := os.Getwd()
+		viewsPath = filepath.Join(wd, "web", "views", "*.html")
+	}
+
+	r.LoadHTMLGlob(viewsPath)
+
+	r.Static("/static", "./static")
+	r.Static("/img", "web/img")
+
+	//页面路由
+	r.GET("/", controller.IndexPageHandler)
+	r.GET("/page/user/login", controller.LoginPageHandler)
+	r.GET("/page/user/register", controller.RegisterPageHandler)
+	r.GET("/page/user/profile", controller.ProfilePageHandler)
+	r.GET("/page/user/edit", controller.EditPageHandler)
+	r.POST("/api/user/login", controller.UserLoginHandler)                              //用户登录
 	r.POST("/api/user/add", controller.AddUserHandler)                                  //绑定路径和函数，当客户端请求路径为""时使用这个函数处理请求
 	r.POST("/api/user/update", controller.UpdateUserHandler)                            //更新用户信息
-	r.POST("/api/user/login", controller.UserLoginHandler)                              //用户登录
+	r.POST("/api/user/updatepassword", controller.UpdateUserPasswordHandler)            //更新用户密码
 	r.GET("/api/user/get", middleware.UserLoginMiddleware(), controller.GetUserHandler) //获取某用户信息
 	r.GET("/api/user/logout", controller.UserLogoutHandler)                             //用户退出登录
 
