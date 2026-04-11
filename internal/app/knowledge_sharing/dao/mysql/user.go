@@ -13,14 +13,22 @@ func CreateUser(newUser *model.User) (err error) {
 }
 
 // 更新
-func UpdateUserByUid(uid int, name string, email string, age int, phone int) (int64, error) {
-	user := model.User{
-		Name:  name,
-		Email: email,
-		Age:   age,
-		Phone: phone,
-	}
-	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(user)
+func UpdateUserByUid(uid int, updateMap map[string]interface{}) (int64, error) {
+
+	// user := model.User{
+	// 	Name:  name,
+	// 	Email: email,
+	// 	Age:   age,
+	// 	Phone: phone,
+	// }
+	result := DB.Model(&model.User{}).Where("id=?", uid).Updates(updateMap)
+	return result.RowsAffected, result.Error
+}
+
+// 更新用户密码
+func UpdateUserPasswordByUid(uid int, password string) (int64, error) {
+
+	result := DB.Model(&model.User{}).Where("id=?", uid).Update("password", password)
 	return result.RowsAffected, result.Error
 }
 

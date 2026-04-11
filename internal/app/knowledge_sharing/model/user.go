@@ -9,6 +9,8 @@ type User struct {
 	Name string `json:"name" gorm:"column:name" mapstructure:"name"`
 	//密码
 	Password string `json:"password" gorm:"column:password" mapstructure:"password"`
+	//头像
+	Avatar string `json:"avatar" gorm:"column:avatar" mapstructure:"avatar"`
 	//邮箱
 	Email string `json:"email" gorm:"column:email" mapstructure:"email"`
 	//年龄

@@ -4,6 +4,9 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
+	"io"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -16,6 +19,8 @@ func AddUserHandler(c *gin.Context) {
 	// 从表单中获取用户信息
 	name := c.PostForm("name")
 	password := c.PostForm("password")
+	email := c.PostForm("email")
+	// avatar := c.PostForm("avatar")
 
 	//验证 name超长
 	nameLen := len(name)
@@ -33,6 +38,17 @@ func AddUserHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_PARAMS_ERROR)
 		return
 	}
+
+	//检测email格式错误
+	if !utils.IsValidEmail(email) {
+		MakeApiResponseError(c, CODE_USER_EMAIL_INVALID)
+		return
+	}
+
+	// avatarLen := len(avatar)
+	// if avatar == "" || avatarLen > 50 {
+	// 	MakeApiResponseError(c, CODE_USER_AVATAR_NAME_LEN_INVALID)
+	// }
 
 	createTime := time.Now()
 
@@ -54,10 +70,44 @@ func AddUserHandler(c *gin.Context) {
 		return
 	}
 
+	// 处理头像上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("img")
+	if err == nil {
+		defer file.Close()
+
+		// 获取文件扩展名
+		ext := filepath.Ext(header.Filename)
+		if ext == "" {
+			ext = ".jpg"
+		}
+
+		// 生成文件名，用户名+文件扩展名
+		filename := name + ext
+		uploadPath := filepath.Join("web", "img", filename)
+
+		// 保存文件
+		out, err := os.Create(uploadPath)
+		if err != nil {
+			service.Logger.Error("Create file err", zap.Error(err))
+		} else {
+			defer out.Close()
+			//将用户上传的file复制到out文件里
+			_, err = io.Copy(out, file)
+			if err != nil {
+				service.Logger.Error("Save file err", zap.Error(err))
+			} else {
+				avatarPath = "/img/" + filename
+			}
+		}
+	}
+
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
 		Name:       name,
 		Password:   password,
+		Email:      email,
+		Avatar:     avatarPath,
 		CreateAt:   &createTime,
 		UpdateAt:   &createTime,
 		UserStatus: model.USER_STATUS_NORMAL,
@@ -117,7 +167,7 @@ func UserLoginHandler(c *gin.Context) {
 
 	//验证密码是否正确
 	if password != user.Password {
-		MakeApiResponseError(c, CODE_USER_PASSWORD_INVALID)
+		MakeApiResponseError(c, CODE_PASSWORD_WRONG)
 		return
 	}
 
@@ -193,10 +243,10 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	if age > model.USER_MAX_AGE || age == 0 {
-		MakeApiResponseError(c, CODE_USER_AGE_INVALID)
-		return
-	}
+	// if age > model.USER_MAX_AGE || age == 0 {
+	// 	MakeApiResponseError(c, CODE_USER_AGE_INVALID)
+	// 	return
+	// }
 
 	//检测手机号长度11位
 	if len(phoneStr) != 11 {
@@ -226,8 +276,35 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
+	updateMap := map[string]interface{}{
+		"name":  name,
+		"email": email,
+		"age":   age,
+		"phone": phone,
+	}
+
+	fileType := service.FILE_TYPE_UAER_AVATAR
+	timeNow := time.Now()
+
+	// 处理头像上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("img")
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if header.Size != 0 {
+		avatarPath, err = service.FilePath(file, header, fileType, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		updateMap["avatar"] = avatarPath
+	}
+
 	//更新用户信息
-	affectRows, err := service.UpdateUserByUid(uid, userName, email, age, phone)
+	affectRows, err := service.UpdateUserByUid(uid, updateMap)
 	if !(affectRows > 0 && err == nil) {
 		service.Logger.Error("UpdateUserByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
@@ -236,6 +313,56 @@ func UpdateUserHandler(c *gin.Context) {
 
 	//修改cookie中的用户名
 	service.SetUserCookie(c, uid, userName)
+
+	MakeApiResponseSuccessDefault(c)
+
+}
+
+// 更新用户密码
+func UpdateUserPasswordHandler(c *gin.Context) {
+	//从cookie获取用户登录信息，是验证登录
+	uid, name := service.GetUserFromCookie(c)
+	if uid == 0 || name == "" {
+		//用户未登录
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	password := c.PostForm("password")
+
+	if password == "" || len(password) < 8 {
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		return
+	}
+
+	if !utils.IsValidPassword(password) {
+		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		return
+	}
+
+	//根据id获取用户
+	user, err := service.GetUserByUserId(uid)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	//用户cookie有问题，重新登录
+	if user == nil {
+		// 清除cookie
+		service.DeleteUserCookie(c)
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//更新用户信息
+	affectRows, err := service.UpdateUserPasswordByUid(uid, password)
+	if !(affectRows > 0 && err == nil) {
+		service.Logger.Error("UpdateUserPasswordByUid err", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 

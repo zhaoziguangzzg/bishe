@@ -24,8 +24,13 @@ func GetUserByUserId(UserId int) (user *model.User, err error) {
 }
 
 // 更新
-func UpdateUserByUid(uid int, name string, email string, age int, phone int) (int64, error) {
-	return mysql.UpdateUserByUid(uid, name, email, age, phone)
+func UpdateUserByUid(uid int, updateMap map[string]interface{}) (int64, error) {
+	return mysql.UpdateUserByUid(uid, updateMap)
+}
+
+// 更新用户密码
+func UpdateUserPasswordByUid(uid int, password string) (int64, error) {
+	return mysql.UpdateUserPasswordByUid(uid, password)
 }
 
 // 将用户信息设置到cookie
