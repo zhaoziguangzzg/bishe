@@ -4,9 +4,6 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
-	"io"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -20,7 +17,6 @@ func AddUserHandler(c *gin.Context) {
 	name := c.PostForm("name")
 	password := c.PostForm("password")
 	email := c.PostForm("email")
-	// avatar := c.PostForm("avatar")
 
 	//验证 name超长
 	nameLen := len(name)
@@ -45,11 +41,6 @@ func AddUserHandler(c *gin.Context) {
 		return
 	}
 
-	// avatarLen := len(avatar)
-	// if avatar == "" || avatarLen > 50 {
-	// 	MakeApiResponseError(c, CODE_USER_AVATAR_NAME_LEN_INVALID)
-	// }
-
 	createTime := time.Now()
 
 	//查询用户是否存在
@@ -70,48 +61,15 @@ func AddUserHandler(c *gin.Context) {
 		return
 	}
 
-	// 处理头像上传
-	avatarPath := ""
-	file, header, err := c.Request.FormFile("img")
-	if err == nil {
-		defer file.Close()
-
-		// 获取文件扩展名
-		ext := filepath.Ext(header.Filename)
-		if ext == "" {
-			ext = ".jpg"
-		}
-
-		// 生成文件名，用户名+文件扩展名
-		filename := name + ext
-		uploadPath := filepath.Join("web", "img", filename)
-
-		// 保存文件
-		out, err := os.Create(uploadPath)
-		if err != nil {
-			service.Logger.Error("Create file err", zap.Error(err))
-		} else {
-			defer out.Close()
-			//将用户上传的file复制到out文件里
-			_, err = io.Copy(out, file)
-			if err != nil {
-				service.Logger.Error("Save file err", zap.Error(err))
-			} else {
-				avatarPath = "/img/" + filename
-			}
-		}
-	}
-
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
 		Name:       name,
 		Password:   password,
 		Email:      email,
-		Avatar:     avatarPath,
 		CreateAt:   &createTime,
 		UpdateAt:   &createTime,
 		UserStatus: model.USER_STATUS_NORMAL,
-		IsDeleted:  model.USER_NOT_DELETED,
+		IsDeleted:  model.IS_DELETED_NO,
 	}
 
 	// 插入数据库
