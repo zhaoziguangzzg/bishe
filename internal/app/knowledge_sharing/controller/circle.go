@@ -249,9 +249,22 @@ func GetCircleHandler(c *gin.Context) {
 		return
 	}
 
+	user, err := service.GetUserByUserId(circle.CircleOwnerId)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if user == nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
 		"is_join": isJoin,
 		"circle":  circle,
+		"user":    user,
 	})
 }
 

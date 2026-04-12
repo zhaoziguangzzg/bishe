@@ -770,20 +770,21 @@
 
         async function loadCircleInfo(circleId) {
             try {
-                const response = await axios.get(`/api/circle/detail?cid=${circleId}`);
+                const response = await axios.get(`/api/circle/get?cid=${circleId}`);
                 if (response.data.code === 0 && response.data.data) {
                     const circle = response.data.data.circle;
+                    const owner = response.data.data.user;
                     document.getElementById('circleIcon').textContent = circle.title ? circle.title.charAt(0).toUpperCase() : '圈';
                     document.getElementById('circleTitle').textContent = circle.title || '未命名圈子';
                     document.getElementById('circleIntro').textContent = circle.introduction || '暂无简介';
-                    document.getElementById('circleIntro').onclick = () => window.location.href = `/page/circle/${circleId}`;
-                    document.getElementById('circleTitle').onclick = () => window.location.href = `/page/circle/${circleId}`;
+                    document.getElementById('circleIntro').onclick = () => window.location.href = `/page/circle/detail?cid=${circleId}`;
+                    document.getElementById('circleTitle').onclick = () => window.location.href = `/page/circle/detail?cid=${circleId}`;
 
-                    if (circle.owner && circle.owner.avatar) {
-                        document.getElementById('circleOwnerAvatar').src = circle.owner.avatar;
-                        document.getElementById('circleOwnerAvatar').onclick = () => window.location.href = `/page/user/profile?uid=${circle.owner.id}`;
-                        document.getElementById('circleOwnerName').textContent = circle.owner.name;
-                        document.getElementById('circleOwnerName').onclick = () => window.location.href = `/page/user/profile?uid=${circle.owner.id}`;
+                    if (owner && owner.avatar) {
+                        document.getElementById('circleOwnerAvatar').src = owner.avatar;
+                        document.getElementById('circleOwnerAvatar').onclick = () => window.location.href = `/page/user/profile?uid=${owner.id}`;
+                        document.getElementById('circleOwnerName').textContent = owner.name;
+                        document.getElementById('circleOwnerName').onclick = () => window.location.href = `/page/user/profile?uid=${owner.id}`;
                     }
                 }
             } catch (error) {
