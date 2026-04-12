@@ -48,8 +48,8 @@ const (
 	ESSAY_IS_ESSENCE  int = 1 //是精华
 	ESSAY_NOT_ESSENCE int = 0 //不是精华
 
-	ESSAY_MAX_TITLE   int = 100 //文章标题最长100字
-	ESSAY_MAX_CONTENT int = 200 //文章内容最长200字
+	ESSAY_MAX_TITLE   int = 100   //文章标题最长100字
+	ESSAY_MAX_CONTENT int = 65535 //文章内容最长65535字
 
 )
 

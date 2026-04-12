@@ -67,7 +67,9 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"eid": newEssay.Id,
+	})
 }
 
 // 更新文章信息
@@ -244,9 +246,8 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	}
 
 	if len(essays) == 0 {
-		essays = make([]model.Essay, 0)
 		data := map[string]interface{}{
-			"essays": essays,
+			"userEssays": make([]model.UserEssay, 0),
 		}
 
 		MakeApiResponseSuccess(c, data)
