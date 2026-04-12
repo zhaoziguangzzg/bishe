@@ -302,7 +302,10 @@
 
         function renderActionButton(isJoin, circle) {
             if (isJoin) {
-                return '<button class="btn btn-primary" onclick="window.location.href=\'/page/circle/index?cid=' + circle.id + '\'">已加入</button>';
+                return `
+                    <button class="btn btn-primary" onclick="window.location.href='/page/circle/index?cid=${circle.id}'">进入圈子</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/page/essay/add?cid=${circle.id}'">创建文章</button>
+                `;
             } else {
                 return `
                     <button class="btn btn-primary" onclick="joinCircle()">加入圈子</button>
