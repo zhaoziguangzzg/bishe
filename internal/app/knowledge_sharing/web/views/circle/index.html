@@ -760,6 +760,10 @@
 
             updateEssayBtnHref(circleId);
 
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('cid', circleId);
+            history.pushState({ circleId }, '', newUrl.toString());
+
             loadCircleInfo(circleId);
             loadEssays(circleId);
         }
