@@ -7,7 +7,7 @@ import (
 
 // 增加等级分数详情
 func UserAddLevelScoreRecord(uid int, cid int, score int, relateId int, typei int, createAt time.Time) (err error) {
-	levelScore := &model.LevelScoreRecord{
+	levelScoreRecord := &model.LevelScoreRecord{
 		Uid:       uid,
 		Cid:       cid,
 		Score:     score,
@@ -18,7 +18,7 @@ func UserAddLevelScoreRecord(uid int, cid int, score int, relateId int, typei in
 		IsDeleted: model.IS_DELETED_NO,
 	}
 
-	err = DB.Model(&model.LevelScore{}).Create(levelScore).Error
+	err = DB.Model(&model.LevelScoreRecord{}).Create(levelScoreRecord).Error
 	return
 }
 
