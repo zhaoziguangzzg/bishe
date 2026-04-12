@@ -115,7 +115,7 @@ func AdminUserLoginHandler(c *gin.Context) {
 
 	//验证密码是否正确
 	if password != user.Password {
-		MakeApiResponseError(c, CODE_USER_PASSWORD_INVALID)
+		MakeApiResponseError(c, CODE_PASSWORD_WRONG)
 		return
 	}
 
