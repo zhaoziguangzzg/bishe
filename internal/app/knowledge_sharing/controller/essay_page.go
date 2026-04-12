@@ -10,3 +10,7 @@ import (
 func AddEssayPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "essay/add.html", nil)
 }
+
+func EssayDetailPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "essay/detail.html", nil)
+}
