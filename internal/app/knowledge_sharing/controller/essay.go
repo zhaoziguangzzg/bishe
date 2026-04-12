@@ -209,8 +209,19 @@ func GetEssayHandler(c *gin.Context) {
 		return
 	}
 
+	author, err := service.GetUserByUserId(essay.AuthorId)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//获取当前用户是否点赞
+	//获取当前用户是否收藏
+
 	data := map[string]interface{}{
-		"essay": essay,
+		"essay":  essay,
+		"author": author,
 	}
 
 	MakeApiResponseSuccess(c, data)
@@ -262,15 +273,15 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	}
 
 	//根据uids获取userMap
-	userMap, err := service.GetUsersByUidMap(uids)
+	userMap, err := service.GetUserMapByUids(uids)
 	if err != nil {
-		service.Logger.Error("GetUsersByUids", zap.Error(err))
+		service.Logger.Error("GetUserMapByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	if len(userMap) == 0 {
-		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		service.Logger.Error("GetUserMapByUids len(userMap) == 0")
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -596,15 +607,15 @@ func GetEssayByTitleHandler(c *gin.Context) {
 	}
 
 	//根据uids获取userMap
-	userMap, err := service.GetUsersByUidMap(uids)
+	userMap, err := service.GetUserMapByUids(uids)
 	if err != nil {
-		service.Logger.Error("GetUsersByUids", zap.Error(err))
+		service.Logger.Error("GetUserMapByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	if len(userMap) == 0 {
-		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		service.Logger.Error("GetUserMapByUids len(userMap) == 0")
 		MakeApiResponseErrorDefault(c)
 		return
 	}

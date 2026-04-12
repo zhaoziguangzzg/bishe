@@ -99,6 +99,7 @@ func main() {
 	//文章模块
 	//创建文章页面
 	r.GET("/page/essay/add", controller.AddEssayPageHandler)
+	r.GET("/page/essay/detail", controller.EssayDetailPageHandler)
 
 	r.POST("/api/essay/add", controller.AddEssayHandler)                                                  //创建文章
 	r.POST("/api/essay/update", controller.UpdateEssayHandler)                                            //更新文章

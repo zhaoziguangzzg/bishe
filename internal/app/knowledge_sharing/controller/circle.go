@@ -412,15 +412,15 @@ func GetCircleByTitleHandler(c *gin.Context) {
 	}
 
 	//根据uids获取userMap
-	userMap, err := service.GetUsersByUidMap(uids)
+	userMap, err := service.GetUserMapByUids(uids)
 	if err != nil {
-		service.Logger.Error("GetUsersByUids", zap.Error(err))
+		service.Logger.Error("GetUserMapByUids", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	if len(userMap) == 0 {
-		service.Logger.Error("GetUsersByUidMap len(userMap) == 0")
+		service.Logger.Error("GetUserMapByUids len(userMap) == 0")
 		MakeApiResponseErrorDefault(c)
 		return
 	}

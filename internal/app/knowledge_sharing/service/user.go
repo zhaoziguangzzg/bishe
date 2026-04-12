@@ -69,6 +69,6 @@ func DeleteUserCookie(c *gin.Context) {
 }
 
 // 根据uids获取userMap
-func GetUsersByUidMap(uids []int) (userMap map[int]model.User, err error) {
-	return mysql.GetUsersByUidMap(uids)
+func GetUserMapByUids(uids []int) (userMap map[int]model.User, err error) {
+	return mysql.GetUserMapByUids(uids)
 }

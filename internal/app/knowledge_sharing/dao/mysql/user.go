@@ -65,7 +65,7 @@ func GetUserByUserId(UserId int) (user *model.User, err error) {
 }
 
 // 根据uids获取userMap
-func GetUsersByUidMap(uids []int) (userMap map[int]model.User, err error) {
+func GetUserMapByUids(uids []int) (userMap map[int]model.User, err error) {
 	users := make([]model.User, 0)
 	err = DB.Model(&model.User{}).Where("id IN (?)", uids).Find(&users).Error
 	if err != nil {
