@@ -30,35 +30,22 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	title := c.PostForm("title")
-	if title == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	authorIdStr := c.PostForm("author_id")
-	if authorIdStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	authorId, err := strconv.Atoi(authorIdStr)
+	//根据eid获取文章
+	essay, err := service.GetEssayByEid(eid)
 	if err != nil {
-		MakeApiResponseErrorParams(c)
+		service.Logger.Error("GetEssayByEid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	cidStr := c.PostForm("cid")
-	if cidStr == "" {
-		MakeApiResponseErrorParams(c)
+	if essay == nil {
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
+	authorId := essay.AuthorId
+	cid := essay.CircleId
+	title := essay.Title
 
 	var relateId int
 

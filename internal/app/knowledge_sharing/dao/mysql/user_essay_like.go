@@ -38,7 +38,7 @@ func GetUserEssayLikeMapByEids(uid int, eids []int) (essayLikeMap map[int]model.
 	}
 
 	essayLikeMap = make(map[int]model.UserEssayLike, 0)
-	for _, v := range essayLikeMap {
+	for _, v := range userLikes {
 		essayLikeMap[v.EssayId] = v
 	}
 
