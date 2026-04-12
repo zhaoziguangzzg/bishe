@@ -44,6 +44,24 @@ func GetUserStatList(uid int) (stats []model.Stat, err error) {
 	return
 }
 
+// 获取用户数据map
+func GetUserStatMapByType(uid int) (userStatMap map[int]int, err error) {
+
+	stats := make([]model.Stat, 0)
+	err = DB.Model(&model.Stat{}).Where("stat_uid=? and is_deleted=?", uid, model.IS_DELETED_NO).
+		Order("id DESC").Find(&stats).Error
+	if err != nil {
+		return
+	}
+
+	userStatMap = make(map[int]int, 0)
+	for _, v := range stats {
+		userStatMap[v.Type] = v.Sum
+	}
+
+	return
+}
+
 // 添加各类型数据详情
 func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error) {
 	statDetail := &model.StatDetails{

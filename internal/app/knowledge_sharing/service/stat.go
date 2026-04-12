@@ -16,6 +16,11 @@ func GetUserStatList(uid int) (stats []model.Stat, err error) {
 	return mysql.GetUserStatList(uid)
 }
 
+// 获取用户数据map
+func GetUserStatMapByType(uid int) (userStatMap map[int]int, err error) {
+	return mysql.GetUserStatMapByType(uid)
+}
+
 // 添加各类型数据详情
 func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error) {
 	return mysql.StatDetailsInsert(statUid, typei, createTime)

@@ -64,3 +64,26 @@ func GetUserStatListHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 }
+
+// 获取用户数据Map
+func GetUserStatMapHandler(c *gin.Context) {
+	uid := c.GetInt("uid")
+
+	//根据uid,type获取UserStatMap
+	userStatMap, err := service.GetUserStatMapByType(uid)
+	if err != nil {
+		service.Logger.Error("GetUserStatMapByType err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userStatMap) == 0 {
+		userStatMap = make(map[int]int, 0)
+	}
+
+	data := map[string]interface{}{
+		"userStatMap": userStatMap,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}

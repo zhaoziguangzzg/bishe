@@ -65,6 +65,7 @@ func main() {
 	r.POST("/api/user/update", controller.UpdateUserHandler)                            //更新用户信息
 	r.POST("/api/user/updatepassword", controller.UpdateUserPasswordHandler)            //更新用户密码
 	r.GET("/api/user/get", middleware.UserLoginMiddleware(), controller.GetUserHandler) //获取某用户信息
+	r.GET("/api/user/get-by-id", controller.GetUserByIdHandler)                         //通过uid获取用户信息
 	r.GET("/api/user/logout", controller.UserLogoutHandler)                             //用户退出登录
 
 	//圈子模块
@@ -173,6 +174,7 @@ func main() {
 
 	//统计
 	r.GET("/api/stat/all", controller.GetUserStatListHandler) //获取全部统计数据列表
+	r.GET("/api/stat/map", controller.GetUserStatMapHandler)  //获取用户某类数据数量
 
 	//等级
 	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情

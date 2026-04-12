@@ -170,6 +170,40 @@ func GetUserHandler(c *gin.Context) {
 
 }
 
+// 通过uid获取用户信息
+func GetUserByIdHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//从数据库获取用户信息
+	user, err := service.GetUserByUserId(uid)
+	if err != nil {
+		service.Logger.Error("GetUserByUserId", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	if user == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_EXIST)
+		return
+	}
+
+	data := map[string]interface{}{
+		"user": user,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
 // 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
 	//从cookie获取用户登录信息，是验证登录
