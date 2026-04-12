@@ -27,10 +27,16 @@ type UserNotice struct {
 }
 
 type UserEssay struct {
-	Uid   int    `json:"uid"`
-	Name  string `json:"userName"`
-	Level int    `json:"level"`
-	Essay Essay  `json:"essay"`
+	//作者
+	Author User `json:"author"`
+	//作者等级
+	Level int `json:"level"`
+	//文章
+	Essay Essay `json:"essay"`
+	//当前用户是否喜欢
+	IsLike bool `json:"isLike"`
+	//当前用户是否收藏
+	IsCollect bool `json:"isCollect"`
 }
 
 type UserCircle struct {

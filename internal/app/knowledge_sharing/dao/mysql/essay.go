@@ -112,9 +112,10 @@ func UpdateEssayIsDeleted(eid int) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
-// 将文章添加周刊
-func AddEssayWeekly(eid int) (int64, error) {
-	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_weekly", model.ESSAY_IS_WEEKLY)
+// 更新文章周刊
+func UpdateEssayWeekly(eid int, isWeekly int) (int64, error) {
+
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_weekly", isWeekly)
 	return result.RowsAffected, result.Error
 }
 
@@ -132,9 +133,9 @@ func GetEssayWeeklyList(cid int, page int, pagesize int) (essays []model.Essay, 
 	return
 }
 
-// 将文章添加精粹
-func AddEssayEssence(eid int) (int64, error) {
-	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_essence", model.ESSAY_IS_ESSENCE)
+// update essay essence
+func UpdateEssayEssence(eid int, isEssence int) (int64, error) {
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Update("is_essence", isEssence)
 	return result.RowsAffected, result.Error
 }
 

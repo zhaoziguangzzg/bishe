@@ -216,6 +216,8 @@ func GetEssayHandler(c *gin.Context) {
 
 // 获取圈子全部文章
 func GetCircleAllEssayHandler(c *gin.Context) {
+	uid := c.GetInt("uid")
+
 	cidStr := c.Query("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -252,8 +254,10 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	}
 
 	var uids []int
+	var eids []int
 	for _, v := range essays {
 		uids = append(uids, v.AuthorId)
+		eids = append(eids, v.Id)
 	}
 
 	//根据uids获取userMap
@@ -284,9 +288,31 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 		return
 	}
 
+	//根据eids获取essayLikeMap
+	essayLikeMap, err := service.GetUserEssayLikeMapByEids(uid, eids)
+	if err != nil {
+		service.Logger.Error("GetUserEssayLikeMapByEids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//根据eids获取essayCollectMap
+	essayCollectMap, err := service.GetUserEssayCollectMapByEids(uid, eids)
+	if err != nil {
+		service.Logger.Error("GetUserEssayCollectMapByEids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// if len(essayLikeMap) == 0 {
+
+	// }
+
 	userEssays := make([]model.UserEssay, 0)
 
 	for _, v := range essays {
+		var isLike bool
+		var isCollect bool
 		vUid := v.AuthorId
 
 		vUser, ok := userMap[vUid]
@@ -303,14 +329,25 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 			return
 		}
 
+		userEssayLike, ok := essayLikeMap[v.Id]
+		if ok && userEssayLike.LikeStatus == model.LIKE_STATUS_NORMAL {
+			isLike = true
+		}
+
+		userEssayCollect, ok := essayCollectMap[v.Id]
+		if ok && userEssayCollect.CollectStatus == model.COLLECT_STATUS_NORMAL {
+			isCollect = true
+		}
+
 		level := vLevelScore.Score / 1000
 
 		var userEssay model.UserEssay
 
-		userEssay.Uid = vUid
-		userEssay.Name = vUser.Name
+		userEssay.Author = vUser
 		userEssay.Level = level
 		userEssay.Essay = v
+		userEssay.IsLike = isLike
+		userEssay.IsCollect = isCollect
 		userEssays = append(userEssays, userEssay)
 	}
 
@@ -321,8 +358,8 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// 将文章添加周刊
-func AddEssayWeeklyHandler(c *gin.Context) {
+// update essay weekly
+func UpdateEssayWeeklyHandler(c *gin.Context) {
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -335,8 +372,30 @@ func AddEssayWeeklyHandler(c *gin.Context) {
 		return
 	}
 
+	isWeeklyStr := c.PostForm("is_weekly")
+	if isWeeklyStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	isWeekly, err := strconv.Atoi(isWeeklyStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	switch isWeekly {
+	case model.ESSAY_IS_WEEKLY:
+		isWeekly = model.ESSAY_NOT_WEEKLY
+	case model.ESSAY_NOT_WEEKLY:
+		isWeekly = model.ESSAY_IS_WEEKLY
+	default:
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
 	// 更新IsWeekly 添加文章周刊
-	affectRows, err := service.AddEssayWeekly(eid)
+	affectRows, err := service.UpdateEssayWeekly(eid, isWeekly)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("AddEssayWeekly err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -381,11 +440,10 @@ func GetEssayWeeklylistHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
-
 }
 
-// 将文章添加精粹
-func AddEssayEssenceHandler(c *gin.Context) {
+// update essay essence
+func UpdateEssayEssenceHandler(c *gin.Context) {
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -398,13 +456,45 @@ func AddEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
-	// 将文章添加精粹
-	affectRows, err := service.AddEssayEssence(eid)
+	isEssenceStr := c.PostForm("is_essence")
+	if isEssenceStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	isEssence, err := strconv.Atoi(isEssenceStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	switch isEssence {
+	case model.ESSAY_IS_ESSENCE:
+		isEssence = model.ESSAY_NOT_ESSENCE
+	case model.ESSAY_NOT_ESSENCE:
+		isEssence = model.ESSAY_IS_ESSENCE
+	default:
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	switch isEssence {
+	case model.ESSAY_IS_ESSENCE:
+	case model.ESSAY_NOT_ESSENCE:
+	default:
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	// Update essay essence
+	affectRows, err := service.UpdateEssayEssence(eid, isEssence)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("AddEssayEssence err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	//TODO 加分/减分，通知
 
 	MakeApiResponseSuccessDefault(c)
 }
@@ -448,6 +538,8 @@ func GetEssayEssonceHandler(c *gin.Context) {
 
 // 获取文章
 func GetEssayByTitleHandler(c *gin.Context) {
+	uid := c.GetInt(c)
+
 	cidStr := c.Query("cid")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -496,8 +588,10 @@ func GetEssayByTitleHandler(c *gin.Context) {
 	}
 
 	var uids []int
+	var eids []int
 	for _, v := range essays {
 		uids = append(uids, v.AuthorId)
+		eids = append(eids, v.Id)
 	}
 
 	//根据uids获取userMap
@@ -528,9 +622,35 @@ func GetEssayByTitleHandler(c *gin.Context) {
 		return
 	}
 
+	//根据eids获取essayLikeMap
+	essayLikeMap, err := service.GetUserEssayLikeMapByEids(uid, eids)
+	if err != nil {
+		service.Logger.Error("GetUserEssayLikeMapByEids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//根据eids获取essayCollectMap
+	essayCollectMap, err := service.GetUserEssayCollectMapByEids(uid, eids)
+	if err != nil {
+		service.Logger.Error("GetUserEssayCollectMapByEids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	userEssays := make([]model.UserEssay, 0)
 
 	for _, v := range essays {
+		isLike := false
+		isCollect := false
+		userEssayLike, ok := essayLikeMap[v.Id]
+		if ok && userEssayLike.LikeStatus == model.LIKE_STATUS_NORMAL {
+			isLike = true
+		}
+		userEssayCollect, ok := essayCollectMap[v.Id]
+		if ok && userEssayCollect.CollectStatus == model.COLLECT_STATUS_NORMAL {
+			isCollect = true
+		}
 		vUid := v.AuthorId
 
 		vUser, ok := userMap[vUid]
@@ -551,10 +671,11 @@ func GetEssayByTitleHandler(c *gin.Context) {
 
 		var userEssay model.UserEssay
 
-		userEssay.Uid = vUid
-		userEssay.Name = vUser.Name
+		userEssay.Author = vUser
 		userEssay.Level = level
 		userEssay.Essay = v
+		userEssay.IsLike = isLike
+		userEssay.IsCollect = isCollect
 		userEssays = append(userEssays, userEssay)
 	}
 

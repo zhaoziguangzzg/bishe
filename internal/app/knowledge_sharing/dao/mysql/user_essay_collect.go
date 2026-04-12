@@ -42,6 +42,22 @@ func GetUserAllCollectByUidFid(uid int, fid int, page int, pageSize int) (eids [
 	return
 }
 
+// 根据eids获取essayCollectMap
+func GetUserEssayCollectMapByEids(uid int, eids []int) (essayCollectMap map[int]model.UserEssayCollect, err error) {
+	userCollects := make([]model.UserEssayCollect, 0)
+	err = DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id IN (?)", uid, eids).Find(&userCollects).Error
+	if err != nil {
+		return
+	}
+
+	essayCollectMap = make(map[int]model.UserEssayCollect, 0)
+	for _, v := range userCollects {
+		essayCollectMap[v.EssayId] = v
+	}
+
+	return
+}
+
 // 取消收藏
 func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
 	result := DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).

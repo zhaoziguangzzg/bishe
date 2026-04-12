@@ -45,9 +45,9 @@ func UpdateEssayIsDeleted(eid int) (int64, error) {
 	return mysql.UpdateEssayIsDeleted(eid)
 }
 
-// 将文章添加周刊
-func AddEssayWeekly(eid int) (int64, error) {
-	return mysql.AddEssayWeekly(eid)
+// 更新文章周刊
+func UpdateEssayWeekly(eid int, isWeekly int) (int64, error) {
+	return mysql.UpdateEssayWeekly(eid, isWeekly)
 }
 
 // 获取文章周刊
@@ -55,9 +55,9 @@ func GetEssayWeeklyList(cid int, page int, pagesize int) (essays []model.Essay, 
 	return mysql.GetEssayWeeklyList(cid, page, pagesize)
 }
 
-// 将文章添加精粹
-func AddEssayEssence(eid int) (int64, error) {
-	return mysql.AddEssayEssence(eid)
+// update essay essence
+func UpdateEssayEssence(eid int, isEssence int) (int64, error) {
+	return mysql.UpdateEssayEssence(eid, isEssence)
 }
 
 // 获取文章精粹

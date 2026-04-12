@@ -33,6 +33,11 @@ func GetUserAllCollectByUidFid(uid int, fid int, page int, pageSize int) (essays
 	return
 }
 
+// 根据eids获取essayCollectMap
+func GetUserEssayCollectMapByEids(uid int, eids []int) (essayCollectMap map[int]model.UserEssayCollect, err error) {
+	return mysql.GetUserEssayCollectMapByEids(uid, eids)
+}
+
 // 取消收藏
 func UpdateUserEssayCollectIsToNot(uid int, eid int) (int64, error) {
 	return mysql.UpdateUserEssayCollectIsToNot(uid, eid)

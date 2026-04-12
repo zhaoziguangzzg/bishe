@@ -34,6 +34,11 @@ func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err
 	return mysql.GetUserEssayLike(uid, eid)
 }
 
+// 根据eids获取essayLikeMap
+func GetUserEssayLikeMapByEids(uid int, eids []int) (essayLikeMap map[int]model.UserEssayLike, err error) {
+	return mysql.GetUserEssayLikeMapByEids(uid, eids)
+}
+
 // 取消喜欢
 func UpdateUserEssayLikeIsToNot(uid int, eid int) (int64, error) {
 	return mysql.UpdateUserEssayLikeIsToNot(uid, eid)

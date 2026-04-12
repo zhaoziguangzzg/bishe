@@ -29,6 +29,22 @@ func GetUserEssayLike(uid int, eid int) (userEssayLike *model.UserEssayLike, err
 	return userEssayLike, nil
 }
 
+// 根据eids获取essayLikeMap
+func GetUserEssayLikeMapByEids(uid int, eids []int) (essayLikeMap map[int]model.UserEssayLike, err error) {
+	userLikes := make([]model.UserEssayLike, 0)
+	err = DB.Model(&model.UserEssayLike{}).Where("user_id=? and essay_id IN (?)", uid, eids).Find(&userLikes).Error
+	if err != nil {
+		return
+	}
+
+	essayLikeMap = make(map[int]model.UserEssayLike, 0)
+	for _, v := range essayLikeMap {
+		essayLikeMap[v.EssayId] = v
+	}
+
+	return
+}
+
 // get 用户全部点赞文章
 func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (eids []int, err error) {
 	offset := (page - 1) * pageSize

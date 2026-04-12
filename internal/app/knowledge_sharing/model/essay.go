@@ -13,6 +13,12 @@ type Essay struct {
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//作者id
 	AuthorId int `json:"authorId" gorm:"column:author_id" mapstructure:"authorId"`
+	//点赞数
+	LikeNum int `json:"likeNum" gorm:"column:like_num" mapstructure:"likeNum"`
+	//收藏数
+	CollectNum int `json:"collectNum" gorm:"column:collect_num" mapstructure:"collectNum"`
+	//评论数
+	CommentNum int `json:"commentNum" gorm:"column:comment_num" mapstructure:"commentNum"`
 	//周刊
 	IsWeekly int `json:"isWeekly" gorm:"column:is_weekly" mapstructure:"isWeekly"`
 	//精华

@@ -68,37 +68,51 @@ func main() {
 	r.GET("/api/user/logout", controller.UserLogoutHandler)                             //用户退出登录
 
 	//圈子模块
+	//创建圈子页面
 	r.GET("/page/circle/add", controller.AddCirclePageHandler)
+	//获取圈子详情页面
 	r.GET("/page/circle/detail", controller.CircleDetailPageHandler)
+	//圈子首页
 	r.GET("/page/circle/index", controller.CircleIndexPageHandler)
 
-	r.POST("/api/circle/add", controller.AddCircleHandler)             //创建圈子
-	r.POST("/api/circle/update", controller.UpdateCircleHandler)       //更新圈子信息
-	r.GET("/api/circle/all", controller.GetAllCircleHandler)           //获取全部圈子
-	r.GET("/api/circle/get", controller.GetCircleHandler)              //获取圈子详情
-	r.GET("/api/circle/create", controller.GetUserCreateCircleHandler) //获取用户创建的圈子
-	r.GET("/api/circle/join", controller.GetUserJoinCircleHandler)     //获取用户加入的圈子
-	r.GET("/api/circle/charge", controller.GetChargeCircleRankHandler) //获取全部付费圈子
-	r.GET("/api/circle/free", controller.GetFreeCircleRankHandler)     //获取全部免费圈子
+	//创建圈子
+	r.POST("/api/circle/add", controller.AddCircleHandler)
+	//更新圈子信息
+	r.POST("/api/circle/update", controller.UpdateCircleHandler)
+	//获取全部圈子
+	r.GET("/api/circle/all", controller.GetAllCircleHandler)
+	//获取圈子详情
+	r.GET("/api/circle/get", controller.GetCircleHandler)
+	//获取用户创建的圈子
+	r.GET("/api/circle/create", controller.GetUserCreateCircleHandler)
+	//获取用户加入的圈子
+	r.GET("/api/circle/join", controller.GetUserJoinCircleHandler)
+	//获取全部付费圈子
+	r.GET("/api/circle/charge", controller.GetChargeCircleRankHandler)
+	//获取全部免费圈子
+	r.GET("/api/circle/free", controller.GetFreeCircleRankHandler)
 
 	//用户加入圈子
 	r.POST("/api/usercircle/add", controller.AddUserCircleJoinHandle) //创建用户加入圈子
 	r.POST("/api/usercircle/quit", controller.QuitCircleHandler)      //用户退出圈子
 
 	//文章模块
-	r.POST("/api/essay/add", controller.AddEssayHandler)                         //创建文章
-	r.POST("/api/essay/update", controller.UpdateEssayHandler)                   //更新文章
-	r.POST("/api/essay/delete", controller.DeletedEssayByUpdateIsDeletedHandler) //删除文章
-	r.GET("/api/essay/get", controller.GetEssayHandler)                          //查看文章
-	r.GET("/api/essay/circleall", controller.GetCircleAllEssayHandler)           //获取圈子全部文章
-	r.GET("/api/essay/userall", controller.GetUserAllEssayHandler)               //获取用户全部文章
+	//创建文章页面
+	r.GET("/page/essay/add", controller.AddEssayPageHandler)
+
+	r.POST("/api/essay/add", controller.AddEssayHandler)                                                  //创建文章
+	r.POST("/api/essay/update", controller.UpdateEssayHandler)                                            //更新文章
+	r.POST("/api/essay/delete", controller.DeletedEssayByUpdateIsDeletedHandler)                          //删除文章
+	r.GET("/api/essay/get", controller.GetEssayHandler)                                                   //查看文章
+	r.GET("/api/essay/circle-all", middleware.UserLoginMiddleware(), controller.GetCircleAllEssayHandler) //获取圈子全部文章
+	r.GET("/api/essay/user-all", controller.GetUserAllEssayHandler)                                       //获取用户全部文章
 
 	//周刊
-	r.POST("/api/essay/addweekly", controller.AddEssayWeeklyHandler)    //将文章添加周刊
-	r.GET("/api/essay/getweekly", controller.GetEssayWeeklylistHandler) //获取文章周刊
+	r.POST("/api/essay/update-weekly", controller.UpdateEssayWeeklyHandler) //将文章添加周刊
+	r.GET("/api/essay/get-weekly", controller.GetEssayWeeklylistHandler)    //获取文章周刊
 	//精粹
-	r.POST("/api/essay/addessence", controller.AddEssayEssenceHandler) //将文章添加精粹
-	r.GET("/api/essay/getessence", controller.GetEssayEssonceHandler)  //获取文章精粹
+	r.POST("/api/essay/update-essence", controller.UpdateEssayEssenceHandler) //将文章添加精粹
+	r.GET("/api/essay/get-essence", controller.GetEssayEssonceHandler)        //获取文章精粹
 
 	//点赞
 	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)       //添加点赞
@@ -187,8 +201,8 @@ func main() {
 	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
 
 	//搜索
-	r.GET("/api/search/circle", controller.GetCircleByTitleHandler) //搜索圈子
-	r.GET("/api/search/essay", controller.GetEssayByTitleHandler)   //搜索文章
+	r.GET("/api/search/circle", controller.GetCircleByTitleHandler)                                 //搜索圈子
+	r.GET("/api/search/essay", middleware.UserLoginMiddleware(), controller.GetEssayByTitleHandler) //搜索文章
 
 	//支付
 	r.POST("/api/orders/add", controller.AddOrdersHandler)                //创建支付
