@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建文章 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .add-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .add-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .circle-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        .circle-info span {
+            color: #667eea;
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        .form-group .hint {
+            color: #909399;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error-tip {
+            color: #f56c6c;
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #67c23a;
+            font-size: 14px;
+            margin-top: 6px;
+            display: none;
+            text-align: center;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>知识分享平台</span>
+        <a href="/page/index">返回首页</a>
+    </div>
+
+    <div class="container">
+        <div class="add-card">
+            <h2>创建文章</h2>
+            <div class="circle-info" id="circleInfo">所属圈子：加载中...</div>
+            <form id="addEssayForm">
+                <input type="hidden" id="cid" name="cid">
+
+                <div class="form-group">
+                    <label for="title">文章标题</label>
+                    <input type="text" id="title" name="title" placeholder="请输入文章标题" maxlength="100">
+                    <div class="hint">最多100个字符</div>
+                    <div class="error-tip" id="titleError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">文章内容</label>
+                    <textarea id="content" name="content" placeholder="请输入文章内容" maxlength="200"></textarea>
+                    <div class="hint">最多200个字符</div>
+                    <div class="error-tip" id="contentError"></div>
+                </div>
+
+                <div class="error-tip" id="formError"></div>
+                <div class="success-tip" id="successTip">文章创建成功！</div>
+
+                <button type="submit" class="btn" id="submitBtn">创建文章</button>
+            </form>
+            <a href="#" class="back-link" id="backLink">取消并返回圈子</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cid = urlParams.get('cid');
+
+        const form = document.getElementById('addEssayForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const successTip = document.getElementById('successTip');
+        const circleInfo = document.getElementById('circleInfo');
+        const backLink = document.getElementById('backLink');
+
+        if (!cid) {
+            circleInfo.textContent = '未指定所属圈子，请从圈子详情页进入创建文章';
+            submitBtn.disabled = true;
+        } else {
+            document.getElementById('cid').value = cid;
+            circleInfo.innerHTML = '所属圈子：<span>ID: ' + cid + '</span>';
+            backLink.href = '/page/circle/detail?cid=' + cid;
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.add('show');
+        }
+
+        function hideError(elementId) {
+            const el = document.getElementById(elementId);
+            el.textContent = '';
+            el.classList.remove('show');
+        }
+
+        function hideAllErrors() {
+            ['titleError', 'contentError', 'formError'].forEach(hideError);
+        }
+
+        function validateForm() {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+
+            if (!title) {
+                showError('titleError', '请输入文章标题');
+                return false;
+            }
+            if (title.length > 100) {
+                showError('titleError', '文章标题最多100个字符');
+                return false;
+            }
+            if (!content) {
+                showError('contentError', '请输入文章内容');
+                return false;
+            }
+            if (content.length > 200) {
+                showError('contentError', '文章内容最多200个字符');
+                return false;
+            }
+
+            return true;
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideAllErrors();
+            successTip.classList.remove('show');
+
+            if (!validateForm()) {
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '创建中...';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await axios.post('/api/essay/add', formData, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+
+                if (response.data.code === 0) {
+                    successTip.classList.add('show');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '创建文章';
+                    const eid = response.data.data?.eid;
+                    setTimeout(() => {
+                            window.location.href = '/page/essay/detail?eid=' + eid ;
+                    }, 1500);
+                } else {
+                    showError('formError', response.data.msg || '创建失败，请稍后重试');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '创建文章';
+                }
+            } catch (error) {
+                console.error('创建文章失败:', error);
+                showError('formError', '网络错误，请稍后重试');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '创建文章';
+            }
+        });
+    </script>
+</body>
+</html>
