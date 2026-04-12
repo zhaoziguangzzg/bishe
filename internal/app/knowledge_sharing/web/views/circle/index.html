@@ -464,6 +464,149 @@
             color: #999;
             font-size: 14px;
         }
+        .favorite-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .favorite-modal.show {
+            display: flex;
+        }
+        .favorite-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 400px;
+            max-height: 60vh;
+            overflow: hidden;
+        }
+        .favorite-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .favorite-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .favorite-modal-close {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .favorite-modal-close:hover {
+            color: #333;
+        }
+        .favorite-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        .favorite-item {
+            padding: 12px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+        }
+        .favorite-item:hover {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+        .favorite-item.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        .btn-add-favorite {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-add-favorite:hover {
+            opacity: 0.9;
+        }
+        .btn-back-favorite {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-back-favorite:hover {
+            text-decoration: underline;
+        }
+        .add-favorite-form {
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .favorite-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .favorite-input:focus {
+            border-color: #667eea;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-cancel {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-cancel:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .btn-submit {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -524,6 +667,28 @@
         </div>
     </div>
 
+    <div class="favorite-modal" id="favoriteModal">
+        <div class="favorite-modal-content">
+            <div class="favorite-modal-header">
+                <span class="favorite-modal-title" id="favoriteModalTitle">收藏到收藏夹</span>
+                <div>
+                    <button class="btn-back-favorite" id="btnBackFavorite" onclick="showFavoriteList()" style="display:none;">返回列表</button>
+                    <span class="favorite-modal-close" onclick="closeFavoriteModal()">&times;</span>
+                </div>
+            </div>
+            <div class="favorite-list" id="favoriteList"></div>
+            <div class="add-favorite-form" id="addFavoriteForm" style="display:none;">
+                <div class="form-group">
+                    <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="100"/>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="showFavoriteList()">取消</button>
+                    <button class="btn-submit" onclick="submitNewFavorite()">创建</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         axios.defaults.withCredentials = true;
 
@@ -532,6 +697,7 @@
         let currentUserCircleOwnerId = null;
         let essays = [];
         let currentCommentEid = null;
+        let currentCollectEid = null;
 
         async function init() {
             await loadCurrentUser();
@@ -748,15 +914,99 @@
                 alert('请先登录');
                 return;
             }
-            try {
-                if (isCollected) {
+            if (isCollected) {
+                try {
                     await axios.post('/api/collect/cancel', `eid=${eid}`);
-                } else {
-                    await axios.post('/api/collect/add', `eid=${eid}`);
+                    loadEssays(currentCircleId);
+                } catch (error) {
+                    console.error('取消收藏失败', error);
                 }
+            } else {
+                currentCollectEid = eid;
+                await openFavoriteModal();
+            }
+        }
+
+        async function openFavoriteModal() {
+            document.getElementById('favoriteModal').classList.add('show');
+            await loadUserFavorites();
+        }
+
+        function closeFavoriteModal() {
+            document.getElementById('favoriteModal').classList.remove('show');
+            currentCollectEid = null;
+        }
+
+        async function loadUserFavorites() {
+            const container = document.getElementById('favoriteList');
+            container.innerHTML = '<div class="no-data">加载中...</div>';
+
+            try {
+                const response = await axios.get('/api/favorite/all');
+                if (response.data.code === 0 && response.data.data) {
+                    const favorites = response.data.data.favorites || [];
+                    if (favorites.length === 0) {
+                        container.innerHTML = '<div class="no-data">暂无收藏夹</div><button class="btn-add-favorite" onclick="showAddFavoriteForm()">添加收藏夹</button>';
+                    } else {
+                        let html = favorites.map(fav => `
+                            <div class="favorite-item" onclick="addToFavorite(${fav.id})">${fav.title}</div>
+                        `).join('');
+                        html += '<button class="btn-add-favorite" onclick="showAddFavoriteForm()">添加收藏夹</button>';
+                        container.innerHTML = html;
+                    }
+                } else {
+                    container.innerHTML = '<div class="no-data">加载失败</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="no-data">加载失败</div>';
+            }
+        }
+
+        function showAddFavoriteForm() {
+            document.getElementById('favoriteList').style.display = 'none';
+            document.getElementById('addFavoriteForm').style.display = 'block';
+            document.getElementById('favoriteModalTitle').textContent = '添加收藏夹';
+            document.getElementById('btnBackFavorite').style.display = 'inline';
+            document.getElementById('favoriteTitleInput').value = '';
+        }
+
+        function showFavoriteList() {
+            document.getElementById('favoriteList').style.display = 'block';
+            document.getElementById('addFavoriteForm').style.display = 'none';
+            document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
+            document.getElementById('btnBackFavorite').style.display = 'none';
+        }
+
+        async function submitNewFavorite() {
+            const title = document.getElementById('favoriteTitleInput').value.trim();
+            if (!title) {
+                alert('请输入收藏夹名称');
+                return;
+            }
+
+            try {
+                const response = await axios.post('/api/favorite/add', `title=${encodeURIComponent(title)}`);
+                if (response.data.code === 0) {
+                    showFavoriteList();
+                    await loadUserFavorites();
+                } else {
+                    alert(response.data.message || '创建失败');
+                }
+            } catch (error) {
+                alert('创建失败');
+            }
+        }
+
+        async function addToFavorite(fid) {
+            if (!currentCollectEid) return;
+
+            try {
+                await axios.post('/api/collect/add', `eid=${currentCollectEid}&fid=${fid}`);
+                closeFavoriteModal();
                 loadEssays(currentCircleId);
             } catch (error) {
-                console.error('收藏操作失败', error);
+                console.error('收藏失败', error);
+                alert('收藏失败');
             }
         }
 
@@ -856,6 +1106,12 @@
         document.getElementById('commentModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeCommentModal();
+            }
+        });
+
+        document.getElementById('favoriteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFavoriteModal();
             }
         });
 

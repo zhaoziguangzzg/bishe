@@ -121,11 +121,11 @@ func main() {
 	r.GET("/api/like/all", controller.GetUserAllLikeHandler)          //获取用户点赞
 
 	//收藏夹
-	r.POST("/api/favorite/add", controller.AddFavoriteHandler)                         //添加收藏夹
-	r.POST("/api/favorite/update", controller.UpdateFavoriteTitleHandler)              //修改收藏夹名
-	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler) //删除收藏夹
-	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                          //获取收藏夹
-	r.GET("/api/favorite/all", controller.GetUserAllFavoriteHandler)                   //获取用户全部收藏夹
+	r.POST("/api/favorite/add", controller.AddFavoriteHandler)                                         //添加收藏夹
+	r.POST("/api/favorite/update", controller.UpdateFavoriteTitleHandler)                              //修改收藏夹名
+	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler)                 //删除收藏夹
+	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                                          //获取收藏夹
+	r.GET("/api/favorite/all", middleware.UserLoginMiddleware(), controller.GetUserAllFavoriteHandler) //获取用户全部收藏夹
 	//TODO 去除唯一键，新建时判断该数量=1，就不能新建
 
 	//收藏

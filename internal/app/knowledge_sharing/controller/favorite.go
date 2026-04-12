@@ -133,11 +133,7 @@ func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
 
 // 获取用户全部的收藏夹
 func GetUserAllFavoriteHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
