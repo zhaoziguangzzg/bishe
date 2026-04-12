@@ -111,13 +111,57 @@ func GetEssayAllCommentHandle(c *gin.Context) {
 		return
 	}
 
-	if comments == nil {
-		comments = make([]model.UserEssayComment, 0)
+	if len(comments) == 0 {
+		data := map[string]interface{}{
+			"userComments": make([]model.UserComment, 0),
+		}
+		MakeApiResponseSuccess(c, data)
+		return
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"comments": comments,
-	})
+	var uids []int
+	for _, comment := range comments {
+		uids = append(uids, comment.UserId)
+	}
+
+	userMap := make(map[int]model.User)
+	userMap, err = service.GetUserMapByUids(uids)
+	if err != nil {
+		service.Logger.Error("GetUserMapByUids", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userMap) == 0 {
+		service.Logger.Error("GetUserMapByUids len(userMap) == 0")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	userComments := make([]model.UserComment, 0)
+
+	for _, v := range comments {
+		vUid := v.UserId
+
+		vUser, ok := userMap[vUid]
+		if !ok {
+			service.Logger.Error("get user err")
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		var userComment model.UserComment
+
+		userComment.User = vUser
+		userComment.Comment = v
+		userComments = append(userComments, userComment)
+	}
+
+	data := map[string]interface{}{
+		"userComments": userComments,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 获取用户全部评论列表

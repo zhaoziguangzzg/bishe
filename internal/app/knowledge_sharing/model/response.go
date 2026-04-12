@@ -44,3 +44,8 @@ type UserCircle struct {
 	Name   string `json:"userName"`
 	Circle Circle `json:"circle"`
 }
+
+type UserComment struct {
+	User    User             `json:"user"`
+	Comment UserEssayComment `json:"comment"`
+}
