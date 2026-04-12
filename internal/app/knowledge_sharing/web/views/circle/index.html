@@ -700,8 +700,10 @@
         let currentCollectEid = null;
 
         async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cidFromUrl = urlParams.get('cid');
             await loadCurrentUser();
-            await loadMyCircles();
+            await loadMyCircles(cidFromUrl);
         }
 
         async function loadCurrentUser() {
@@ -715,7 +717,7 @@
             }
         }
 
-        async function loadMyCircles() {
+        async function loadMyCircles(cidFromUrl) {
             const container = document.getElementById('circleList');
             container.innerHTML = '<div class="no-data">加载中...</div>';
 
@@ -730,9 +732,16 @@
                         container.innerHTML = circles.map(circle => 
                             `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId})">${circle.title}</li>`
                         ).join('');
-                        if (circles.length > 0) {
-                            updateEssayBtnHref(circles[0].id);
-                            selectCircle(circles[0].id, circles[0].circleOwnerId);
+                        let targetCircle = null;
+                        if (cidFromUrl) {
+                            targetCircle = circles.find(c => c.id === parseInt(cidFromUrl));
+                        }
+                        if (!targetCircle && circles.length > 0) {
+                            targetCircle = circles[0];
+                        }
+                        if (targetCircle) {
+                            updateEssayBtnHref(targetCircle.id);
+                            selectCircle(targetCircle.id, targetCircle.circleOwnerId);
                         }
                     }
                 } else {
