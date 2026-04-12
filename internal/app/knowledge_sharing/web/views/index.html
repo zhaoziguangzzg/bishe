@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-info span {
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .rank-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .rank-section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .rank-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .rank-item:hover {
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+        .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .rank-num.top-1 {
+            background: #ffd700;
+        }
+        .rank-num.top-2 {
+            background: #c0c0c0;
+        }
+        .rank-num.top-3 {
+            background: #cd7f32;
+        }
+        .rank-info {
+            flex: 1;
+        }
+        .rank-title {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .rank-meta {
+            font-size: 12px;
+            color: #999;
+        }
+        .rank-price {
+            font-size: 14px;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .rank-price.free {
+            color: #52c41a;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 14px;
+        }
+        .my-circles {
+            grid-template-columns: 1fr;
+        }
+        .my-circle-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+        }
+        .my-circle-item:hover {
+            background: #f0f4ff;
+        }
+        .nav {
+            display: flex;
+            gap: 30px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 40px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .user-info img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/page/circle/my">我的圈子</a>
+            <a href="/page/circle/joined">加入的圈子</a>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="搜索圈子..." id="searchInput"/>
+        </div>
+        <div class="header-right">
+            <a href="/page/message">私信</a>
+            <a href="/page/notify">通知</a>
+            <a href="/page/user/profile" id="myLink">我的</a>
+            <div class="user-info" id="userInfo">
+                <span id="userName">未登录</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="rank-section">
+            <h2>💰 付费圈子排行榜</h2>
+            <div class="rank-list" id="chargeRank"></div>
+        </div>
+
+        <div class="rank-section">
+            <h2>🎁 免费圈子排行榜</h2>
+            <div class="rank-list" id="freeRank"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadChargeRank() {
+            try {
+                const response = await axios.get('/api/circle/charge');
+                if (response.data.code === 0 && response.data.data) {
+                    renderRankList('chargeRank', response.data.data, true);
+                }
+            } catch (error) {
+                document.getElementById('chargeRank').innerHTML = '<div class="no-data">暂无数据</div>';
+            }
+        }
+
+        async function loadFreeRank() {
+            try {
+                const response = await axios.get('/api/circle/free');
+                if (response.data.code === 0 && response.data.data) {
+                    renderRankList('freeRank', response.data.data, false);
+                }
+            } catch (error) {
+                document.getElementById('freeRank').innerHTML = '<div class="no-data">暂无数据</div>';
+            }
+        }
+
+        async function loadMyCircles() {
+            try {
+                const response = await axios.get('/api/circle/join');
+                if (response.data.code === 0 && response.data.data) {
+                    const container = document.getElementById('myCircles');
+                    if (response.data.data.length === 0) {
+                        container.innerHTML = '<div class="no-data">您还没有加入任何圈子</div>';
+                    } else {
+                        container.innerHTML = response.data.data.map(circle => `
+                            <div class="my-circle-item" onclick="goToCircle(${circle.id})">
+                                <div class="rank-info">
+                                    <div class="rank-title">${circle.title}</div>
+                                    <div class="rank-meta">圈主ID: ${circle.circleOwnerId}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    document.getElementById('myCircles').innerHTML = '<div class="no-data">请先登录查看</div>';
+                }
+            } catch (error) {
+                document.getElementById('myCircles').innerHTML = '<div class="no-data">请先登录查看</div>';
+            }
+        }
+
+        function renderRankList(containerId, data, isPaid) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = data.slice(0, 6).map((circle, index) => `
+                <div class="rank-item" onclick="goToCircle(${circle.id})">
+                    <div class="rank-num top-${index + 1}">${index + 1}</div>
+                    <div class="rank-info">
+                        <div class="rank-title">${circle.title}</div>
+                        <div class="rank-meta">${circle.joinNum || 0}人加入</div>
+                    </div>
+                    <div class="rank-price ${isPaid ? '' : 'free'}">${isPaid ? (circle.price || 0) + '元' : '免费'}</div>
+                </div>
+            `).join('');
+        }
+
+        function goToCircle(circleId) {
+            window.location.href = '/page/circle/' + circleId;
+        }
+
+        async function checkLogin() {
+            try {
+                const response = await axios.get('/api/user/get');
+                if (response.data.code === 0 && response.data.data) {
+                    const user = response.data.data;
+                    document.getElementById('userName').textContent = user.name;
+                    if (user.avatar) {
+                        const userInfo = document.getElementById('userInfo');
+                        userInfo.innerHTML = `<img src="${user.avatar}" alt="头像"/> <span>${user.name}</span>`;
+                    }
+                } else {
+                    document.getElementById('myLink').href = '/page/user/login';
+                }
+            } catch (error) {
+                document.getElementById('myLink').href = '/page/user/login';
+                console.log('未登录');
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const keyword = this.value.trim();
+                if (keyword) {
+                    window.location.href = '/page/circle/search?keyword=' + encodeURIComponent(keyword);
+                }
+            }
+        });
+
+        loadChargeRank();
+        loadFreeRank();
+        checkLogin();
+    </script>
+</body>
+</html>
