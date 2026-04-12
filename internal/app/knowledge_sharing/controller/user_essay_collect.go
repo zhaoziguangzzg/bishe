@@ -85,6 +85,8 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseSuccessDefault(c)
 		return
 	}
+
+	//TODO更新文章收藏数
 }
 
 // 取消用户收藏
@@ -114,6 +116,8 @@ func CancelEssayCollectHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	//TODO更新文章收藏数
 
 	MakeApiResponseSuccessDefault(c)
 

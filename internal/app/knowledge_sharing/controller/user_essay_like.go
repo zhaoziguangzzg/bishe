@@ -135,6 +135,8 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 	}
 
+	//TODO更新文章点赞数
+
 	MakeApiResponseSuccessDefault(c)
 }
 
@@ -165,6 +167,8 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	//TODO更新文章点赞数
 
 	MakeApiResponseSuccessDefault(c)
 }
