@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Notice 定义私信结构体
+// Notice 定义通知结构体
 type Notice struct {
 	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
 	//通知uid
@@ -22,7 +22,7 @@ type Notice struct {
 }
 
 const (
-	NOTICE_MAX_CONTENT int = 100 //私信最长100字
+	NOTICE_MAX_CONTENT int = 100 //通知最长100字
 
 	NOTICE_TYPE_OTHER      int = 0 //其他
 	NOTICE_TYPE_FOLLOW     int = 1 //关注
