@@ -30,3 +30,20 @@ func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error)
 func GetStatDetailsByType(uid int, stime time.Time) (results []model.StatDetailsTypeCount, err error) {
 	return mysql.GetStatDetailsByType(uid, stime)
 }
+
+// 更新数据总数和详情
+func UpdateStatAndStatDetail(uid int, typei int, createTime time.Time) (err error) {
+	num := 1
+	//更新数据统计
+	err = StatInsertUpdate(uid, num, typei, createTime)
+	if err != nil {
+		return
+	}
+
+	//添加数据详情
+	err = StatDetailsInsert(uid, typei, createTime)
+	if err != nil {
+		return
+	}
+	return
+}

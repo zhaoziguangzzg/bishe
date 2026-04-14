@@ -39,6 +39,6 @@ func (StatDetails) TableName() string {
 
 // 详情结构体
 type StatDetailsTypeCount struct {
-	Type  int `gorm:"column:type"`
-	Total int `gorm:"column:total"`
+	Type  int `json:"type"`
+	Total int `json:"total"`
 }

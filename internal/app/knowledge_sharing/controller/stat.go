@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// 获取用户全部数据
-func GetUserStatListHandler(c *gin.Context) {
+// 获取用户全部数据详情
+func GetUserStatDetailsListByTimeHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
@@ -30,18 +30,6 @@ func GetUserStatListHandler(c *gin.Context) {
 		return
 	}
 
-	// 获取用户数据列表
-	stats, err := service.GetUserStatList(uid)
-	if err != nil {
-		service.Logger.Error("GetUserStatList", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if len(stats) == 0 {
-		stats = make([]model.Stat, 0)
-	}
-
 	now := time.Now()
 	stime := now.AddDate(0, 0, -stimeInt)
 
@@ -58,16 +46,52 @@ func GetUserStatListHandler(c *gin.Context) {
 	}
 
 	data := map[string]interface{}{
-		"stats":   stats,
 		"results": results,
 	}
 
 	MakeApiResponseSuccess(c, data)
 }
 
-// 获取用户数据Map
+// 通过uid获取用户数据总数Map
+func GetUserStatMapByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//根据uid,type获取UserStatMap
+	userStatMap, err := service.GetUserStatMapByType(uid)
+	if err != nil {
+		service.Logger.Error("GetUserStatMapByType err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userStatMap) == 0 {
+		userStatMap = make(map[int]int, 0)
+	}
+
+	data := map[string]interface{}{
+		"userStatMap": userStatMap,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 获取用户数据总数Map
 func GetUserStatMapHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
 
 	//根据uid,type获取UserStatMap
 	userStatMap, err := service.GetUserStatMapByType(uid)
