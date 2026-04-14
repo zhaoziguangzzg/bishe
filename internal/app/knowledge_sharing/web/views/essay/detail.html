@@ -84,6 +84,21 @@
             color: #909399;
             margin-top: 4px;
         }
+        .author-actions {
+            margin-left: auto;
+        }
+        .edit-essay-btn {
+            padding: 6px 16px;
+            background: #e6a23c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .edit-essay-btn:hover {
+            opacity: 0.9;
+        }
         .essay-content {
             font-size: 15px;
             color: #333;
@@ -307,18 +322,20 @@
         let currentLikeStatus = false;
         let currentCollectStatus = false;
 
-        if (!essayId) {
-            document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
-        } else {
-            checkLogin();
-            loadEssayDetail();
-        }
+        (async function init() {
+            if (!essayId) {
+                document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
+                return;
+            }
+            await checkLogin();
+            await loadEssayDetail();
+        })();
 
         async function checkLogin() {
             try {
                 const response = await axios.get('/api/user/get');
                 if (response.data.code === 0 && response.data.data) {
-                    currentUser = response.data.data;
+                    currentUser = response.data.data.user;
                 }
             } catch (error) {
                 currentUser = null;
@@ -359,6 +376,7 @@
                         <a class="author-name" onclick="goToAuthorProfile(${essay.authorId})">${escapeHtml(authorName)}</a>
                         <div class="publish-time">${formatDate(essay.createAt)}</div>
                     </div>
+                    ${currentUser && currentUser.id === essay.authorId ? '<div class="author-actions"><button class="edit-essay-btn" onclick="window.location.href=\'/page/essay/edit?eid=' + essay.id + '\'">修改文章</button></div>' : ''}
                 </div>
                 <div class="essay-content">${escapeHtml(essay.content)}</div>
                 <div class="action-bar">
