@@ -12,10 +12,8 @@ type CommentEssay struct {
 }
 
 type UserChatContact struct {
-	Uid      int    `json:"uid"`
-	Name     string `json:"userName"`
-	Content  string `json:"content"`
-	UpdateAt string `json:"updateAt"`
+	ChatUser    User        `json:"chatUser"`
+	ChatContact ChatContact `json:"chatContact"`
 }
 
 type UserNotice struct {
