@@ -14,6 +14,7 @@ import (
 const (
 	FILE_TYPE_UAER_AVATAR int = 1
 	FILE_TYPE_ADVERT_IMG  int = 2
+	FILE_TYPE_PAY_IMG     int = 3
 )
 
 func FileSave(file multipart.File, header *multipart.FileHeader, fileType int, timeNow time.Time) (avatarPath string, err error) {
@@ -31,6 +32,8 @@ func FileSave(file multipart.File, header *multipart.FileHeader, fileType int, t
 		name = fmt.Sprintf("user_%d_%d.%s", timeNow.Unix(), rand.IntN(1000), ext)
 	case FILE_TYPE_ADVERT_IMG:
 		name = fmt.Sprintf("advert_%d_%d.%s", timeNow.Unix(), rand.IntN(1000), ext)
+	case FILE_TYPE_PAY_IMG:
+		name = fmt.Sprintf("pay_%d_%d.%s", timeNow.Unix(), rand.IntN(1000), ext)
 	default:
 		name = fmt.Sprintf("default_%d_%d.%s", timeNow.Unix(), rand.IntN(1000), ext)
 	}
