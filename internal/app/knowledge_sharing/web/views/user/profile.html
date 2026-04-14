@@ -346,13 +346,14 @@
 
         async function loadProfileUser() {
             const uid = getQueryParam('uid');
-            if (!uid) {
-                window.location.href = '/';
-                return;
-            }
 
-            profileUserId = parseInt(uid);
-            isOwnProfile = (currentUserId === profileUserId);
+            if (!uid) {
+                profileUserId = currentUserId;
+                isOwnProfile = true;
+            } else {
+                profileUserId = parseInt(uid);
+                isOwnProfile = (currentUserId === profileUserId);
+            }
 
             try {
                 let user;
@@ -385,10 +386,17 @@
 
         async function loadStats() {
             try {
-                const response = await axios.get('/api/stat/map', { params: { uid: profileUserId } });
-                if (response.data.code === 0 && response.data.data) {
-                    document.getElementById('followCount').textContent = response.data.data['1'] || 0;
-                    document.getElementById('fanCount').textContent = response.data.data['2'] || 0;
+                let response;
+                if (isOwnProfile) {
+                    response = await axios.get('/api/stat/map');
+                } else {
+                    response = await axios.get('/api/stat/map-by-uid', { params: { uid: profileUserId } });
+                }
+                console.log('stat response:', response.data);
+                if (response.data.code === 0 && response.data.data && response.data.data.userStatMap) {
+                    const statMap = response.data.data.userStatMap;
+                    document.getElementById('followCount').textContent = statMap['1'] || 0;
+                    document.getElementById('fanCount').textContent = statMap['6'] || 0;
                 }
             } catch (error) {
                 console.error('加载统计数据失败', error);
@@ -423,7 +431,7 @@
                 const followBtnText = isFollowed ? '已关注' : '关注';
                 container.innerHTML = `
                     <button class="${followBtnClass}" id="followBtn" onclick="toggleFollow()">${followBtnText}</button>
-                    <button class="action-btn secondary" onclick="window.location.href='/page/chat/index'">私信</button>
+                    <button class="action-btn secondary" onclick="window.location.href='/page/chat/detail?uid=${profileUserId}'">私信</button>
                 `;
             }
         }
@@ -510,7 +518,7 @@
 
         async function loadEssayTab() {
             try {
-                const response = await axios.get('/api/essay/user-all', { params: { uid: profileUserId, page: 1 } });
+                const response = await axios.get('/api/essay/user-all-by-uid', { params: { uid: profileUserId, page: 1 } });
                 if (response.data.code === 0 && response.data.data && response.data.data.essays) {
                     const essays = response.data.data.essays;
                     if (essays.length === 0) {
@@ -531,35 +539,41 @@
 
         async function loadLikeTab() {
             try {
-                const response = await axios.get('/api/like/all', { params: { uid: profileUserId, page: 1 } });
-                if (response.data.code === 0 && response.data.data && response.data.data.essays) {
-                    const essays = response.data.data.essays;
-                    if (essays.length === 0) {
-                        return '<div class="empty-tip">暂无喜欢的文章</div>';
-                    }
-                    return essays.map(essay => `
-                        <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}'">
-                            <div class="essay-title">${essay.title}</div>
-                            <div class="essay-meta">作者：${essay.authorName || '未知'} | 发布时间：${formatTime(essay.createAt)}</div>
+                const response = await axios.get('/api/like/all-by-uid', { params: { uid: profileUserId, page: 1 } });
+                console.log('like response:', response.data);
+                const data = response.data.data;
+                let essays = [];
+                if (data && data.essays) {
+                    essays = data.essays;
+                } else if (Array.isArray(data)) {
+                    essays = data;
+                }
+                console.log('essays:', essays);
+                if (essays.length === 0) {
+                    return '<div class="empty-tip">暂无喜欢的文章</div>';
+                }
+                return essays.map(item => `
+                        <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                            <div class="essay-title">${item.essay.title}</div>
+                            <div class="essay-meta">作者：${item.author.name} | 发布时间：${formatTime(item.essay.createAt)}</div>
                         </div>
                     `).join('');
-                }
-                return '<div class="empty-tip">暂无喜欢的文章</div>';
             } catch (error) {
+                console.error('loadLikeTab error:', error);
                 return '<div class="empty-tip">加载失败，请重试</div>';
             }
         }
 
         async function loadFavoriteTab() {
             try {
-                const response = await axios.get('/api/favorite/all', { params: { uid: profileUserId, page: 1 } });
+                const response = await axios.get('/api/favorite/all-by-uid', { params: { uid: profileUserId, page: 1 } });
                 if (response.data.code === 0 && response.data.data && response.data.data.favorites) {
                     const favorites = response.data.data.favorites;
                     if (favorites.length === 0) {
                         return '<div class="empty-tip">暂无收藏夹</div>';
                     }
                     return favorites.map(fav => `
-                        <div class="favorite-item">
+                        <div class="favorite-item" onclick="window.location.href='/page/favorite/detail?id=${fav.id}'">
                             <div class="favorite-title">${fav.title}</div>
                             <div class="favorite-meta">创建时间：${formatTime(fav.createAt)}</div>
                         </div>
@@ -573,16 +587,16 @@
 
         async function loadCommentTab() {
             try {
-                const response = await axios.get('/api/comment/userall', { params: { uid: profileUserId, page: 1 } });
-                if (response.data.code === 0 && response.data.data) {
-                    const comments = response.data.data;
-                    if (comments.length === 0) {
+                const response = await axios.get('/api/comment/user-by-uid', { params: { uid: profileUserId, page: 1 } });
+                if (response.data.code === 0 && response.data.data && response.data.data.commentEssays) {
+                    const commentEssays = response.data.data.commentEssays;
+                    if (commentEssays.length === 0) {
                         return '<div class="empty-tip">暂无评论</div>';
                     }
-                    return comments.map(comment => `
-                        <div class="comment-item">
-                            <div class="comment-content">${comment.content}</div>
-                            <div class="comment-meta">文章：${comment.essayTitle || '未知'} | 时间：${formatTime(comment.createAt)}</div>
+                    return commentEssays.map(item => `
+                        <div class="comment-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                            <div class="comment-content">${item.comment.content}</div>
+                            <div class="comment-meta">文章：${item.essay.title} | 时间：${formatTime(item.comment.createAt)}</div>
                         </div>
                     `).join('');
                 }
@@ -603,6 +617,14 @@
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
 
+        async function reloadProfile() {
+            await loadProfileUser();
+            await loadStats();
+            await loadFollowStatus();
+            renderActionButtons();
+            loadTabContent();
+        }
+
         async function init() {
             await loadUserInfo();
             await loadProfileUser();
@@ -611,6 +633,17 @@
             renderActionButtons();
             loadTabContent();
         }
+
+        let lastUid = getQueryParam('uid');
+        setInterval(async () => {
+            const currentUid = getQueryParam('uid');
+            if (currentUid && currentUid !== lastUid) {
+                lastUid = currentUid;
+                profileUserId = parseInt(currentUid);
+                isOwnProfile = (currentUserId === profileUserId);
+                await reloadProfile();
+            }
+        }, 500);
 
         init();
     </script>

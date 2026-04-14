@@ -38,9 +38,10 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
+	createTime := time.Now()
+
 	//仅 不存在，存在状态为删除 两种
 	if follow == nil {
-		createTime := time.Now()
 
 		newFollow := &model.Follow{ //其中包含自动生成的id
 			FanId:        uid,
@@ -59,7 +60,7 @@ func AddUserFollowHandler(c *gin.Context) {
 		}
 
 		content := "又有新用户" + userName + "关注啦"
-		typei := model.NOTICE_TYPE_FOLLOW
+		typei := model.STAT_TYPE_FOLLOW
 
 		//添加通知
 		err = service.UserAddNotice(followerId, content, typei, createTime)
@@ -69,41 +70,6 @@ func AddUserFollowHandler(c *gin.Context) {
 			return
 		}
 
-		num := 1
-		//添加关注数
-		err = service.StatInsertUpdate(uid, num, typei, createTime)
-		if err != nil {
-			service.Logger.Error("StatInsertUpdate err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		//添加被关注数
-		err = service.StatInsertUpdate(followerId, num, model.STAT_TYPE_FAN, createTime)
-		if err != nil {
-			service.Logger.Error("StatInsertUpdate err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		//添加关注数详情
-		err = service.StatDetailsInsert(uid, typei, createTime)
-		if err != nil {
-			service.Logger.Error("StatDetailsInsert err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		//添加被关注数详情
-		err = service.StatDetailsInsert(followerId, model.STAT_TYPE_FAN, createTime)
-		if err != nil {
-			service.Logger.Error("StatDetailsInsert err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		MakeApiResponseSuccessDefault(c)
-		return
 	} else {
 
 		//未关注状态转关注
@@ -114,9 +80,25 @@ func AddUserFollowHandler(c *gin.Context) {
 			return
 		}
 
-		MakeApiResponseSuccessDefault(c)
+	}
+
+	//更新关注数据总数和详情
+	err = service.UpdateStatAndStatDetail(uid, model.STAT_TYPE_FOLLOW, createTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	//更新被关注数据总数和详情
+	err = service.UpdateStatAndStatDetail(followerId, model.STAT_TYPE_FAN, createTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 取消关注

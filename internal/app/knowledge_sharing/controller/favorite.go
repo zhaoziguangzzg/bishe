@@ -157,6 +157,42 @@ func GetUserAllFavoriteHandler(c *gin.Context) {
 	})
 }
 
+// 根据uid获取用户全部的收藏夹
+func GetUserAllFavoriteByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	//获取全部favorite
+	favorites, err := service.GetAllFavoriteByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllFavoriteByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if favorites == nil {
+		favorites = make([]model.Favorite, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"favorites": favorites,
+	})
+}
+
 // 根据fid获取收藏夹
 func GetFavoriteHandler(c *gin.Context) {
 	//获取收藏夹id
