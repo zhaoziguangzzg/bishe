@@ -96,13 +96,8 @@ func GetEssayByLikeTitle(title string, cid int, page int, pagesize int) (essays 
 }
 
 // 根据eid更新文章信息
-func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
-	essay := model.Essay{
-		Title:   title,
-		Content: content,
-	}
-
-	result := DB.Model(&model.Essay{}).Where("id=?", eid).Updates(essay)
+func UpdateEssayByEid(eid int, updateMap map[string]interface{}) (int64, error) {
+	result := DB.Model(&model.Essay{}).Where("id=?", eid).Updates(updateMap)
 	return result.RowsAffected, result.Error
 }
 

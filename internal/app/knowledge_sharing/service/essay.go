@@ -36,8 +36,8 @@ func GetEssayByLikeTitle(title string, cid int, page int, pagesize int) (essays 
 }
 
 // 根据eid更新文章信息
-func UpdateEssayByEid(eid int, title string, content string) (int64, error) {
-	return mysql.UpdateEssayByEid(eid, title, content)
+func UpdateEssayByEid(eid int, updateMap map[string]interface{}) (int64, error) {
+	return mysql.UpdateEssayByEid(eid, updateMap)
 }
 
 // 更新IsDeleted删除essay

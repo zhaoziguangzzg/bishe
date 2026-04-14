@@ -78,13 +78,13 @@ func UpdateEssayHandler(c *gin.Context) {
 	content := c.PostForm("content")
 
 	titleLen := len(title)
-	if titleLen == 0 || titleLen > 100 {
+	if titleLen == 0 || titleLen > model.ESSAY_MAX_TITLE {
 		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
 		return
 	}
 
 	contentLen := len(content)
-	if contentLen == 0 || contentLen > 200 {
+	if contentLen == 0 || contentLen > model.ESSAY_MAX_CONTENT {
 		MakeApiResponseError(c, CODE_ESSAY_CONTENT_LEN_INVASLID)
 		return
 	}
@@ -114,15 +114,24 @@ func UpdateEssayHandler(c *gin.Context) {
 		return
 	}
 
+	updateMap := map[string]interface{}{
+		"title":   title,
+		"content": content,
+	}
+
 	//根据eid更新文章
-	affectRows, err := service.UpdateEssayByEid(eid, title, content)
+	affectRows, err := service.UpdateEssayByEid(eid, updateMap)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateEssayByEid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	data := map[string]interface{}{
+		"essay": essay,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 删除发布的文章
@@ -156,6 +165,42 @@ func GetUserAllEssayHandler(c *gin.Context) {
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	//获取全部essay
+	essays, err := service.GetAllEssayByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllEssayByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if essays == nil {
+		essays = make([]model.Essay, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"essays": essays,
+	})
+}
+
+// 根据uid获取全部用户文章列表
+func GetUserAllEssayByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修改文章 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .edit-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .edit-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .circle-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        .circle-info span {
+            color: #667eea;
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        .form-group .hint {
+            color: #909399;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error-tip {
+            color: #f56c6c;
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #67c23a;
+            font-size: 14px;
+            margin-top: 6px;
+            display: none;
+            text-align: center;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>知识分享平台</span>
+        <a href="/page/index">返回首页</a>
+    </div>
+
+    <div class="container">
+        <div class="edit-card">
+            <h2>修改文章</h2>
+            <div id="loadingTip" class="loading">加载中...</div>
+            <form id="editEssayForm" style="display: none;">
+                <input type="hidden" id="eid" name="eid">
+                <div class="form-group">
+                    <label for="title">文章标题</label>
+                    <input type="text" id="title" name="title" placeholder="请输入文章标题" maxlength="100">
+                    <div class="hint">最多100个字符</div>
+                    <div class="error-tip" id="titleError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="content">文章内容</label>
+                    <textarea id="content" name="content" placeholder="请输入文章内容" maxlength="200"></textarea>
+                    <div class="hint">最多200个字符</div>
+                    <div class="error-tip" id="contentError"></div>
+                </div>
+                <button type="button" class="btn" id="submitBtn" onclick="submitForm()">保存修改</button>
+                <div class="success-tip" id="successTip"></div>
+            </form>
+            <div class="error-tip" id="pageError"></div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const eid = urlParams.get('eid');
+
+        if (!eid) {
+            document.getElementById('loadingTip').style.display = 'none';
+            document.getElementById('pageError').textContent = '缺少文章ID参数';
+            document.getElementById('pageError').classList.add('show');
+        } else {
+            loadEssayData();
+        }
+
+        async function loadEssayData() {
+            try {
+                const response = await axios.get('/api/essay/get', {
+                    params: { eid: eid }
+                });
+
+                if (response.data.code === 0 && response.data.data) {
+                    const essay = response.data.data.essay;
+                    document.getElementById('eid').value = essay.id;
+                    document.getElementById('title').value = essay.title || '';
+                    document.getElementById('content').value = essay.content || '';
+                    document.getElementById('loadingTip').style.display = 'none';
+                    document.getElementById('editEssayForm').style.display = 'block';
+                } else {
+                    document.getElementById('loadingTip').style.display = 'none';
+                    document.getElementById('pageError').textContent = response.data.msg || '文章不存在';
+                    document.getElementById('pageError').classList.add('show');
+                }
+            } catch (error) {
+                document.getElementById('loadingTip').style.display = 'none';
+                document.getElementById('pageError').textContent = '加载失败，请稍后重试';
+                document.getElementById('pageError').classList.add('show');
+            }
+        }
+
+        function hideAllErrors() {
+            document.getElementById('titleError').classList.remove('show');
+            document.getElementById('contentError').classList.remove('show');
+            document.getElementById('successTip').classList.remove('show');
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('show');
+        }
+
+        function validateForm() {
+            hideAllErrors();
+            let isValid = true;
+
+            const title = document.getElementById('title').value.trim();
+            if (!title) {
+                showError('titleError', '请输入文章标题');
+                isValid = false;
+            } else if (title.length > 100) {
+                showError('titleError', '文章标题最多100个字符');
+                isValid = false;
+            }
+
+            const content = document.getElementById('content').value.trim();
+            if (!content) {
+                showError('contentError', '请输入文章内容');
+                isValid = false;
+            } else if (content.length > 200) {
+                showError('contentError', '文章内容最多200个字符');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        async function submitForm() {
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+
+            try {
+                const formData = new FormData();
+                formData.append('eid', document.getElementById('eid').value);
+                formData.append('title', document.getElementById('title').value.trim());
+                formData.append('content', document.getElementById('content').value.trim());
+
+                const response = await axios.post('/api/essay/update', formData);
+
+                if (response.data.code === 0) {
+                    document.getElementById('successTip').textContent = '修改成功！';
+                    document.getElementById('successTip').classList.add('show');
+                    setTimeout(() => {
+                        window.location.href = '/page/essay/detail?eid=' + eid;
+                    }, 1500);
+                } else {
+                    document.getElementById('pageError').textContent = response.data.msg || '修改失败';
+                    document.getElementById('pageError').classList.add('show');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '保存修改';
+                }
+            } catch (error) {
+                document.getElementById('pageError').textContent = '提交失败，请稍后重试';
+                document.getElementById('pageError').classList.add('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '保存修改';
+            }
+        }
+    </script>
+</body>
+</html>
