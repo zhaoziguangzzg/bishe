@@ -16,7 +16,7 @@ func GetEssayAllComment(eid int, page int, pageSize int) (comments []model.UserE
 }
 
 // get 用户全部comment
-func GetUserAllCommentIdByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
+func GetUserAllCommentIdByUid(uid int, page int, pageSize int) (commentEssays []model.CommentEssay, err error) {
 	comments, err := mysql.GetUserAllCommentIdByUid(uid, page, pageSize)
 	if err != nil {
 		return
@@ -27,9 +27,29 @@ func GetUserAllCommentIdByUid(uid int, page int, pageSize int) (essays []model.E
 		eids = append(eids, v.EssayId)
 	}
 
+	var essays []model.Essay
+
 	essays, err = mysql.GetEssayByEids(eids)
 	if err != nil {
 		return
+	}
+
+	//根据eids的essaymap
+	essayMap := make(map[int]model.Essay, 0)
+	for _, v := range essays {
+		essayMap[v.Id] = v
+	}
+
+	for _, v := range comments {
+		var commentEssay model.CommentEssay
+		essay, ok := essayMap[v.EssayId]
+		if !ok {
+			return
+		}
+
+		commentEssay.Essay = essay
+		commentEssay.Comment = v
+		commentEssays = append(commentEssays, commentEssay)
 	}
 
 	// 组装commentEssays

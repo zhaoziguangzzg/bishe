@@ -178,16 +178,58 @@ func GetUserAllCommentHandler(c *gin.Context) {
 	pageSize := 10
 
 	//获取用户全部评论文章
-	essays, err := service.GetUserAllCommentIdByUid(uid, page, pageSize)
+	commentEssays, err := service.GetUserAllCommentIdByUid(uid, page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetEssayAllCommentByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if essays == nil {
-		essays = make([]model.Essay, 0)
+	if len(commentEssays) == 0 {
+		commentEssays = make([]model.CommentEssay, 0)
 	}
 
-	MakeApiResponseSuccess(c, essays)
+	data := map[string]interface{}{
+		"commentEssays": commentEssays,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 根据uid获取用户全部评论列表
+func GetUserAllCommentByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pageSize := 10
+
+	//获取用户全部评论文章
+	commentEssays, err := service.GetUserAllCommentIdByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetEssayAllCommentByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(commentEssays) == 0 {
+		commentEssays = make([]model.CommentEssay, 0)
+	}
+
+	data := map[string]interface{}{
+		"commentEssays": commentEssays,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
