@@ -135,6 +135,14 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 	}
 
+	//更新被点赞数据总数和详情
+	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_LIKED, createTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	//TODO更新文章点赞数
 
 	MakeApiResponseSuccessDefault(c)
@@ -226,20 +234,60 @@ func GetUserAllLikeHandler(c *gin.Context) {
 	pageSize := 10
 
 	//获取用户全部like
-	essays, err := service.GetUserAllLikeEssayByUid(uid, page, pageSize)
+	userEssays, err := service.GetUserAllLikeEssayByUid(uid, page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetUserAllLikeEssayByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if essays == nil {
-		essays = make([]model.Essay, 0)
+	if len(userEssays) == 0 {
+		userEssays = make([]model.UserEssay, 0)
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
-		"essays": essays,
-	})
+	data := map[string]interface{}{
+		"essays": userEssays,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 获取根据uid用户全部喜欢
+func GetUserAllLikeByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pageSize := 10
+
+	//获取用户全部like
+	userEssays, err := service.GetUserAllLikeEssayByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserAllLikeEssayByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(userEssays) == 0 {
+		userEssays = make([]model.UserEssay, 0)
+	}
+
+	data := map[string]interface{}{
+		"essays": userEssays,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // func UpdateUserEssayInteract(c *gin.Context) {

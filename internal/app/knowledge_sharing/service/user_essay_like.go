@@ -11,19 +11,47 @@ func CreateUserEssayLike(newUserEssayLike *model.UserEssayLike) (err error) {
 }
 
 // get 用户全部点赞
-func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (essays []model.Essay, err error) {
+func GetUserAllLikeEssayByUid(uid int, page int, pageSize int) (userEssays []model.UserEssay, err error) {
 	eids, err := mysql.GetUserAllLikeEssayByUid(uid, page, pageSize)
 	if err != nil {
 		return
 	}
 
-	if eids == nil {
+	if len(eids) == 0 {
 		return
 	}
-
+	var essays []model.Essay
 	essays, err = mysql.GetEssayByEids(eids)
 	if err != nil {
 		return
+	}
+
+	if len(essays) == 0 {
+		return
+	}
+
+	uids := make([]int, 0)
+	for _, v := range essays {
+		uids = append(uids, v.AuthorId)
+	}
+
+	userMap, err := mysql.GetUserMapByUids(uids)
+	if err != nil {
+		return
+	}
+
+	if len(userMap) == 0 {
+		return
+	}
+	userEssays = make([]model.UserEssay, 0)
+
+	for _, v := range essays {
+		var userEssay model.UserEssay
+		if _, ok := userMap[v.AuthorId]; ok {
+			userEssay.Author = userMap[v.AuthorId]
+			userEssay.Essay = v
+		}
+		userEssays = append(userEssays, userEssay)
 	}
 
 	return
