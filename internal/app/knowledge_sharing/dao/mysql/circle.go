@@ -140,14 +140,9 @@ func DecrrUpdateCircleJoinNumByCid(cid int) (int64, error) {
 }
 
 // 更新圈子信息
-func UpdateCircleByCid(cid int, title string, price int, introduction string) (int64, error) {
-	circle := model.Circle{
-		Title:        title,
-		Introduction: introduction,
-		Price:        price,
-	}
+func UpdateCircleByCid(cid int, updateMap map[string]interface{}) (int64, error) {
 
-	result := DB.Model(&model.Circle{}).Where("id=?", cid).Updates(circle)
+	result := DB.Model(&model.Circle{}).Where("id=?", cid).Updates(updateMap)
 	return result.RowsAffected, result.Error
 }
 

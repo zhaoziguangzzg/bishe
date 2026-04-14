@@ -138,6 +138,13 @@
         .btn-joined:hover {
             opacity: 1;
         }
+        .btn-edit {
+            background: #e6a23c;
+            color: white;
+        }
+        .btn-edit:hover {
+            opacity: 0.9;
+        }
         .error-tip {
             color: #f56c6c;
             font-size: 14px;
@@ -262,6 +269,7 @@
         function renderCircleDetail(data) {
             const circle = data.circle;
             const isJoin = data.is_join;
+            const isOwner = data.is_owner;
 
             const html = `
                 <div class="circle-header">
@@ -293,19 +301,23 @@
                 <div class="action-section">
                     <div class="error-tip" id="actionError"></div>
                     <div class="success-tip" id="actionSuccess"></div>
-                    ${renderActionButton(isJoin, circle)}
+                    ${renderActionButton(isJoin, circle, isOwner)}
                 </div>
             `;
 
             document.getElementById('content').innerHTML = html;
         }
 
-        function renderActionButton(isJoin, circle) {
+        function renderActionButton(isJoin, circle, isOwner) {
             if (isJoin) {
-                return `
+                let buttons = `
                     <button class="btn btn-primary" onclick="window.location.href='/page/circle/index?cid=${circle.id}'">进入圈子</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='/page/essay/add?cid=${circle.id}'">创建文章</button>
                 `;
+                if (isOwner) {
+                    buttons += `<button class="btn btn-edit" onclick="window.location.href='/page/circle/edit?cid=${circle.id}'">修改圈子</button>`;
+                }
+                buttons += `<button class="btn btn-secondary" onclick="window.location.href='/page/essay/add?cid=${circle.id}'">创建文章</button>`;
+                return buttons;
             } else {
                 return `
                     <button class="btn btn-primary" onclick="joinCircle()">加入圈子</button>

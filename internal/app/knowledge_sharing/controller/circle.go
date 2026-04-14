@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -128,13 +129,13 @@ func UpdateCircleHandler(c *gin.Context) {
 
 	// 数据验证
 	titleLen := len(title)
-	if titleLen > model.CIRCLE_MAX_TITLE || titleLen == 0 {
+	if titleLen > model.CIRCLE_MAX_TITLE {
 		MakeApiResponseError(c, CODE_CIRCLE_TITLE_LEN_INVASLID)
 		return
 	}
 
 	introductionLen := len(introduction)
-	if introductionLen > model.CIRCLE_MAX_INTRODUCTION || introductionLen == 0 {
+	if introductionLen > model.CIRCLE_MAX_INTRODUCTION {
 		MakeApiResponseError(c, CODE_CIRCLE_INTRODUCTION_LEN_INVASLID)
 		return
 	}
@@ -163,15 +164,47 @@ func UpdateCircleHandler(c *gin.Context) {
 		return
 	}
 
+	updateMap := map[string]interface{}{
+		"title":        title,
+		"price":        price,
+		"introduction": introduction,
+	}
+
+	fileType := service.FILE_TYPE_PAY_IMG
+	timeNow := time.Now()
+
+	// 处理头像上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("avatar")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		avatarPath, err = service.FileSave(file, header, fileType, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		updateMap["avatar"] = avatarPath
+	}
+
 	//更新圈子信息
-	affectRows, err := service.UpdateCircleByCid(cid, title, price, introduction)
+	affectRows, err := service.UpdateCircleByCid(cid, updateMap)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateCircleByCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+	data := map[string]interface{}{
+		"circle": circle,
+	}
 
-	MakeApiResponseSuccessDefault(c)
+	MakeApiResponseSuccess(c, data)
 }
 
 // 获取圈子列表
@@ -262,9 +295,10 @@ func GetCircleHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"is_join": isJoin,
-		"circle":  circle,
-		"user":    user,
+		"is_join":  isJoin,
+		"is_owner": circle.CircleOwnerId == uid,
+		"circle":   circle,
+		"user":     user,
 	})
 }
 

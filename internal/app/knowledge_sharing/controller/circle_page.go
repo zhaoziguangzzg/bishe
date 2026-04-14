@@ -16,6 +16,11 @@ func CircleDetailPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "circle/detail.html", nil)
 }
 
+// 修改圈子页面
+func EditCirclePageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "circle/edit.html", nil)
+}
+
 // 圈子内首页页面
 func CircleIndexPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "circle/index.html", nil)

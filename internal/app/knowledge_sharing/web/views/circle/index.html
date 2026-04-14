@@ -47,6 +47,21 @@
         .nav a:hover {
             background: rgba(255,255,255,0.2);
         }
+        .user-nav {
+            display: flex;
+            gap: 16px;
+        }
+        .user-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
         .main-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -617,7 +632,11 @@
             <a href="/page/circle/my">我的圈子</a>
             <a href="/page/circle/joined">加入的圈子</a>
         </div>
-        <a href="/page/index">返回首页</a>
+        <div class="user-nav">
+            <a href="/page/chat/index">私信</a>
+            <a href="/page/notice/index">通知</a>
+            <a href="/page/user/profile">我的</a>
+        </div>
     </div>
 
     <div class="main-container">
