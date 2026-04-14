@@ -73,6 +73,8 @@ func main() {
 	r.GET("/page/circle/add", controller.AddCirclePageHandler)
 	//获取圈子详情页面
 	r.GET("/page/circle/detail", controller.CircleDetailPageHandler)
+	//修改圈子页面
+	r.GET("/page/circle/edit", controller.EditCirclePageHandler)
 	//圈子首页
 	r.GET("/page/circle/index", controller.CircleIndexPageHandler)
 
@@ -101,6 +103,7 @@ func main() {
 	//创建文章页面
 	r.GET("/page/essay/add", controller.AddEssayPageHandler)
 	r.GET("/page/essay/detail", controller.EssayDetailPageHandler)
+	r.GET("/page/essay/edit", controller.EditEssayPageHandler)
 
 	r.POST("/api/essay/add", controller.AddEssayHandler)                                                  //创建文章
 	r.POST("/api/essay/update", controller.UpdateEssayHandler)                                            //更新文章
@@ -108,6 +111,7 @@ func main() {
 	r.GET("/api/essay/get", controller.GetEssayHandler)                                                   //查看文章
 	r.GET("/api/essay/circle-all", middleware.UserLoginMiddleware(), controller.GetCircleAllEssayHandler) //获取圈子全部文章
 	r.GET("/api/essay/user-all", controller.GetUserAllEssayHandler)                                       //获取用户全部文章
+	r.GET("/api/essay/user-all-by-uid", controller.GetUserAllEssayByUidHandler)                           //获取根据uid用户全部文章
 
 	//周刊
 	r.POST("/api/essay/update-weekly", controller.UpdateEssayWeeklyHandler) //将文章添加周刊
@@ -117,10 +121,11 @@ func main() {
 	r.GET("/api/essay/get-essence", controller.GetEssayEssonceHandler)        //获取文章精粹
 
 	//点赞
-	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)       //添加点赞
-	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler) //更新点赞删除
-	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)        //获取点赞
-	r.GET("/api/like/all", controller.GetUserAllLikeHandler)          //获取用户点赞
+	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)          //添加点赞
+	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler)    //更新点赞删除
+	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)           //获取点赞
+	r.GET("/api/like/all", controller.GetUserAllLikeHandler)             //获取用户点赞
+	r.GET("/api/like/all-by-uid", controller.GetUserAllLikeByUidHandler) //获取根据uid用户点赞
 
 	//收藏夹
 	r.POST("/api/favorite/add", controller.AddFavoriteHandler)                                         //添加收藏夹
@@ -128,6 +133,8 @@ func main() {
 	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler)                 //删除收藏夹
 	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                                          //获取收藏夹
 	r.GET("/api/favorite/all", middleware.UserLoginMiddleware(), controller.GetUserAllFavoriteHandler) //获取用户全部收藏夹
+	r.GET("/api/favorite/all-by-uid", controller.GetUserAllFavoriteByUidHandler)                       //获取根据uid用户全部收藏夹
+
 	//TODO 去除唯一键，新建时判断该数量=1，就不能新建
 
 	//收藏
@@ -141,6 +148,7 @@ func main() {
 	r.POST("/api/comment/delete", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
 	r.GET("/api/comment/essayall", controller.GetEssayAllCommentHandle)              //获取文章全部评论
 	r.GET("/api/comment/userall", controller.GetUserAllCommentHandler)               //获取用户全部评论
+	r.GET("/api/comment/user-by-uid", controller.GetUserAllCommentByUidHandler)      //获取根据uid用户全部评论
 
 	//关注
 	r.POST("/api/follow/add", controller.AddUserFollowHandler)       //添加关注
@@ -162,6 +170,9 @@ func main() {
 	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
 
 	//私信
+	r.GET("/page/chat/index", controller.ChatIndexPageHandler)   //获取私信首页
+	r.GET("/page/chat/detail", controller.ChatDetailPageHandler) //获取私信详情页面
+
 	r.POST("/api/chat/add", controller.AddChatHandler)    //添加私信
 	r.GET("/api/chat/get", controller.GetChatListHandler) //获取私信记录
 
@@ -169,12 +180,21 @@ func main() {
 	r.GET("/api/contact/all", controller.GetChatContactListHandler) //获取最近联系人列表
 
 	//通知
+	//获取通知详情页面
+	r.GET("/page/notice/detail", controller.NoticeDetailPageHandler)
+	//获取通知详情列表
+	r.GET("/page/notice/index", controller.NoticeIndexPageHandler)
+
 	r.GET("/api/notice/all", controller.GetNoticeListHandler)           //获取通知列表
 	r.GET("/api/notice/alltype", controller.GetNoticeListByTypeHandler) //获取某类型通知列表
 
 	//统计
-	r.GET("/api/stat/all", controller.GetUserStatListHandler) //获取全部统计数据列表
-	r.GET("/api/stat/map", controller.GetUserStatMapHandler)  //获取用户某类数据数量
+	//用户数据首页
+	r.GET("/page/stat/index", controller.StatIndexPageHandler) //获取用户数据首页统计数据
+
+	r.GET("/api/stat/by-time", controller.GetUserStatDetailsListByTimeHandler) //获取用户全部数据详情
+	r.GET("/api/stat/map", controller.GetUserStatMapHandler)                   //获取用户某类数据数量
+	r.GET("/api/stat/map-by-uid", controller.GetUserStatMapByUidHandler)       //获取用户某类数据数量
 
 	//等级
 	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情
@@ -208,6 +228,8 @@ func main() {
 	r.GET("/api/search/essay", middleware.UserLoginMiddleware(), controller.GetEssayByTitleHandler) //搜索文章
 
 	//支付
+	r.GET("/page/orders/index", controller.OrdersIndexPageHandler) //获取用户订单首页列表
+
 	r.POST("/api/orders/add", controller.AddOrdersHandler)                //创建支付
 	r.GET("/api/orders/all", controller.GetUserAllOrdersHandler)          //获取用户全部支付
 	r.GET("/api/orders/get", controller.GetOrdersHandler)                 //查看支付

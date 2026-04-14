@@ -57,7 +57,7 @@ func GetChatContactListHandler(c *gin.Context) {
 	}
 
 	if len(userMap) == 0 {
-		service.Logger.Error("GetUserMapByUids len(userMap) == 0")
+		service.Logger.Error("get userMap len=0")
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -93,11 +93,8 @@ func GetChatContactListHandler(c *gin.Context) {
 
 		var userChatContact model.UserChatContact
 
-		updateAt := v.UpdateAt.Format("2006-01-02 15:04:05")
-		userChatContact.Uid = vUid
-		userChatContact.Name = vUser.Name
-		userChatContact.Content = v.Content
-		userChatContact.UpdateAt = updateAt
+		userChatContact.ChatUser = vUser
+		userChatContact.ChatContact = v
 		userChatContacts = append(userChatContacts, userChatContact)
 	}
 
@@ -106,7 +103,6 @@ func GetChatContactListHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
-
 }
 
 // 添加联系人

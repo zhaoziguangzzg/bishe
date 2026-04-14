@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私信 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .page-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .contact-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        .contact-item:hover {
+            background: #f8f9fa;
+        }
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+        .contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .contact-name {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        .contact-time {
+            font-size: 12px;
+            color: #909399;
+        }
+        .contact-content {
+            font-size: 13px;
+            color: #909399;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #667eea;
+        }
+        .error-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: #f56c6c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span>知识分享平台</span>
+        <a href="/page/index">返回首页</a>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">我的私信</h1>
+        <div class="contact-list" id="contactList">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+
+        (async function init() {
+            await loadCurrentUser();
+            if (!currentUserId) {
+                document.getElementById('contactList').innerHTML = '<div class="error-tip">请先登录</div>';
+                return;
+            }
+            await loadContactList();
+        })();
+
+        async function loadCurrentUser() {
+            try {
+                const response = await axios.get('/api/user/get');
+                if (response.data.code === 0 && response.data.data) {
+                    currentUserId = response.data.data.user.id;
+                }
+            } catch (error) {
+                currentUserId = null;
+            }
+        }
+
+        async function loadContactList() {
+            try {
+                const response = await axios.get('/api/contact/all', {
+                    params: { uid: currentUserId }
+                });
+                if (response.data.code === 0 && response.data.data) {
+                    renderContactList(response.data.data);
+                } else {
+                    document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败</div>';
+                }
+            } catch (error) {
+                document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
+            }
+        }
+
+        function renderContactList(data) {
+            const userChatContacts = data.userChatContacts || [];
+
+            if (userChatContacts.length === 0) {
+                document.getElementById('contactList').innerHTML = '<div class="empty-tip">暂无私信联系人</div>';
+                return;
+            }
+
+            const html = userChatContacts.map(contact => {
+                const avatarUrl = contact.chatUser && contact.chatUser.avatar ? contact.chatUser.avatar : '/img/default-avatar.png';
+                const userName = contact.chatUser && contact.chatUser.name ? contact.chatUser.name : '未知用户';
+                const userId = contact.chatUser && contact.chatUser.id ? contact.chatUser.id : 0;
+                const chatContent = contact.chatContact && contact.chatContact.content ? contact.chatContact.content : '暂无消息';
+                const updateAt = contact.chatContact && contact.chatContact.updateAt ? contact.chatContact.updateAt : '';
+
+                return `
+                    <div class="contact-item" onclick="openChat(${userId}, '${escapeHtml(userName)}')">
+                        <img class="contact-avatar" src="${avatarUrl}" alt="头像">
+                        <div class="contact-info">
+                            <div class="contact-header">
+                                <span class="contact-name">${escapeHtml(userName)}</span>
+                                <span class="contact-time">${updateAt}</span>
+                            </div>
+                            <div class="contact-content">${escapeHtml(chatContent)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('contactList').innerHTML = html;
+        }
+
+        function openChat(uid, userName) {
+            window.location.href = '/page/chat/detail?uid=' + uid;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) {
+                return '刚刚';
+            } else if (diff < 3600000) {
+                return Math.floor(diff / 60000) + '分钟前';
+            } else if (diff < 86400000) {
+                return Math.floor(diff / 3600000) + '小时前';
+            } else if (diff < 604800000) {
+                return Math.floor(diff / 86400000) + '天前';
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+    </script>
+</body>
+</html>
