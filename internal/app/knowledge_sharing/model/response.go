@@ -38,8 +38,7 @@ type UserEssay struct {
 }
 
 type UserCircle struct {
-	Uid    int    `json:"uid"`
-	Name   string `json:"userName"`
+	User   User   `json:"user"`
 	Circle Circle `json:"circle"`
 }
 
