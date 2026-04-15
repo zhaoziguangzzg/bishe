@@ -86,7 +86,7 @@ func GetEssayByLikeTitle(title string, cid int, page int, pagesize int) (essays 
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Essay{}).
-		Where("title like ? and is_deleted=?", "%"+title+"%", model.IS_DELETED_NO).
+		Where("circle_id=? and title like ? and is_deleted=?", cid, "%"+title+"%", model.IS_DELETED_NO).
 		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
 	if err != nil {
 		return

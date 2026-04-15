@@ -20,3 +20,8 @@ func EssayDetailPageHandler(c *gin.Context) {
 func EditEssayPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "essay/edit.html", nil)
 }
+
+// 搜索文章页面
+func SearchEssayPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "essay/search.html", nil)
+}

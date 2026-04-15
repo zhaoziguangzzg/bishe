@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章搜索 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            gap: 24px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .user-nav {
+            display: flex;
+            gap: 16px;
+        }
+        .user-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .header-search {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 6px 14px;
+            width: 400px;
+        }
+        .search-box:focus-within {
+            background: rgba(255,255,255,0.3);
+        }
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 14px;
+        }
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .search-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+        .search-btn:hover {
+            opacity: 0.8;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-result-info {
+            background: white;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            font-size: 14px;
+            color: #666;
+        }
+        .search-result-info .keyword {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .essay-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .essay-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .essay-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+        .author-info {
+            flex: 1;
+        }
+        .author-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .author-name:hover {
+            color: #667eea;
+        }
+        .essay-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+        .essay-badges {
+            display: flex;
+            gap: 8px;
+        }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-weekly {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        .badge-essence {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+        .essay-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .essay-title:hover {
+            color: #667eea;
+        }
+        .essay-title .highlight {
+            color: #f56c6c;
+            background: #fef0f0;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .essay-content-preview {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .essay-content-preview .highlight {
+            color: #f56c6c;
+            background: #fef0f0;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .essay-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .essay-actions {
+            display: flex;
+            gap: 20px;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #888;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background: #f5f5f5;
+        }
+        .action-btn.liked {
+            color: #f56c6c;
+        }
+        .action-btn.collected {
+            color: #f5c518;
+        }
+        .action-btn .icon {
+            font-size: 16px;
+        }
+        .detail-link {
+            font-size: 13px;
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .detail-link:hover {
+            text-decoration: underline;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="/page/index">首页</a>
+            <a href="/page/circle/index">圈子</a>
+        </div>
+        <div class="header-search">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索文章..." onkeypress="handleSearchKeyPress(event)"/>
+                <button class="search-btn" onclick="performSearch()">🔍</button>
+            </div>
+        </div>
+        <div class="user-nav">
+            <a href="/page/user/profile">个人中心</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="search-result-info" id="searchResultInfo">
+            正在加载...
+        </div>
+        <div class="essay-list" id="essayList">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let keyword = '';
+        let cid = null;
+        let essays = [];
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            keyword = urlParams.get('keyword') || '';
+            cid = urlParams.get('cid') || null;
+
+            document.getElementById('searchInput').value = keyword;
+
+            updateSearchResultInfo();
+            loadUserInfo();
+            loadSearchResults();
+        };
+
+        function updateSearchResultInfo() {
+            const infoEl = document.getElementById('searchResultInfo');
+            if (keyword) {
+                infoEl.innerHTML = '搜索关键词: <span class="keyword">' + escapeHtml(keyword) + '</span> 的结果';
+            } else {
+                infoEl.innerHTML = '请输入搜索关键词';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function highlightText(text, keyword) {
+            if (!keyword) return escapeHtml(text);
+            const escaped = escapeHtml(text);
+            const regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            return escaped.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        async function loadUserInfo() {
+            try {
+                const response = await axios.get('/api/user/get');
+                if (response.data.code === 0 && response.data.data) {
+                    currentUserId = response.data.data.id;
+                }
+            } catch (error) {
+                console.error('获取用户信息失败', error);
+            }
+        }
+
+        async function loadSearchResults() {
+            console.log("123");
+            const container = document.getElementById('essayList');
+
+            if (!keyword) {
+                container.innerHTML = '<div class="empty-state">请输入搜索关键词</div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="loading">搜索中...</div>';
+
+            try {
+                const response = await axios.get(`/api/search/essay?cid=${cid}&title=${encodeURIComponent(keyword)}&page=1`);
+
+                console.log(response.data.code,response.data.data,response.data.data.userEssays)
+                if (response.data.code === 0 && response.data.data && response.data.data.userEssays) {
+                    essays = response.data.data.userEssays;
+                    renderEssays();
+                } else if (response.data.code === 401) {
+                    container.innerHTML = '<div class="empty-state">请先登录后搜索</div>';
+                } else {
+                    container.innerHTML = '<div class="empty-state">未找到相关文章</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state">搜索失败，请重试</div>';
+            }
+        }
+
+
+        function renderEssays() {
+            const container = document.getElementById('essayList');
+
+            if (essays.length === 0) {
+                container.innerHTML = '<div class="empty-state">未找到相关文章</div>';
+                return;
+            }
+
+            console.log(essays)
+
+            container.innerHTML = essays.map((item) => {
+                const essay = item.essay || item;
+                const author = item.author || {};
+
+                let badgesHtml = '';
+                
+                if (essay.isWeekly === 1) {
+                    badgesHtml += '<span class="badge badge-weekly">周刊</span>';
+                }
+                if (essay.isEssence === 1) {
+                    badgesHtml += '<span class="badge badge-essence">精华</span>';
+                }
+
+                return `
+                    <div class="essay-card">
+                        <div class="essay-header">
+                            <img class="author-avatar" src="${author.avatar || '/img/default-avatar.png'}" alt="头像" onclick="goToUserProfile(${author.id})"/>
+                            <div class="author-info">
+                                <div class="author-name" onclick="goToUserProfile(${author.id})">${author.name || '未知用户'}</div>
+                                <div class="essay-time">${formatTime(essay.createAt)}</div>
+                            </div>
+                            <div class="essay-badges">${badgesHtml}</div>
+                        </div>
+                        <div class="essay-title" onclick="goToEssayDetail(${essay.id})">${highlightText(essay.title, keyword)}</div>
+                        <div class="essay-content-preview">${highlightText(essay.content, keyword)}</div>
+                        <div class="essay-footer">
+                            <span class="detail-link" onclick="goToEssayDetail(${essay.id})">查看详情</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function goToUserProfile(uid) {
+            window.location.href = `/page/user/profile?uid=${uid}`;
+        }
+
+        function goToEssayDetail(eid) {
+            window.location.href = `/page/essay/detail?eid=${eid}`;
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        function handleSearchKeyPress(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        function performSearch() {
+            console.log("acd");
+            const newKeyword = document.getElementById('searchInput').value.trim();
+            if (!newKeyword) {
+                return;
+            }
+            let url = `/page/essay/search?keyword=${encodeURIComponent(newKeyword)}`;
+            if (cid) {
+                url += `&cid=${cid}`;
+            }
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

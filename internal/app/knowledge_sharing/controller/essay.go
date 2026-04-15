@@ -595,7 +595,11 @@ func GetEssayEssonceHandler(c *gin.Context) {
 
 // 获取文章
 func GetEssayByTitleHandler(c *gin.Context) {
-	uid := c.GetInt(c)
+	uid := c.GetInt("uid")
+	if uid == 0 {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {
