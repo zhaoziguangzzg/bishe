@@ -5,6 +5,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/service"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -20,7 +21,7 @@ func AddUserFeedbackHandler(c *gin.Context) {
 
 	content := c.PostForm("content")
 
-	contentLen := len(content)
+	contentLen := utf8.RuneCountInString(content)
 	if contentLen == 0 || contentLen > model.FEEDBACK_MAX_CONTENT {
 		MakeApiResponseError(c, CODE_FEEDBACK_CONTENT_LEN_INVASLID)
 		return
@@ -153,4 +154,35 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 	//TODO 给用户发通知
 
 	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取当前用户的反馈列表
+func GetFeedbackByUidHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	feedbacks, err := service.GetFeedbackByUid(uid, page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetFeedbackByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if feedbacks == nil {
+		feedbacks = make([]model.Feedback, 0)
+	}
+
+	data := map[string]interface{}{
+		"feedbacks": feedbacks,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }

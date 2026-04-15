@@ -23,6 +23,16 @@ func GetAllFeedback(page int, pagesize int) (feedbacks []model.Feedback, err err
 	return
 }
 
+// 根据用户ID获取反馈列表
+func GetFeedbackByUid(uid int, page int, pagesize int) (feedbacks []model.Feedback, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Feedback{}).
+		Where("user_id=? and is_deleted=?", uid, model.FEEDBACK_NOT_DELETED).
+		Order("feedback_time DESC").Offset(offset).Limit(pagesize).Find(&feedbacks).Error
+	return
+}
+
 // 获取文章反馈内容
 func GetFeedbackById(id int) (feedback *model.Feedback, err error) {
 	feedback = new(model.Feedback)
