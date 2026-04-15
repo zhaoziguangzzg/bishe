@@ -79,6 +79,7 @@
             padding: 16px 20px;
             border-bottom: 1px solid #f0f0f0;
             transition: background 0.2s;
+            cursor: pointer;
         }
         .notice-item:last-child {
             border-bottom: none;
@@ -246,7 +247,7 @@
                 const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
 
                 return `
-                    <div class="notice-item">
+                    <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
                         <div class="notice-icon ${typeInfo.className}">
                             ${typeInfo.icon}
                         </div>
@@ -275,7 +276,7 @@
                 const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
 
                 return `
-                    <div class="notice-item">
+                    <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
                         <div class="notice-icon ${typeInfo.className}">
                             ${typeInfo.icon}
                         </div>
@@ -291,6 +292,15 @@
             }).join('');
 
             document.getElementById('noticeList').innerHTML = html;
+        }
+
+        function goToNoticeDetail(notice) {
+            const params = new URLSearchParams({
+                content: notice.content || '',
+                type: notice.type || 0,
+                updateAt: notice.updateAt || ''
+            });
+            window.location.href = `/page/notice/detail?${params.toString()}`;
         }
 
         function getNoticeTypeInfo(type) {
