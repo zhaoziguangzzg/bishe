@@ -25,3 +25,8 @@ func EditCirclePageHandler(c *gin.Context) {
 func CircleIndexPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "circle/index.html", nil)
 }
+
+// 搜索圈子页面
+func CircleSearchPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "circle/search.html", nil)
+}

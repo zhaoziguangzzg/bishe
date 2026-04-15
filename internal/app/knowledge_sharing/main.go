@@ -77,6 +77,8 @@ func main() {
 	r.GET("/page/circle/edit", controller.EditCirclePageHandler)
 	//圈子首页
 	r.GET("/page/circle/index", controller.CircleIndexPageHandler)
+	//搜索圈子
+	r.GET("/page/circle/search", controller.CircleSearchPageHandler)
 
 	//创建圈子
 	r.POST("/api/circle/add", controller.AddCircleHandler)
@@ -104,6 +106,7 @@ func main() {
 	r.GET("/page/essay/add", controller.AddEssayPageHandler)
 	r.GET("/page/essay/detail", controller.EssayDetailPageHandler)
 	r.GET("/page/essay/edit", controller.EditEssayPageHandler)
+	r.GET("/page/essay/search", controller.SearchEssayPageHandler) //获取全部搜索记录
 
 	r.POST("/api/essay/add", controller.AddEssayHandler)                                                  //创建文章
 	r.POST("/api/essay/update", controller.UpdateEssayHandler)                                            //更新文章
@@ -167,7 +170,10 @@ func main() {
 	r.POST("/api/feedback/add", controller.AddUserFeedbackHandler)         //创建反馈
 	r.GET("/api/feedback/all", controller.GetAllFeedbackHandler)           //获取全部未处理反馈
 	r.GET("/api/feedback/get", controller.GetFeedbackContentHandler)       //获取反馈
+	r.GET("/api/feedback/get-by-uid", controller.GetFeedbackByUidHandler)  //获取用户反馈
 	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
+	r.GET("/page/feedback/index", controller.FeedbackIndexPageHandler)     //反馈页面
+	r.GET("/page/feedback/detail", controller.FeedbackDetailPageHandler)   //反馈详情页面
 
 	//私信
 	r.GET("/page/chat/index", controller.ChatIndexPageHandler)   //获取私信首页
@@ -224,6 +230,7 @@ func main() {
 	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
 
 	//搜索
+
 	r.GET("/api/search/circle", controller.GetCircleByTitleHandler)                                 //搜索圈子
 	r.GET("/api/search/essay", middleware.UserLoginMiddleware(), controller.GetEssayByTitleHandler) //搜索文章
 

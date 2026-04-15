@@ -486,8 +486,7 @@ func GetCircleByTitleHandler(c *gin.Context) {
 
 		var userCircle model.UserCircle
 
-		userCircle.Uid = vUid
-		userCircle.Name = vUser.Name
+		userCircle.User = vUser
 		userCircle.Circle = v
 		userCircles = append(userCircles, userCircle)
 	}
