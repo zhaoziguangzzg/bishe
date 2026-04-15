@@ -25,3 +25,8 @@ func GetFeedbackById(id int) (feedback *model.Feedback, err error) {
 func UpdateFeedbackStatusReplyById(id int, reply string, replyTime time.Time) (int64, error) {
 	return mysql.UpdateFeedbackStatusReplyById(id, reply, replyTime)
 }
+
+// 根据用户ID获取反馈列表
+func GetFeedbackByUid(uid int, page int, pagesize int) ([]model.Feedback, error) {
+	return mysql.GetFeedbackByUid(uid, page, pagesize)
+}
