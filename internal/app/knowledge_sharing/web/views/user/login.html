@@ -102,6 +102,43 @@
         .form-footer a:hover {
             text-decoration: underline;
         }
+        .tab-container {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e4e7ed;
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 15px;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .tab-item.active {
+            color: #409eff;
+            font-weight: 600;
+        }
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #409eff;
+        }
+        .tab-item:hover {
+            color: #409eff;
+        }
+        .login-form {
+            display: none;
+        }
+        .login-form.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -111,7 +148,12 @@
             <p>知识分享平台</p>
         </div>
         
-        <form id="loginForm">
+        <div class="tab-container">
+            <div class="tab-item active" data-tab="user" onclick="switchTab('user')">用户登录</div>
+            <div class="tab-item" data-tab="admin" onclick="switchTab('admin')">管理员登录</div>
+        </div>
+        
+        <form id="userLoginForm" class="login-form active">
             <div class="form-group">
                 <label>用户名</label>
                 <input 
@@ -135,13 +177,49 @@
             <button type="submit" id="loginBtn" class="login-btn">登 录</button>
         </form>
         
+        <form id="adminLoginForm" class="login-form">
+            <div class="form-group">
+                <label>管理员用户名</label>
+                <input 
+                    id="adminUsername"
+                    type="text" 
+                    placeholder="请输入管理员用户名"
+                />
+            </div>
+            
+            <div class="form-group">
+                <label>密码</label>
+                <input 
+                    id="adminPassword"
+                    type="password" 
+                    placeholder="请输入密码"
+                />
+            </div>
+
+            <p id="adminErrorMsg" class="error-tip"></p>
+            
+            <button type="submit" id="adminLoginBtn" class="login-btn">登 录</button>
+        </form>
+        
         <div class="form-footer">
             还没有账号？<a href="/page/user/register">立即注册</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.login-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab-item[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(tab + 'LoginForm').classList.add('active');
+        }
+        
+        document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
@@ -172,7 +250,52 @@
                 });
                 
                 if (response.data.code === 0) {
-                    window.location.href = '/';
+                    window.location.href = '/page/admin/index';
+                } else {
+                    errorMsg.textContent = response.data.message || '登录失败，请检查用户名和密码';
+                    errorMsg.classList.add('show');
+                }
+            } catch (error) {
+                errorMsg.textContent = '网络错误，请稍后重试';
+                errorMsg.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '登 录';
+            }
+        });
+        
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const errorMsg = document.getElementById('adminErrorMsg');
+            const loginBtn = document.getElementById('adminLoginBtn');
+            
+            if (!username || !password) {
+                errorMsg.textContent = '请输入用户名和密码';
+                errorMsg.classList.add('show');
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = '登录中...';
+            errorMsg.textContent = '';
+            errorMsg.classList.remove('show');
+            
+            const formData = new URLSearchParams();
+            formData.append('name', username);
+            formData.append('password', password);
+            
+            try {
+                const response = await axios.post('/api/adminuser/login', formData, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+                
+                if (response.data.code === 0) {
+                    window.location.href = '/page/admin/index';
                 } else {
                     errorMsg.textContent = response.data.message || '登录失败，请检查用户名和密码';
                     errorMsg.classList.add('show');
