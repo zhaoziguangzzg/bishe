@@ -88,8 +88,8 @@ func AddAnnounceHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 获取全部公告列表
-func GetAllAnnounceHandler(c *gin.Context) {
+// 获取全部显示公告列表
+func GetAllAnnounceByTimeHandler(c *gin.Context) {
 	cTime := time.Now()
 
 	pageStr := c.Query("page")
@@ -101,6 +101,31 @@ func GetAllAnnounceHandler(c *gin.Context) {
 	announces, err := service.GetAllAnnounceByTime(cTime, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetAllAnnounceByTime", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(announces) == 0 {
+		announces = make([]model.Announce, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"announces": announces,
+	})
+}
+
+// 获取全部显示公告列表
+func GetAllAnnounceHandler(c *gin.Context) {
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	//获取全部公告
+	announces, err := service.GetAllAnnounce(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllAnnounce", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -191,11 +216,6 @@ func UpdateAnnounceHandler(c *gin.Context) {
 		return
 	}
 
-	if startTime.After(endTime) {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	announceIdStr := c.PostForm("announce_id")
 	if announceIdStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -221,8 +241,15 @@ func UpdateAnnounceHandler(c *gin.Context) {
 		return
 	}
 
+	newAnnounce := map[string]interface{}{
+		"title":      title,
+		"content":    content,
+		"start_time": &startTime,
+		"end_time":   &endTime,
+	}
+
 	//根据id更新公告
-	affectRows, err := service.UpdateAnnounceById(announceId, title, content, startTime, endTime)
+	affectRows, err := service.UpdateAnnounceById(announceId, newAnnounce)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateAnnounceById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

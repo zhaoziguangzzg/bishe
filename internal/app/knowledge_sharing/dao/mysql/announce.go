@@ -26,6 +26,19 @@ func GetAllAnnounceByTime(ctime time.Time, page int, pagesize int) (announces []
 	return
 }
 
+// 获取全部公告
+func GetAllAnnounce(page int, pagesize int) (announces []model.Announce, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Announce{}).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&announces).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // 根据id获取公告
 func GetAnnounceById(id int) (announce *model.Announce, err error) {
 	announce = new(model.Announce)
@@ -42,13 +55,7 @@ func GetAnnounceById(id int) (announce *model.Announce, err error) {
 }
 
 // 根据id更新公告
-func UpdateAnnounceById(id int, title string, content string, startTime time.Time, endTime time.Time) (int64, error) {
-	announce := model.Announce{
-		Title:     title,
-		Content:   content,
-		StartTime: &startTime,
-		EndTime:   &endTime,
-	}
+func UpdateAnnounceById(id int, announce map[string]interface{}) (int64, error) {
 
 	result := DB.Model(&model.Announce{}).Where("id=?", id).Updates(announce)
 	return result.RowsAffected, result.Error
