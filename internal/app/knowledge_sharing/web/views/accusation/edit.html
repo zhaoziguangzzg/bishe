@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审核详情 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .detail-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .info-item {
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+        .info-item .label {
+            color: #909399;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .info-item .value {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .content-box {
+            background: #f9fafb;
+            border-radius: 6px;
+            padding: 16px;
+            line-height: 1.8;
+            color: #333;
+            font-size: 14px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-pass {
+            background: #67c23a;
+            color: white;
+        }
+        .btn-reject {
+            background: #f56c6c;
+            color: white;
+        }
+        .loading-state {
+            text-align: center;
+            padding: 60px;
+            color: #909399;
+        }
+        .error-state {
+            text-align: center;
+            padding: 60px;
+            color: #f56c6c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/page/admin/index">← 返回后台管理</a>
+        <span>审核详情</span>
+        <div></div>
+    </div>
+
+    <div class="container">
+        <div class="detail-card" id="detailCard">
+            <div class="loading-state">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const accusationId = urlParams.get('id');
+
+        async function loadAccusationDetail() {
+            const detailCard = document.getElementById('detailCard');
+
+            if (!accusationId) {
+                detailCard.innerHTML = '<div class="error-state">缺少举报ID参数</div>';
+                return;
+            }
+
+            try {
+                const response = await axios.get('/api/accusation/get', {
+                    params: { accusation_id: accusationId }
+                });
+
+                if (response.data.code === 0 && response.data.data) {
+                    renderDetail(response.data.data);
+                } else {
+                    detailCard.innerHTML = '<div class="error-state">加载失败: ' + (response.data.message || '未知错误') + '</div>';
+                }
+            } catch (error) {
+                console.error('加载审核详情失败', error);
+                detailCard.innerHTML = '<div class="error-state">网络错误，请稍后重试</div>';
+            }
+        }
+
+        function renderDetail(data) {
+            const accusation = data.accusation;
+            const essay = data.essay;
+            const detailCard = document.getElementById('detailCard');
+
+            if (!accusation) {
+                detailCard.innerHTML = '<div class="error-state">举报信息不存在</div>';
+                return;
+            }
+
+            const accusationTime = accusation.accusationTime ? new Date(accusation.accusationTime).toLocaleString() : '--';
+            const createAt = essay && essay.createAt ? new Date(essay.createAt).toLocaleString() : '--';
+
+            const statusText = accusation.accusationStatus === 0 ? '待审核' :
+                               accusation.accusationStatus === 1 ? '无违规' : '有违规';
+
+            let html = `
+                <h2>审核详情</h2>
+
+                <div class="section">
+                    <div class="section-title">举报信息</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">举报ID</div>
+                            <div class="value">${accusation.id}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">举报时间</div>
+                            <div class="value">${accusationTime}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">举报状态</div>
+                            <div class="value">${statusText}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">被举报文章ID</div>
+                            <div class="value">${accusation.essayId}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">举报内容</div>
+                    <div class="content-box">${accusation.content || '无'}</div>
+                </div>
+            `;
+
+            if (essay) {
+                html += `
+                    <div class="section">
+                        <div class="section-title">文章信息</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="label">文章ID</div>
+                                <div class="value">${essay.id}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">作者ID</div>
+                                <div class="value">${essay.authorId}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">文章标题</div>
+                                <div class="value">${essay.title || '--'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">创建时间</div>
+                                <div class="value">${createAt}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">文章内容</div>
+                        <div class="content-box">${essay.content || '无'}</div>
+                    </div>
+                `;
+            }
+
+            if (accusation.accusationStatus === 0) {
+                html += `
+                    <div class="action-buttons">
+                        <button class="btn btn-pass" onclick="handleAccusation(1)">无违规</button>
+                        <button class="btn btn-reject" onclick="handleAccusation(2)">有违规</button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="action-buttons">
+                        <button class="btn" disabled>已完成审核</button>
+                    </div>
+                `;
+            }
+
+            detailCard.innerHTML = html;
+        }
+
+        async function handleAccusation(status) {
+            const detailCard = document.getElementById('detailCard');
+
+            try {
+                const response = await axios.get('/api/accusation/get', {
+                    params: { accusation_id: accusationId }
+                });
+
+                if (response.data.code !== 0 || !response.data.data) {
+                    alert('获取举报信息失败');
+                    return;
+                }
+
+                const accusation = response.data.data.accusation;
+                const essay = response.data.data.essay;
+
+                if (!accusation || !essay) {
+                    alert('获取文章信息失败');
+                    return;
+                }
+
+                const formData = new URLSearchParams();
+                formData.append('accusation_id', accusationId);
+                formData.append('accusation_status', status);
+                formData.append('user_id', accusation.userId);
+                formData.append('author_id', essay.authorId);
+
+                const updateResponse = await axios.post('/api/accusation/update', formData, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+
+                if (updateResponse.data.code === 0) {
+                    alert(status === 1 ? '已通过' : '已拒绝');
+                    window.location.href = '/page/admin/index';
+                } else {
+                    alert('操作失败: ' + (updateResponse.data.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('操作失败', error);
+                alert('操作失败，请稍后重试');
+            }
+        }
+
+        loadAccusationDetail();
+    </script>
+</body>
+</html>
