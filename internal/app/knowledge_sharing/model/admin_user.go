@@ -13,6 +13,8 @@ type AdminUser struct {
 	Email string `json:"email" gorm:"column:email" mapstructure:"email"`
 	//电话
 	Phone int `json:"phone" gorm:"column:phone" mapstructure:"phone"`
+	//头像
+	Avatar string `json:"avatar" gorm:"column:avatar" mapstructure:"avatar"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`

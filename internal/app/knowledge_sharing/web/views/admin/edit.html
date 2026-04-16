@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑管理员信息 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .edit-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .edit-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #667eea;
+        }
+        .form-group input:disabled {
+            background: #f5f7fa;
+            color: #999;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error-tip {
+            color: #ff4d4f;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #52c41a;
+            font-size: 14px;
+            margin-top: 16px;
+            text-align: center;
+            display: none;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .avatar-section .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .avatar-section input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px dashed #dcdfe6;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/page/admin/index">← 返回后台管理</a>
+        <span>编辑管理员信息</span>
+        <div></div>
+    </div>
+
+    <div class="container">
+        <div class="edit-card">
+            <h2>修改管理员信息</h2>
+            <form id="editForm">
+                <div class="avatar-section">
+                    <img id="avatarPreview" class="avatar-preview" src="" alt="头像"/>
+                    <div class="form-group">
+                        <label>更换头像</label>
+                        <input id="avatar" type="file" accept="image/*"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input id="username" type="text" placeholder="请输入用户名"/>
+                </div>
+
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input id="email" type="email" placeholder="请输入邮箱"/>
+                </div>
+
+                <div class="form-group">
+                    <label>手机号</label>
+                    <input id="phone" type="text" placeholder="请输入手机号"/>
+                </div>
+
+                <p id="errorMsg" class="error-tip"></p>
+                <p id="successMsg" class="success-tip"></p>
+
+                <button type="submit" id="saveBtn" class="btn">保存修改</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentAdmin = null;
+
+        async function loadAdminInfo() {
+            try {
+                const response = await axios.get('/api/adminuser/get');
+                if (response.data.code === 0 && response.data.data) {
+                    currentAdmin = response.data.data.user;
+                    document.getElementById('username').value = currentAdmin.name || '';
+                    document.getElementById('email').value = currentAdmin.email || '';
+                    document.getElementById('phone').value = currentAdmin.phone || '';
+                    if (currentAdmin.avatar) {
+                        document.getElementById('avatarPreview').src = currentAdmin.avatar;
+                    }
+                } else {
+                    window.location.href = '/page/user/login';
+                }
+            } catch (error) {
+                window.location.href = '/page/user/login';
+            }
+        }
+
+        document.getElementById('avatar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const saveBtn = document.getElementById('saveBtn');
+
+            errorMsg.classList.remove('show');
+            successMsg.classList.remove('show');
+
+            if (!username || !email) {
+                errorMsg.textContent = '用户名和邮箱不能为空';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '保存中...';
+
+            const formData = new FormData();
+            formData.append('name', username);
+            formData.append('email', email);
+            formData.append('phone', phone);
+
+            const avatarFile = document.getElementById('avatar').files[0];
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+
+            try {
+                const response = await axios.post('/api/adminuser/update', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                if (response.data.code === 0) {
+                    successMsg.textContent = '修改成功';
+                    successMsg.classList.add('show');
+                    setTimeout(function() {
+                        window.location.href = '/page/admin/index';
+                    }, 1500);
+                } else {
+                    errorMsg.textContent = response.data.message || '修改失败';
+                    errorMsg.classList.add('show');
+                }
+            } catch (error) {
+                errorMsg.textContent = '网络错误，请稍后重试';
+                errorMsg.classList.add('show');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存修改';
+            }
+        });
+
+        loadAdminInfo();
+    </script>
+</body>
+</html>

@@ -161,19 +161,23 @@ func main() {
 	r.GET("/api/follow/allfan", controller.GetUserAllFanHandler)     //获取用户粉丝列表
 
 	//举报
+	r.GET("/page/accusation/edit", controller.AccusationEditPageHandler)
+
 	r.POST("/api/accusation/add", controller.AddUserAccusationEssayHandler)     //创建举报
 	r.GET("/api/accusation/all", controller.GetAllAccusationEssayHandler)       //获取全部未审核举报
 	r.GET("/api/accusation/get", controller.GetEssayContentByAccusationHandler) //获取举报内容文章
 	r.POST("/api/accusation/update", controller.UpdateAccusationStatusHandler)  //更新举报状态
 
 	//反馈
+	r.GET("/page/feedback/index", controller.FeedbackIndexPageHandler)
+	r.GET("/page/feedback/detail", controller.FeedbackDetailPageHandler)
+	r.GET("/page/feedback/edit", controller.FeedbackEditPageHandler)
+
 	r.POST("/api/feedback/add", controller.AddUserFeedbackHandler)         //创建反馈
 	r.GET("/api/feedback/all", controller.GetAllFeedbackHandler)           //获取全部未处理反馈
 	r.GET("/api/feedback/get", controller.GetFeedbackContentHandler)       //获取反馈
 	r.GET("/api/feedback/get-by-uid", controller.GetFeedbackByUidHandler)  //获取用户反馈
 	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
-	r.GET("/page/feedback/index", controller.FeedbackIndexPageHandler)     //反馈页面
-	r.GET("/page/feedback/detail", controller.FeedbackDetailPageHandler)   //反馈详情页面
 
 	//私信
 	r.GET("/page/chat/index", controller.ChatIndexPageHandler)   //获取私信首页
@@ -206,6 +210,9 @@ func main() {
 	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情
 
 	//管理员用户
+	r.GET("/page/admin/index", controller.AdminIndexPageHandler)
+	r.GET("/page/admin/edit", controller.AdminEditPageHandler)
+
 	r.POST("/api/adminuser/add", controller.AddAdminUserHandler)       //添加管理员用户信息
 	r.POST("/api/adminuser/update", controller.UpdateAdminUserHandler) //更新管理员用户信息
 	r.POST("/api/adminuser/login", controller.AdminUserLoginHandler)   //管理员用户登录
@@ -216,15 +223,21 @@ func main() {
 	// TODO 菜单权限
 
 	//公告
+	r.GET("/page/announce/edit", controller.AnnounceEditPageHandler)
+
 	r.POST("/api/announce/add", controller.AddAnnounceHandler)                         //创建公告
+	r.GET("/api/announce/all-time", controller.GetAllAnnounceByTimeHandler)            //获取全部公告
 	r.GET("/api/announce/all", controller.GetAllAnnounceHandler)                       //获取全部公告
 	r.GET("/api/announce/get", controller.GetAnnounceHandler)                          //查看公告
 	r.POST("/api/announce/update", controller.UpdateAnnounceHandler)                   //更新公告
 	r.POST("/api/announce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler) //删除公告
 
 	//广告
-	r.POST("/api/advert/add", controller.AddAdvertHandler)                         //创建广告
-	r.GET("/api/advert/all", controller.GetAllAdvertHandler)                       //获取全部广告
+	r.GET("/page/advert/edit", controller.AdvertEditPageHandler)
+
+	r.POST("/api/advert/add", controller.AddAdvertHandler)              //创建广告
+	r.GET("/api/advert/all-time", controller.GetAllAdvertByTimeHandler) //获取全部广告
+	r.GET("/api/advert/all", controller.GetAllAdvertHandler)
 	r.GET("/api/advert/get", controller.GetAdvertHandler)                          //查看广告
 	r.POST("/api/advert/update", controller.UpdateAdvertHandler)                   //更新广告
 	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告

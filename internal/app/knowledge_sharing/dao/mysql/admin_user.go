@@ -13,13 +13,8 @@ func CreateAdminUser(newAdminUser *model.AdminUser) (err error) {
 }
 
 // 更新管理员用户
-func UpdateAdminUserByUid(uid int, name string, email string, phone int) (int64, error) {
-	user := model.AdminUser{
-		Name:  name,
-		Email: email,
-		Phone: phone,
-	}
-	result := DB.Model(&model.AdminUser{}).Where("id=?", uid).Updates(user)
+func UpdateAdminUserByUid(uid int, updateMap map[string]interface{}) (int64, error) {
+	result := DB.Model(&model.AdminUser{}).Where("id=?", uid).Updates(updateMap)
 	return result.RowsAffected, result.Error
 }
 

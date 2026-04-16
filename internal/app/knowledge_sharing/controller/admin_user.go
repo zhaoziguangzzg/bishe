@@ -4,6 +4,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -60,7 +61,7 @@ func AddAdminUserHandler(c *gin.Context) {
 		Password:  password,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
-		IsDeleted: model.USER_NOT_DELETED,
+		IsDeleted: model.IS_DELETED_NO,
 	}
 
 	// 插入数据库
@@ -217,8 +218,37 @@ func UpdateAdminUserHandler(c *gin.Context) {
 		return
 	}
 
+	updateMap := map[string]interface{}{
+		"name":  userName,
+		"email": email,
+		"phone": phone,
+	}
+
+	fileType := service.FILE_TYPE_UAER_AVATAR
+	timeNow := time.Now()
+
+	// 处理头像上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("avatar")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		avatarPath, err = service.FileSave(file, header, fileType, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		updateMap["avatar"] = avatarPath
+	}
+
 	//更新用户信息
-	affectRows, err := service.UpdateAdminUserByUid(uid, userName, email, phone)
+	affectRows, err := service.UpdateAdminUserByUid(uid, updateMap)
 	if !(affectRows > 0 && err == nil) {
 		service.Logger.Error("UpdateAdminUserByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
