@@ -75,8 +75,12 @@ func main() {
 	r.GET("/page/circle/detail", controller.CircleDetailPageHandler)
 	//修改圈子页面
 	r.GET("/page/circle/edit", controller.EditCirclePageHandler)
-	//圈子首页
+	//圈子列表（排行榜更多）
+	r.GET("/page/circle/list", controller.CircleListPageHandler)
+	//加入的圈子页面
 	r.GET("/page/circle/index", controller.CircleIndexPageHandler)
+	//创建的圈子页面
+	r.GET("/page/circle/create", controller.CircleCreatePageHandler)
 	//搜索圈子
 	r.GET("/page/circle/search", controller.CircleSearchPageHandler)
 

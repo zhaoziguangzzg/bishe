@@ -487,6 +487,28 @@
             overflow: hidden;
             margin-bottom: 12px;
         }
+        .announce-status, .advert-status {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active {
+            background: #e6f7e6;
+            color: #52c41a;
+        }
+        .status-deleted {
+            background: #fff1e6;
+            color: #fa8c16;
+        }
+        .advert-img-preview {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: block;
+        }
         #add-announce-form {
             margin-top: 16px;
         }
@@ -731,6 +753,10 @@
                             <label>广告内容</label>
                             <textarea id="add-advert-content" placeholder="请输入广告内容"></textarea>
                         </div>
+                        <div class="form-group-inline">
+                            <label>广告图片</label>
+                            <input id="add-advert-img" type="file" accept="image/*"/>
+                        </div>
                         <div class="form-row">
                             <div class="form-group-inline">
                                 <label>开始时间</label>
@@ -969,14 +995,17 @@
             let html = '<div class="announce-list">';
             announces.forEach(ann => {
                 const createAt = ann.createAt ? new Date(ann.createAt).toLocaleString() : '--';
+                const statusClass = ann.isDeleted === 0 ? 'status-active' : 'status-deleted';
+                const statusText = ann.isDeleted === 0 ? '显示' : '隐藏';
                 html += `
                     <div class="announce-item">
                         <div class="announce-item-header">
                             <span class="announce-title">${escapeHtml(ann.title || '--')}</span>
+                            <span class="announce-status ${statusClass}">${statusText}</span>
                         </div>
                         <div class="announce-meta">创建时间: ${createAt}</div>
                         <div class="announce-content-preview">${escapeHtml(ann.content || '无')}</div>
-                        <button class="btn-edit" onclick="editAnnounce(${ann.id})">修改公告</button>
+                        <button class="btn-edit" onclick="editAnnounce(${ann.id})">修改并查看公告</button>
                     </div>
                 `;
             });
@@ -1017,11 +1046,15 @@
             let html = '<div class="advert-list">';
             adverts.forEach(ad => {
                 const createAt = ad.createAt ? new Date(ad.createAt).toLocaleString() : '--';
+                const statusClass = ad.isDeleted === 0 ? 'status-active' : 'status-deleted';
+                const statusText = ad.isDeleted === 0 ? '显示' : '隐藏';
                 html += `
                     <div class="advert-item">
                         <div class="advert-item-header">
                             <span class="advert-position">${escapeHtml(ad.position || '--')}</span>
+                            <span class="advert-status ${statusClass}">${statusText}</span>
                         </div>
+                        ${ad.img ? '<img class="advert-img-preview" src="' + escapeHtml(ad.img) + '" alt="广告图片"/>' : ''}
                         <div class="advert-meta">创建时间: ${createAt}</div>
                         <div class="advert-content-preview">${escapeHtml(ad.content || '无')}</div>
                         <button class="btn-edit" onclick="editAdvert(${ad.id})">修改广告</button>
@@ -1167,17 +1200,22 @@
                 return;
             }
 
-            const formData = new URLSearchParams();
+            const formData = new FormData();
             formData.append('position', position);
             formData.append('addvert_addr', advertAddr);
             formData.append('content', content);
             formData.append('start_time', startTime);
             formData.append('end_time', endTime);
 
+            const imgFile = document.getElementById('add-advert-img').files[0];
+            if (imgFile) {
+                formData.append('avatar', imgFile);
+            }
+
             try {
                 const response = await axios.post('/api/advert/add', formData, {
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'multipart/form-data'
                     }
                 });
 
@@ -1189,6 +1227,7 @@
                     document.getElementById('add-advert-content').value = '';
                     document.getElementById('add-advert-startTime').value = '';
                     document.getElementById('add-advert-endTime').value = '';
+                    document.getElementById('add-advert-img').value = '';
                 } else {
                     errorMsg.textContent = response.data.message || '发布失败';
                     errorMsg.classList.add('show');
