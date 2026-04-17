@@ -250,7 +250,7 @@
                 });
                 
                 if (response.data.code === 0) {
-                    window.location.href = '/page/admin/index';
+                    window.location.href = '/';
                 } else {
                     errorMsg.textContent = response.data.message || '登录失败，请检查用户名和密码';
                     errorMsg.classList.add('show');
