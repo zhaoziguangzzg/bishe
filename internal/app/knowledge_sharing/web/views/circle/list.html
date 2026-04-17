@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圈子列表 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            gap: 24px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .tab-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .tab-item {
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            background: #f5f7fa;
+            transition: all 0.3s;
+        }
+        .tab-item:hover {
+            background: #e4e7ed;
+        }
+        .tab-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .circle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .circle-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .circle-item:hover {
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+        .circle-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 16px;
+        }
+        .circle-rank.top-1 {
+            background: #ffd700;
+            color: #333;
+        }
+        .circle-rank.top-2 {
+            background: #c0c0c0;
+            color: #333;
+        }
+        .circle-rank.top-3 {
+            background: #cd7f32;
+            color: #333;
+        }
+        .circle-info {
+            flex: 1;
+        }
+        .circle-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .circle-meta {
+            font-size: 13px;
+            color: #999;
+        }
+        .circle-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .circle-price.free {
+            color: #52c41a;
+        }
+        .no-data {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/page/circle/index">圈子首页</a>
+        </div>
+        <div style="flex: 1;"></div>
+        <div class="nav">
+            <a href="/page/user/profile">我的</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">🏆 圈子排行榜</h2>
+
+            <div class="tab-container">
+                <div class="tab-item active" data-type="charge" onclick="switchTab('charge')">付费圈子</div>
+                <div class="tab-item" data-type="free" onclick="switchTab('free')">免费圈子</div>
+                <div class="tab-item" data-type="hot" onclick="switchTab('hot')">人气圈子</div>
+            </div>
+
+            <div id="circleList" class="circle-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentType = urlParams.get('type') || 'charge';
+
+        function switchTab(type) {
+            currentType = type;
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.tab-item[data-type="${type}"]`).classList.add('active');
+            loadCircleList();
+        }
+
+        async function loadCircleList() {
+            const container = document.getElementById('circleList');
+            container.innerHTML = '<div class="no-data">加载中...</div>';
+
+            try {
+                let response;
+                if (currentType === 'charge') {
+                    response = await axios.get('/api/circle/charge');
+                } else if (currentType === 'free') {
+                    response = await axios.get('/api/circle/free');
+                } else {
+                    response = await axios.get('/api/circle/all');
+                }
+
+                if (response.data.code === 0 && response.data.data) {
+                    let circles;
+                    if (currentType === 'hot') {
+                        circles = response.data.data.circles || [];
+                        circles = circles.sort((a, b) => (b.joinNum || 0) - (a.joinNum || 0));
+                    } else {
+                        circles = response.data.data.circles || [];
+                    }
+
+                    if (circles.length === 0) {
+                        container.innerHTML = '<div class="no-data">暂无数据</div>';
+                        return;
+                    }
+
+                    container.innerHTML = circles.map((circle, index) => {
+                        const isPaid = circle.price > 0;
+                        return `
+                        <div class="circle-item" onclick="goToCircle(${circle.id})">
+                            <div class="circle-rank top-${index + 1 <= 3 ? index + 1 : ''}">${index + 1}</div>
+                            <div class="circle-info">
+                                <div class="circle-title">${circle.title}</div>
+                                <div class="circle-meta">圈主: ${circle.ownerName || '未知'} | ${circle.joinNum || 0}人加入</div>
+                            </div>
+                            <div class="circle-price ${isPaid ? '' : 'free'}">${isPaid ? (circle.price || 0) + '元' : '免费'}</div>
+                        </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
+            }
+        }
+
+        function goToCircle(circleId) {
+            window.location.href = '/page/circle/detail?cid=' + circleId;
+        }
+
+        if (currentType) {
+            switchTab(currentType);
+        } else {
+            loadCircleList();
+        }
+    </script>
+</body>
+</html>

@@ -26,6 +26,21 @@ func CircleIndexPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "circle/index.html", nil)
 }
 
+// 圈子排行页面
+func CircleListPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "circle/list.html", nil)
+}
+
+// // 加入的圈子页面
+// func CircleJoinedPageHandler(c *gin.Context) {
+// 	c.HTML(http.StatusOK, "circle/joined.html", nil)
+// }
+
+// 创建的圈子页面
+func CircleCreatePageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "circle/create.html", nil)
+}
+
 // 搜索圈子页面
 func CircleSearchPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "circle/search.html", nil)

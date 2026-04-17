@@ -225,8 +225,25 @@ func GetAllCircleHandler(c *gin.Context) {
 		circles = make([]model.Circle, 0)
 	}
 
+	circleList := make([]map[string]interface{}, 0, len(circles))
+	for _, circle := range circles {
+		ownerName := ""
+		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
+			ownerName = user.Name
+		}
+		item := map[string]interface{}{
+			"id":            circle.Id,
+			"title":         circle.Title,
+			"price":         circle.Price,
+			"circleOwnerId": circle.CircleOwnerId,
+			"ownerName":     ownerName,
+			"joinNum":       circle.JoinNum,
+		}
+		circleList = append(circleList, item)
+	}
+
 	data := map[string]interface{}{
-		"circles": circles,
+		"circles": circleList,
 	}
 
 	MakeApiResponseSuccess(c, data)
@@ -386,8 +403,25 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 		circles = make([]model.Circle, 0)
 	}
 
+	circleList := make([]map[string]interface{}, 0, len(circles))
+	for _, circle := range circles {
+		ownerName := ""
+		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
+			ownerName = user.Name
+		}
+		item := map[string]interface{}{
+			"id":            circle.Id,
+			"title":         circle.Title,
+			"price":         circle.Price,
+			"circleOwnerId": circle.CircleOwnerId,
+			"ownerName":     ownerName,
+			"joinNum":       circle.JoinNum,
+		}
+		circleList = append(circleList, item)
+	}
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circles": circles,
+		"circles": circleList,
 	})
 }
 
@@ -411,8 +445,25 @@ func GetFreeCircleRankHandler(c *gin.Context) {
 		circles = make([]model.Circle, 0)
 	}
 
+	circleList := make([]map[string]interface{}, 0, len(circles))
+	for _, circle := range circles {
+		ownerName := ""
+		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
+			ownerName = user.Name
+		}
+		item := map[string]interface{}{
+			"id":            circle.Id,
+			"title":         circle.Title,
+			"price":         circle.Price,
+			"circleOwnerId": circle.CircleOwnerId,
+			"ownerName":     ownerName,
+			"joinNum":       circle.JoinNum,
+		}
+		circleList = append(circleList, item)
+	}
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"circles": circles,
+		"circles": circleList,
 	})
 }
 

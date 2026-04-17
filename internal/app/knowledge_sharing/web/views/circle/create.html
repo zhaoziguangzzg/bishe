@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加入的圈子 - 知识分享平台</title>
+    <title>创建的圈子 - 知识分享平台</title>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <style>
         * {
@@ -769,7 +769,7 @@
     <div class="main-container">
         <div class="left-sidebar">
             <div class="card">
-                <div class="card-title">加入的圈子</div>
+                <div class="card-title">创建的圈子</div>
                 <ul class="circle-list" id="circleList"></ul>
             </div>
         </div>
@@ -876,15 +876,15 @@
             container.innerHTML = '<div class="no-data">加载中...</div>';
 
             try {
-                const response = await axios.get('/api/circle/join?page=1&pagesize=100');
+                const response = await axios.get('/api/circle/create?page=1&pagesize=100');
                 if (response.data.code === 0 && response.data.data) {
                     const data = response.data.data;
                     const circles = data.circles || [];
                     if (circles.length === 0) {
-                        container.innerHTML = '<div class="no-data">暂无加入的圈子</div>';
+                        container.innerHTML = '<div class="no-data">暂无创建的圈子</div>';
                     } else {
                         container.innerHTML = circles.map(circle =>
-                            `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId})">${circle.title}</li>`
+                            `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId || circle.CircleOwnerId || 0}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId || circle.CircleOwnerId || 0})">${circle.title}</li>`
                         ).join('');
                         let targetCircle = null;
                         if (cidFromUrl) {
@@ -895,11 +895,11 @@
                         }
                         if (targetCircle) {
                             updateEssayBtnHref(targetCircle.id);
-                            selectCircle(targetCircle.id, targetCircle.circleOwnerId);
+                            selectCircle(targetCircle.id, targetCircle.circleOwnerId || targetCircle.CircleOwnerId || 0);
                         }
                     }
                 } else {
-                    container.innerHTML = '<div class="no-data">暂无加入的圈子</div>';
+                    container.innerHTML = '<div class="no-data">暂无创建的圈子</div>';
                 }
             } catch (error) {
                 container.innerHTML = '<div class="no-data">加载失败</div>';
