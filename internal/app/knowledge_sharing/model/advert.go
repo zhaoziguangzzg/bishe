@@ -15,6 +15,8 @@ type Advert struct {
 	StartTime *time.Time `json:"startTime" gorm:"column:start_time" mapstructure:"startTime"`
 	//广告结束时间
 	EndTime *time.Time `json:"endTime" gorm:"column:end_time" mapstructure:"endTime"`
+	//广告图片
+	Img string `json:"img" gorm:"column:img" mapstructure:"img"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`

@@ -13,11 +13,24 @@ func CreateAdvert(advert *model.Advert) (err error) {
 	return
 }
 
-// 获取全部广告
+// 获取全部显示广告
 func GetAllAdvertByTime(ctime time.Time, position string, page int, pagesize int) (adverts []model.Advert, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Advert{}).Where("start_time<? and end_time>? and position=? and is_deleted=?", ctime, ctime, position, model.IS_DELETED_NO).
+		Order("id DESC").Offset(offset).Limit(pagesize).Find(&adverts).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 获取全部广告
+func GetAllAdvert(page int, pagesize int) (adverts []model.Advert, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.Advert{}).
 		Order("id DESC").Offset(offset).Limit(pagesize).Find(&adverts).Error
 	if err != nil {
 		return
@@ -42,14 +55,7 @@ func GetAdvertById(id int) (advert *model.Advert, err error) {
 }
 
 // 根据id更新广告
-func UpdateAdvertById(id int, position string, advertAddr string, content string, startTime time.Time, endTime time.Time) (int64, error) {
-	advert := model.Advert{
-		Position:   position,
-		AdvertAddr: advertAddr,
-		Content:    content,
-		StartTime:  &startTime,
-		EndTime:    &endTime,
-	}
+func UpdateAdvertById(id int, advert map[string]interface{}) (int64, error) {
 
 	result := DB.Model(&model.Advert{}).Where("id=?", id).Updates(advert)
 	return result.RowsAffected, result.Error

@@ -16,14 +16,19 @@ func GetAllAdvertByTime(ctime time.Time, position string, page int, pagesize int
 	return mysql.GetAllAdvertByTime(ctime, position, page, pagesize)
 }
 
+// 获取全部广告
+func GetAllAdvert(page int, pagesize int) (adverts []model.Advert, err error) {
+	return mysql.GetAllAdvert(page, pagesize)
+}
+
 // 根据id获取广告
 func GetAdvertById(id int) (advert *model.Advert, err error) {
 	return mysql.GetAdvertById(id)
 }
 
 // 根据id更新广告
-func UpdateAdvertById(id int, position string, advertAddr string, content string, startTime time.Time, endTime time.Time) (int64, error) {
-	return mysql.UpdateAdvertById(id, position, advertAddr, content, startTime, endTime)
+func UpdateAdvertById(id int, advert map[string]interface{}) (int64, error) {
+	return mysql.UpdateAdvertById(id, advert)
 }
 
 // 根据id删除广告

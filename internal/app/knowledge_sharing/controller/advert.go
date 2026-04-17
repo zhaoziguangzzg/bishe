@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -61,16 +62,6 @@ func AddAdvertHandler(c *gin.Context) {
 
 	createTime := time.Now()
 
-	if createTime.After(startTime) {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	if startTime.After(endTime) {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	// 构造广告
 	advert := &model.Advert{ //其中包含自动生成的id
 		Position:   position,
@@ -81,6 +72,28 @@ func AddAdvertHandler(c *gin.Context) {
 		CreateAt:   &createTime,
 		UpdateAt:   &createTime,
 		IsDeleted:  model.IS_DELETED_NO,
+	}
+
+	fileType := service.FILE_TYPE_ADVERT_IMG
+
+	// 处理广告图片上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("avatar")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		avatarPath, err = service.FileSave(file, header, fileType, createTime)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		advert.Img = avatarPath
 	}
 
 	err = service.CreateAdvert(advert)
@@ -94,7 +107,7 @@ func AddAdvertHandler(c *gin.Context) {
 }
 
 // 获取全部广告列表
-func GetAllAdvertHandler(c *gin.Context) {
+func GetAllAdvertByTimeHandler(c *gin.Context) {
 	position := c.Query("position")
 
 	positionLen := len(position)
@@ -113,6 +126,31 @@ func GetAllAdvertHandler(c *gin.Context) {
 	adverts, err := service.GetAllAdvertByTime(cTime, position, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetAllAdvertByTime", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(adverts) == 0 {
+		adverts = make([]model.Advert, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"adverts": adverts,
+	})
+}
+
+// 获取全部广告列表
+func GetAllAdvertHandler(c *gin.Context) {
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+
+	//获取全部广告
+	adverts, err := service.GetAllAdvert(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllAdvert", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -240,8 +278,39 @@ func UpdateAdvertHandler(c *gin.Context) {
 		return
 	}
 
+	newAdvert := map[string]interface{}{
+		"position":    position,
+		"advert_addr": advertAddr,
+		"content":     content,
+		"start_time":  &startTime,
+		"end_time":    &endTime,
+	}
+
+	fileType := service.FILE_TYPE_ADVERT_IMG
+	nowTime := time.Now()
+
+	// 处理广告图片上传
+	avatarPath := ""
+	file, header, err := c.Request.FormFile("avatar")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		avatarPath, err = service.FileSave(file, header, fileType, nowTime)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		newAdvert["img"] = avatarPath
+	}
+
 	//根据id更新广告
-	affectRows, err := service.UpdateAdvertById(advertId, position, advertAddr, content, startTime, endTime)
+	affectRows, err := service.UpdateAdvertById(advertId, newAdvert)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateAdvertById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
