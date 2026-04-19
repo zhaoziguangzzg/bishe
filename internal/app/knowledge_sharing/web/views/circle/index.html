@@ -863,8 +863,8 @@
         async function loadCurrentUser() {
             try {
                 const response = await axios.get('/api/user/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentUserId = response.data.data.id;
+                if (response.data.code === 0 && response.data.data && response.data.data.user) {
+                    currentUserId = response.data.data.user.id;
                 }
             } catch (error) {
                 console.log('未登录');
@@ -927,16 +927,22 @@
             newUrl.searchParams.set('cid', circleId);
             history.pushState({ circleId }, '', newUrl.toString());
 
-            loadCircleInfo(circleId);
-            loadEssays(circleId);
+            loadCircleInfo(circleId, circleOwnerId).then(function() {
+                loadEssays(circleId);
+            }).catch(function(err) {
+                loadEssays(circleId);
+            });
         }
 
-        async function loadCircleInfo(circleId) {
+        async function loadCircleInfo(circleId, circleOwnerId) {
             try {
                 const response = await axios.get(`/api/circle/get?cid=${circleId}`);
                 if (response.data.code === 0 && response.data.data) {
                     const circle = response.data.data.circle;
                     const owner = response.data.data.user;
+                    if (circleOwnerId === null || circleOwnerId === undefined) {
+                        currentUserCircleOwnerId = circle.circleOwnerId;
+                    }
                     document.getElementById('circleIcon').textContent = circle.title ? circle.title.charAt(0).toUpperCase() : '圈';
                     document.getElementById('circleTitle').textContent = circle.title || '未命名圈子';
                     document.getElementById('circleIntro').textContent = circle.introduction || '暂无简介';
@@ -962,6 +968,11 @@
             const container = document.getElementById('essayList');
             container.innerHTML = '<div class="empty-state">加载中...</div>';
 
+            if (!circleId) {
+                container.innerHTML = '<div class="empty-state">无效的圈子ID</div>';
+                return;
+            }
+
             try {
                 const response = await axios.get(`/api/essay/circle-all?cid=${circleId}&page=1`);
                 if (response.data.code === 0 && response.data.data) {
@@ -985,70 +996,75 @@
                 return;
             }
 
-            container.innerHTML = essays.map((item) => {
-                const essay = item.essay;
-                const author = item.author;
-                const isOwner = currentUserId === author.id;
+            try {
+                container.innerHTML = essays.map((item) => {
+                    const essay = item.essay;
+                    const author = item.author;
+                    const isCircleOwner = currentUserId === currentUserCircleOwnerId;
 
-                let badgesHtml = '';
-                if (essay.isWeekly === 1) {
-                    badgesHtml += '<span class="badge badge-weekly">周刊</span>';
-                }
-                if (essay.isEssence === 1) {
-                    badgesHtml += '<span class="badge badge-essence">精华</span>';
-                }
+                    let badgesHtml = '';
+                    if (essay.isWeekly === 1) {
+                        badgesHtml += '<span class="badge badge-weekly">周刊</span>';
+                    }
+                    if (essay.isEssence === 1) {
+                        badgesHtml += '<span class="badge badge-essence">精华</span>';
+                    }
 
-                let ownerActionsHtml = '';
-                if (isOwner) {
-                    ownerActionsHtml = `
-                        <div class="owner-actions">
-                            <button class="owner-btn ${essay.isEssence === 1 ? 'active' : ''}" onclick="toggleEssence(${essay.id}, ${essay.isEssence})">
-                                ${essay.isEssence === 1 ? '已加精' : '加精'}
-                            </button>
-                            <button class="owner-btn ${essay.isWeekly === 1 ? 'active' : ''}" onclick="toggleWeekly(${essay.id}, ${essay.isWeekly})">
-                                ${essay.isWeekly === 1 ? '已周刊' : '周刊'}
-                            </button>
+                    let ownerActionsHtml = '';
+                    if (isCircleOwner) {
+                        ownerActionsHtml = `
+                            <div class="owner-actions">
+                                <button class="owner-btn ${essay.isEssence === 1 ? 'active' : ''}" onclick="toggleEssence(${essay.id}, ${essay.isEssence})">
+                                    ${essay.isEssence === 1 ? '已加精' : '加精'}
+                                </button>
+                                <button class="owner-btn ${essay.isWeekly === 1 ? 'active' : ''}" onclick="toggleWeekly(${essay.id}, ${essay.isWeekly})">
+                                    ${essay.isWeekly === 1 ? '已周刊' : '周刊'}
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="essay-card">
+                            <div class="essay-header">
+                                <img class="author-avatar" src="${author.avatar || '/img/default-avatar.png'}" alt="头像" onclick="goToUserProfile(${author.id})"/>
+                                <div class="author-info">
+                                    <div class="author-name" onclick="goToUserProfile(${author.id})">${author.name}</div>
+                                    <div class="essay-time">${formatTime(essay.createAt)}</div>
+                                </div>
+                                <div class="essay-badges">${badgesHtml}</div>
+                            </div>
+                            <div class="essay-title">${essay.title}</div>
+                            <div class="essay-content-preview">${essay.content}</div>
+                            <div class="essay-footer">
+                                <div class="essay-actions">
+                                    <button class="action-btn ${item.isLike ? 'liked' : ''}" onclick="toggleLike(${essay.id}, ${item.isLike ? 'true' : 'false'})">
+                                        <span class="icon">${item.isLike ? '❤️' : '🤍'}</span>
+                                        <span>${essay.likeNum || 0}</span>
+                                    </button>
+                                    <button class="action-btn ${item.isCollect ? 'collected' : ''}" onclick="toggleCollect(${essay.id}, ${item.isCollect ? 'true' : 'false'})">
+                                        <span class="icon">${item.isCollect ? '⭐' : '☆'}</span>
+                                        <span>${essay.collectNum || 0}</span>
+                                    </button>
+                                    <button class="action-btn" onclick="openCommentModal(${essay.id})">
+                                        <span class="icon">💬</span>
+                                        <span>${essay.commentNum || 0}</span>
+                                    </button>
+                                    ${currentUserId !== author.id ? `<button class="action-btn" onclick="openReportModal(${essay.id}, ${author.id})">
+                                        <span class="icon">🚩</span>
+                                        <span>举报</span>
+                                    </button>` : ''}
+                                </div>
+                                <span class="detail-link" onclick="goToEssayDetail(${essay.id})">查看详情</span>
+                            </div>
+                            ${ownerActionsHtml}
                         </div>
                     `;
-                }
-
-                return `
-                    <div class="essay-card">
-                        <div class="essay-header">
-                            <img class="author-avatar" src="${author.avatar || '/img/default-avatar.png'}" alt="头像" onclick="goToUserProfile(${author.id})"/>
-                            <div class="author-info">
-                                <div class="author-name" onclick="goToUserProfile(${author.id})">${author.name}</div>
-                                <div class="essay-time">${formatTime(essay.createAt)}</div>
-                            </div>
-                            <div class="essay-badges">${badgesHtml}</div>
-                        </div>
-                        <div class="essay-title">${essay.title}</div>
-                        <div class="essay-content-preview">${essay.content}</div>
-                        <div class="essay-footer">
-                            <div class="essay-actions">
-                                <button class="action-btn ${item.isLike ? 'liked' : ''}" onclick="toggleLike(${essay.id}, ${item.isLike ? 'true' : 'false'})">
-                                    <span class="icon">${item.isLike ? '❤️' : '🤍'}</span>
-                                    <span>${essay.likeNum || 0}</span>
-                                </button>
-                                <button class="action-btn ${item.isCollect ? 'collected' : ''}" onclick="toggleCollect(${essay.id}, ${item.isCollect ? 'true' : 'false'})">
-                                    <span class="icon">${item.isCollect ? '⭐' : '☆'}</span>
-                                    <span>${essay.collectNum || 0}</span>
-                                </button>
-                                <button class="action-btn" onclick="openCommentModal(${essay.id})">
-                                    <span class="icon">💬</span>
-                                    <span>${essay.commentNum || 0}</span>
-                                </button>
-                                ${!isOwner ? `<button class="action-btn" onclick="openReportModal(${essay.id}, ${author.id})">
-                                    <span class="icon">🚩</span>
-                                    <span>举报</span>
-                                </button>` : ''}
-                            </div>
-                            <span class="detail-link" onclick="goToEssayDetail(${essay.id})">查看详情</span>
-                        </div>
-                        ${ownerActionsHtml}
-                    </div>
-                `;
-            }).join('');
+                }).join('');
+            } catch (error) {
+                console.error('renderEssays error:', error);
+                container.innerHTML = '<div class="empty-state">渲染失败: ' + error.message + '</div>';
+            }
         }
 
         function goToUserProfile(uid) {
