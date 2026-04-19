@@ -235,6 +235,39 @@
             font-size: 13px;
             color: #999;
         }
+        .follow-user-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .follow-user-item:hover {
+            background: #fafafa;
+        }
+        .follow-user-item:last-child {
+            border-bottom: none;
+        }
+        .follow-user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 16px;
+        }
+        .follow-user-info {
+            flex: 1;
+        }
+        .follow-user-name {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .follow-user-meta {
+            font-size: 13px;
+            color: #999;
+        }
         .empty-tip {
             text-align: center;
             padding: 60px 20px;
@@ -307,10 +340,11 @@
 
         <div class="tab-container">
             <div class="tab-header">
-                <div class="tab-item active" data-tab="essay" onclick="switchTab('essay')">发布的文章</div>
+                <div class="tab-item" data-tab="essay" onclick="switchTab('essay')">发布的文章</div>
                 <div class="tab-item" data-tab="like" onclick="switchTab('like')">喜欢</div>
                 <div class="tab-item" data-tab="favorite" onclick="switchTab('favorite')">收藏夹</div>
                 <div class="tab-item" data-tab="comment" onclick="switchTab('comment')">评论</div>
+                <div class="tab-item" data-tab="follow" onclick="switchTab('follow')">关注</div>
             </div>
             <div class="tab-content" id="tabContent">
                 <div class="loading-tip">加载中...</div>
@@ -508,6 +542,9 @@
                     case 'comment':
                         html = await loadCommentTab();
                         break;
+                    case 'follow':
+                        html = await loadFollowTab();
+                        break;
                 }
                 container.innerHTML = html;
             } catch (error) {
@@ -602,6 +639,31 @@
                 }
                 return '<div class="empty-tip">暂无评论</div>';
             } catch (error) {
+                return '<div class="empty-tip">加载失败，请重试</div>';
+            }
+        }
+
+        async function loadFollowTab() {
+            try {
+                const response = await axios.get('/api/follow/all', { params: { page: 1 } });
+                if (response.data.code === 0 && response.data.data && response.data.data.user) {
+                    const users = response.data.data.user;
+                    if (users.length === 0) {
+                        return '<div class="empty-tip">暂无关注</div>';
+                    }
+                    return users.map(user => `
+                        <div class="follow-user-item" onclick="window.location.href='/page/user/profile?uid=${user.id}'">
+                            <img class="follow-user-avatar" src="${user.avatar || '/static/images/default-avatar.png'}" alt="头像"/>
+                            <div class="follow-user-info">
+                                <div class="follow-user-name">${user.name}</div>
+                                <div class="follow-user-meta">${user.age ? '年龄：' + user.age + '岁' : '年龄：未设置'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                return '<div class="empty-tip">暂无关注</div>';
+            } catch (error) {
+                console.error('loadFollowTab error:', error);
                 return '<div class="empty-tip">加载失败，请重试</div>';
             }
         }
