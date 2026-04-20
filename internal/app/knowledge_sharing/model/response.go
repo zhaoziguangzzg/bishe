@@ -37,6 +37,13 @@ type UserEssay struct {
 	IsCollect bool `json:"isCollect"`
 }
 
+type UserCourse struct {
+	//作者
+	Author User `json:"author"`
+	//课程
+	Course Course `json:"course"`
+}
+
 type UserCircle struct {
 	User   User   `json:"user"`
 	Circle Circle `json:"circle"`

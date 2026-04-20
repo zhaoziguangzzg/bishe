@@ -127,6 +127,13 @@ func main() {
 	r.POST("/api/essay/update-essence", controller.UpdateEssayEssenceHandler) //将文章添加精粹
 	r.GET("/api/essay/get-essence", controller.GetEssayEssonceHandler)        //获取文章精粹
 
+	//课程
+	r.POST("/api/course/add", controller.AddCourseHandler)                 //添加课程
+	r.GET("/api/course/user-all", controller.GetUserAllCourseByUidHandler) //获取用户全部课程
+	r.GET("/api/course/circle-all", controller.GetCircleAllCourseHandler)  //获取圈子全部课程
+	r.GET("/api/course/search", controller.GetCourseByTitleHandler)        //获取全部搜索记录
+	r.GET("/api/course/get", controller.GetCourseHandler)                  //获取课程详情
+
 	//点赞
 	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)          //添加点赞
 	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler)    //更新点赞删除
