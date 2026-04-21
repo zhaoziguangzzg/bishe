@@ -1,0 +1,70 @@
+package mysql
+
+import (
+	"bishe/internal/app/knowledge_sharing/model"
+
+	"gorm.io/gorm"
+)
+
+// 用户购买课程
+func CreatePurchase(purchase *model.Purchase) (err error) {
+	err = DB.Model(&model.Purchase{}).Create(purchase).Error
+	return
+}
+
+// 获取用户购买记录详情
+func GetPurchaseById(uid int) (purchase *model.Purchase, err error) {
+	purchase = new(model.Purchase)
+	err = DB.Model(&model.Purchase{}).Where("user_id=? and is_deleted=?", uid, model.IS_DELETED_NO).First(&purchase).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound { //没查到数据返回空
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return purchase, nil
+}
+
+// 获取用户购买课程
+func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err error) {
+	err = DB.Model(&model.Purchase{}).
+		Where("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_BUY).
+		Or("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_NOT_BUY).
+		Find(&purchases).Error
+
+	if err != nil {
+		return
+	}
+
+	return
+
+}
+
+//获取用户购买记录列表
+
+// 获取用户全部购买课程记录
+func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
+	err = DB.Model(&model.Purchase{}).Where("user_id = ?", uid).Find(&purchases).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 更新用户购买记录状态
+func UpdatePurchaseStatus(uid int, cid int, status int) (int64, error) {
+	result := DB.Model(&model.Purchase{}).
+		Where("user_id=? and course_id=?", uid, cid).
+		Update("purchase_status", status)
+	return result.RowsAffected, result.Error
+}
+
+// 增加课程购买人数
+func IncrCourseJoinNumByCid(cid int) (int64, error) {
+	result := DB.Model(&model.Course{}).Where("id=?", cid).
+		UpdateColumn("join_num", gorm.Expr("join_num + ?", 1))
+	return result.RowsAffected, result.Error
+}
