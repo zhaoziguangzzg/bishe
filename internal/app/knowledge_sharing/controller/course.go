@@ -234,19 +234,18 @@ func GetCourseHandler(c *gin.Context) {
 }
 
 func AddLessonHandler(c *gin.Context) {
-	// 从表单中获取用户信息
 	title := c.PostForm("title")
 	content := c.PostForm("content")
 
 	titleLen := len(title)
-	if titleLen > model.COURSE_TITLE_MAX || titleLen == 0 {
-		MakeApiResponseError(c, CODE_COURSE_TITLE_LEN_INVASLID)
+	if titleLen > model.LESSON_TITLE_MAX || titleLen == 0 {
+		MakeApiResponseError(c, CODE_LESSON_TITLE_LEN_INVASLID)
 		return
 	}
 
 	contentLen := len(content)
-	if contentLen > model.COURSE_CONTENT_MAX || contentLen == 0 {
-		MakeApiResponseError(c, CODE_COURSE_CONTENT_LEN_INVASLID)
+	if contentLen > model.LESSON_CONTENT_MAX || contentLen == 0 {
+		MakeApiResponseError(c, CODE_LESSON_CONTENT_LEN_INVASLID)
 		return
 	}
 
@@ -281,4 +280,157 @@ func AddLessonHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	data := map[string]interface{}{
+		"lessonId": lesson.Id,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 获取课时详情
+func GetLessonHandler(c *gin.Context) {
+	lessonIdStr := c.Query("lesson_id")
+	if lessonIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	lessonId, err := strconv.Atoi(lessonIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	lesson, err := service.GetLessonById(lessonId)
+	if err != nil {
+		service.Logger.Error("GetLessonById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if lesson == nil {
+		lesson = &model.Lesson{}
+	}
+
+	data := map[string]interface{}{
+		"lesson": lesson,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 获取课程全部课时
+func GetCourseAllLessonHandler(c *gin.Context) {
+	cidStr := c.Query("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	lessons, err := service.GetAllLessonByCid(cid)
+	if err != nil {
+		service.Logger.Error("GetAllLessonByCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(lessons) == 0 {
+		lessons = make([]model.Lesson, 0)
+	}
+
+	data := map[string]interface{}{
+		"lessons": lessons,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 购买课程
+func AddPurchaseHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	cidStr := c.PostForm("cid")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 获取用户购买记录
+	purchases, err := service.GetPurchaseByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetPurchaseByUidCid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(purchases) != 0 {
+		for _, v := range purchases {
+			if v.PurchaseStatus == model.PURCHASE_STATUS_NOT_BUY {
+				MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
+				return
+			}
+
+			if v.PurchaseStatus == model.PURCHASE_STATUS_BUY {
+				MakeApiResponseError(c, CODE_USER_PURCHASED)
+				return
+			}
+		}
+	}
+
+	createTime := time.Now()
+	purchase := &model.Purchase{
+		UserId:         uid,
+		CourseId:       cid,
+		CreateAt:       &createTime,
+		UpdateAt:       &createTime,
+		PurchaseStatus: model.PURCHASE_STATUS_NOT_BUY,
+	}
+
+	//创建购买记录
+	err = service.CreatePurchase(purchase)
+	if err != nil {
+		service.Logger.Error("CreatePurchase err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// //更新course join_num+1
+	// affectRows, err := service.IncrCourseJoinNumByCid(cid)
+	// if affectRows == 0 || err != nil {
+	// 	service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err))
+	// 	MakeApiResponseErrorDefault(c)
+	// 	return
+	// }
+
+	// //用户购买课程
+	// affectRows, err = service.UpdatePurchaseStatus(uid, cid, model.PURCHASE_STATUS_BUY)
+	// if affectRows == 0 || err != nil {
+	// 	service.Logger.Error("UpdatePurchaseStatus err", zap.Error(err))
+	// 	MakeApiResponseErrorDefault(c)
+	// 	return
+	// }
+
+	data := map[string]interface{}{
+		"purchase": purchase,
+	}
+
+	MakeApiResponseSuccess(c, data)
+
 }

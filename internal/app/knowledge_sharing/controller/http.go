@@ -38,7 +38,7 @@ const (
 	CODE_COURSE_PRICE_MAX_INVASLID   int = 1013
 
 	CODE_LESSON_TITLE_LEN_INVASLID   int = 1016
-	CODE_LESSON_CONTENT_LEN_INVSSLID int = 1017
+	CODE_LESSON_CONTENT_LEN_INVASLID int = 1017
 
 	CODE_CIRCLE_EXIST                     int = 4001
 	CODE_CIRCLE_TITLE_LEN_INVASLID        int = 4002
@@ -88,6 +88,7 @@ const (
 	CODE_ACCUSATION_NOT_EXIST            int = 9008
 
 	CODE_ORDERS_NOT_EXIST int = 9011
+	CODE_USER_PURCHASED   int = 9012
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -170,6 +171,7 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_ACCUSATION_NOT_EXIST:            "举报不存在",
 
 	CODE_ORDERS_NOT_EXIST: "用户支付不存在",
+	CODE_USER_PURCHASED:   "用户已购买",
 }
 
 func GetMsgByCode(code int) (msg string) {

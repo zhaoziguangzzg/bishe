@@ -134,6 +134,14 @@ func main() {
 	r.GET("/api/course/search", controller.GetCourseByTitleHandler)        //获取全部搜索记录
 	r.GET("/api/course/get", controller.GetCourseHandler)                  //获取课程详情
 
+	//课时
+	r.POST("/api/lesson/add", controller.AddLessonHandler)         //添加课时
+	r.GET("/api/lesson/get", controller.GetLessonHandler)          //获取课时详情
+	r.GET("/api/lesson/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
+
+	//买课
+	r.POST("/api/purchase/add", controller.AddPurchaseHandler) //购买课程
+
 	//点赞
 	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)          //添加点赞
 	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler)    //更新点赞删除
