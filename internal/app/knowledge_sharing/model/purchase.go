@@ -34,7 +34,7 @@ type Purchase struct {
 const (
 	PURCHASE_STATUS_BUY     int = 1 //已购买
 	PURCHASE_STATUS_OVER    int = 2 //过期
-	PURCHASE_STATUS_NOT_BUY int = 0 //未购买
+	PURCHASE_STATUS_NOT_BUY int = 0 //未支付
 )
 
 // 指定Purchase对应的表名

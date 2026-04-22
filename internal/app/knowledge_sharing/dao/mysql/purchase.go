@@ -13,9 +13,9 @@ func CreatePurchase(purchase *model.Purchase) (err error) {
 }
 
 // 获取用户购买记录详情
-func GetPurchaseById(uid int) (purchase *model.Purchase, err error) {
+func GetPurchaseById(id int) (purchase *model.Purchase, err error) {
 	purchase = new(model.Purchase)
-	err = DB.Model(&model.Purchase{}).Where("user_id=? and is_deleted=?", uid, model.IS_DELETED_NO).First(&purchase).Error
+	err = DB.Model(&model.Purchase{}).Where("id=?", id).First(&purchase).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -42,8 +42,6 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 
 }
 
-//获取用户购买记录列表
-
 // 获取用户全部购买课程记录
 func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 	err = DB.Model(&model.Purchase{}).Where("user_id = ?", uid).Find(&purchases).Error
@@ -54,10 +52,20 @@ func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 	return
 }
 
+// 获取用户购买课程记录
+func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
+	err = DB.Model(&model.Purchase{}).Where("user_id = ? and purchase_status=?", uid, status).Find(&purchases).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // 更新用户购买记录状态
-func UpdatePurchaseStatus(uid int, cid int, status int) (int64, error) {
+func UpdatePurchaseStatusById(id int, status int) (int64, error) {
 	result := DB.Model(&model.Purchase{}).
-		Where("user_id=? and course_id=?", uid, cid).
+		Where("id=?", id).
 		Update("purchase_status", status)
 	return result.RowsAffected, result.Error
 }

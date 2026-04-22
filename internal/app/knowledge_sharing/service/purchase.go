@@ -21,9 +21,19 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 	return mysql.GetPurchaseByUidCid(uid, cid)
 }
 
+// 获取用户全部购买课程记录
+func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
+	return mysql.GetAllPurchaseByUid(uid)
+}
+
+// 获取用户购买课程记录
+func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
+	return mysql.GetPurchaseByUid(uid, status)
+}
+
 // 更新用户购买记录状态
-func UpdatePurchaseStatus(uid int, cid int, status int) (int64, error) {
-	return mysql.UpdatePurchaseStatus(uid, cid, status)
+func UpdatePurchaseStatusById(id int, status int) (int64, error) {
+	return mysql.UpdatePurchaseStatusById(id, status)
 }
 
 // 更新课程购买人数

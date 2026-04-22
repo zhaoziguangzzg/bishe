@@ -40,18 +40,6 @@ func AddCourseHandler(c *gin.Context) {
 		return
 	}
 
-	cidStr := c.PostForm("cid")
-	if cidStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
 	uid, _ := service.GetUserFromCookie(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
@@ -64,7 +52,6 @@ func AddCourseHandler(c *gin.Context) {
 	course := &model.Course{ //其中包含自动生成的id
 		Title:     title,
 		Content:   content,
-		Cid:       cid,
 		Uid:       uid,
 		Price:     price,
 		CreateAt:  &createTime,
@@ -83,17 +70,35 @@ func AddCourseHandler(c *gin.Context) {
 
 }
 
-// 根据uid获取用户的课程列表
-func GetUserAllCourseByUidHandler(c *gin.Context) {
-	uidStr := c.Query("uid")
-	if uidStr == "" {
-		MakeApiResponseErrorParams(c)
+// 获取全部课程
+func GetAllCourseHandler(c *gin.Context) {
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pagesize := 10
+	//获取全部课程
+	courses, err := service.GetAllCourse(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllCourse err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	uid, err := strconv.Atoi(uidStr)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
+	if courses == nil {
+		courses = make([]model.Course, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"courses": courses,
+	})
+
+}
+
+// 根据uid获取用户发布的课程列表
+func GetUserAllCourseByUidHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
 
@@ -119,61 +124,10 @@ func GetUserAllCourseByUidHandler(c *gin.Context) {
 	})
 }
 
-// 获取圈子全部课程
-func GetCircleAllCourseHandler(c *gin.Context) {
-
-	cidStr := c.Query("cid")
-	if cidStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-
-	pagesize := 10
-
-	//获取圈子中全部课程
-	courses, err := service.GetAllCourseByCid(cid, page, pagesize)
-	if err != nil {
-		service.Logger.Error("GetAllCourseByCid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if len(courses) == 0 {
-		courses = make([]model.Course, 0)
-	}
-
-	data := map[string]interface{}{
-		"courses": courses,
-	}
-
-	MakeApiResponseSuccess(c, data)
-}
-
 // 获取课程
 func GetCourseByTitleHandler(c *gin.Context) {
 
-	cidStr := c.Query("cid")
-	if cidStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
 	title := c.Query("title")
-
 	if title == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -184,8 +138,8 @@ func GetCourseByTitleHandler(c *gin.Context) {
 
 	pagesize := 10
 
-	//获取圈子中标题包含title的课程
-	courses, err := service.GetAllCourseByTitle(cid, title, page, pagesize)
+	//获取标题包含title的课程
+	courses, err := service.GetAllCourseByTitle(title, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetAllCourseByTitle", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -411,21 +365,40 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	// //更新course join_num+1
-	// affectRows, err := service.IncrCourseJoinNumByCid(cid)
-	// if affectRows == 0 || err != nil {
-	// 	service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err))
-	// 	MakeApiResponseErrorDefault(c)
-	// 	return
-	// }
+	data := map[string]interface{}{
+		"purchase": purchase,
+	}
 
-	// //用户购买课程
-	// affectRows, err = service.UpdatePurchaseStatus(uid, cid, model.PURCHASE_STATUS_BUY)
-	// if affectRows == 0 || err != nil {
-	// 	service.Logger.Error("UpdatePurchaseStatus err", zap.Error(err))
-	// 	MakeApiResponseErrorDefault(c)
-	// 	return
-	// }
+	MakeApiResponseSuccess(c, data)
+
+}
+
+// 获取购买记录
+func GetPurchaseHandler(c *gin.Context) {
+	purchaseIdStr := c.Query("purchase_id")
+	if purchaseIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchaseId, err := strconv.Atoi(purchaseIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 获取用户购买记录
+	purchase, err := service.GetPurchaseById(purchaseId)
+	if err != nil {
+		service.Logger.Error("GetPurchaseById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if purchase == nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	data := map[string]interface{}{
 		"purchase": purchase,
@@ -433,4 +406,95 @@ func AddPurchaseHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 
+}
+
+// 获取用户购买课程列表
+func GetUserPurchaseListHandler(c *gin.Context) {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	statusStr := c.Query("status")
+	if statusStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	status, err := strconv.Atoi(statusStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if status == model.PURCHASE_STATUS_BUY || status == model.PURCHASE_STATUS_NOT_BUY || status == 0 {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	// 获取用户购买记录
+	purchases, err := service.GetPurchaseByUid(uid, status)
+	if err != nil {
+		service.Logger.Error("GetPurchaseByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(purchases) == 0 {
+		purchases = make([]model.Purchase, 0)
+	}
+
+	data := map[string]interface{}{
+		"purchases": purchases,
+	}
+
+	MakeApiResponseSuccess(c, data)
+}
+
+// 更新购买记录状态购买课程
+func UpdatePurchaseStatusHandler(c *gin.Context) {
+
+	purchaseIdStr := c.PostForm("purchase_id")
+	if purchaseIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchaseId, err := strconv.Atoi(purchaseIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 获取用户购买记录
+	purchase, err := service.GetPurchaseById(purchaseId)
+	if err != nil {
+		service.Logger.Error("GetPurchaseById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if purchase == nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 更新用户购买记录状态
+	affectRows, err := service.UpdatePurchaseStatusById(purchaseId, model.PURCHASE_STATUS_BUY)
+	if affectRows == 0 || err != nil {
+		service.Logger.Error("UpdatePurchaseStatusById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新course join_num+1
+	affectRows, err = service.IncrCourseJoinNumByCid(purchase.CourseId)
+	if affectRows == 0 || err != nil {
+		service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 }

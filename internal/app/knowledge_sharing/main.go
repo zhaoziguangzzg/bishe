@@ -128,9 +128,18 @@ func main() {
 	r.GET("/api/essay/get-essence", controller.GetEssayEssonceHandler)        //获取文章精粹
 
 	//课程
+	//课程首页
+	r.GET("/page/course/index", controller.CourseIndexPageHandler)
+	//课程详情页面
+	r.GET("/page/course/detail", controller.CourseDetailPageHandler)
+	//创建课程页面
+	r.GET("/page/course/add", controller.AddCoursePageHandler)
+	//修改课程页面
+	r.GET("/page/course/edit", controller.EditCoursePageHandler)
+
 	r.POST("/api/course/add", controller.AddCourseHandler)                 //添加课程
-	r.GET("/api/course/user-all", controller.GetUserAllCourseByUidHandler) //获取用户全部课程
-	r.GET("/api/course/circle-all", controller.GetCircleAllCourseHandler)  //获取圈子全部课程
+	r.GET("/api/course/all", controller.GetAllCourseHandler)               //获取全部课程
+	r.GET("/api/course/user-all", controller.GetUserAllCourseByUidHandler) //获取用户发布的课程
 	r.GET("/api/course/search", controller.GetCourseByTitleHandler)        //获取全部搜索记录
 	r.GET("/api/course/get", controller.GetCourseHandler)                  //获取课程详情
 
@@ -140,7 +149,10 @@ func main() {
 	r.GET("/api/lesson/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
 
 	//买课
-	r.POST("/api/purchase/add", controller.AddPurchaseHandler) //购买课程
+	r.POST("/api/purchase/add", controller.AddPurchaseHandler)             //购买课程
+	r.GET("/api/purchase/all", controller.GetUserPurchaseListHandler)      //获取用户购买记录
+	r.GET("/api/purchase/get", controller.GetPurchaseHandler)              //获取购买记录
+	r.POST("/api/purchase/update", controller.UpdatePurchaseStatusHandler) //更新购买记录状态购买课程
 
 	//点赞
 	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)          //添加点赞
