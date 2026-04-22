@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程详情 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            gap: 24px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .course-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+        .course-cover {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 48px;
+            color: white;
+        }
+        .course-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .course-price {
+            font-size: 28px;
+            color: #f56c6c;
+            font-weight: bold;
+        }
+        .course-price.free {
+            color: #67c23a;
+        }
+        .course-price span {
+            font-size: 14px;
+            font-weight: normal;
+        }
+        .course-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 16px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .course-info {
+            margin-bottom: 30px;
+        }
+        .info-item {
+            margin-bottom: 16px;
+        }
+        .info-label {
+            font-size: 14px;
+            color: #909399;
+            margin-bottom: 8px;
+        }
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .lesson-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .lesson-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .lesson-item:hover {
+            background: #f0f4ff;
+        }
+        .lesson-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 16px;
+        }
+        .lesson-info {
+            flex: 1;
+        }
+        .lesson-title {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .lesson-meta {
+            font-size: 13px;
+            color: #909399;
+        }
+        .action-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #f5f7fa;
+            color: #666;
+            border: 1px solid #dcdfe6;
+        }
+        .btn-secondary:hover {
+            background: #ebeef5;
+        }
+        .btn-study {
+            background: #67c23a;
+            color: white;
+        }
+        .btn-study:hover {
+            opacity: 0.9;
+        }
+        .error-tip {
+            color: #f56c6c;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #67c23a;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #909399;
+        }
+        .not-found {
+            text-align: center;
+            padding: 60px;
+        }
+        .not-found h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .no-lesson {
+            text-align: center;
+            padding: 40px;
+            color: #909399;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-content h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .modal-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/page/circle/index">圈子首页</a>
+            <a href="/page/course/index">课程首页</a>
+        </div>
+        <div style="flex: 1;"></div>
+        <div class="nav">
+            <a href="/page/user/profile">我的</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="detail-card" id="content">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="payModal">
+        <div class="modal-content">
+            <h3>请扫码支付</h3>
+            <img id="payImg" src="" alt="支付二维码">
+            <div class="modal-btns">
+                <button class="btn btn-primary" onclick="confirmPurchase()">已支付</button>
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cid = urlParams.get('cid');
+
+        if (!cid) {
+            alert('缺少课程ID参数');
+            window.location.href = '/page/course/index';
+        } else {
+            loadCourseDetail();
+        }
+
+        async function loadCourseDetail() {
+            try {
+                const response = await axios.get('/api/course/get', {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    loadLessons();
+                    renderCourseDetail(response.data.data);
+                } else {
+                    document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '课程不存在') + '</h2><a href="/page/course/index">返回课程首页</a></div>';
+                }
+            } catch (error) {
+                document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/course/index">返回课程首页</a></div>';
+            }
+        }
+
+        async function loadLessons() {
+            try {
+                const response = await axios.get('/api/lesson/all', {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    const lessons = response.data.data.lessons || [];
+                    renderLessons(lessons);
+                }
+            } catch (error) {
+                console.log('加载课时失败');
+            }
+        }
+
+        function renderCourseDetail(data) {
+            const course = data.course;
+            const isPurchased = data.is_purchased || false;
+            const isOwner = data.is_owner || false;
+            const isFree = course.price === 0;
+
+            const html = `
+                <div class="course-header">
+                    <div class="course-cover">📖</div>
+                    <h1 class="course-title">${escapeHtml(course.title)}</h1>
+                    <div class="course-price ${isFree ? 'free' : ''}">${isFree ? '免费' : course.price + '<span> 元</span>'}</div>
+                    <div class="course-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${course.joinNum || 0}</div>
+                            <div class="stat-label">学习人数</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="course-info">
+                    <div class="info-item">
+                        <div class="info-label">课程简介</div>
+                        <div class="info-value">${escapeHtml(course.content) || '暂无简介'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">创建时间</div>
+                        <div class="info-value">${formatDate(course.createAt)}</div>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <div class="error-tip" id="actionError"></div>
+                    <div class="success-tip" id="actionSuccess"></div>
+                    ${renderActionButton(isPurchased, isFree, isOwner)}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function renderLessons(lessons) {
+            let lessonsHtml;
+            if (lessons.length === 0) {
+                lessonsHtml = '<div class="no-lesson">暂无课时</div>';
+            } else {
+                lessonsHtml = '<div class="lesson-list">' + lessons.map((lesson, index) => `
+                    <div class="lesson-item" onclick="viewLesson(${lesson.id})">
+                        <div class="lesson-icon">${index + 1}</div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">${escapeHtml(lesson.title)}</div>
+                            <div class="lesson-meta">${formatDate(lesson.createAt)}</div>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+            }
+
+            const lessonSection = document.createElement('div');
+            lessonSection.innerHTML = `
+                <h3 class="section-title">课时列表</h3>
+                ${lessonsHtml}
+            `;
+
+            document.getElementById('content').appendChild(lessonSection);
+        }
+
+        function renderActionButton(isPurchased, isFree, isOwner) {
+            if (isOwner) {
+                return `
+                    <button class="btn btn-primary" onclick="window.location.href='/page/course/edit?cid=${cid}'">编辑课程</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
+                `;
+            }
+
+            if (isPurchased || isFree) {
+                return `
+                    <button class="btn btn-study" onclick="window.location.href='/page/lesson/index?cid=${cid}'">开始学习</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
+                `;
+            } else {
+                return `
+                    <button class="btn btn-primary" onclick="purchaseCourse()">购买课程</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
+                `;
+            }
+        }
+
+        async function purchaseCourse() {
+            const errorTip = document.getElementById('actionError');
+            const successTip = document.getElementById('actionSuccess');
+            errorTip.classList.remove('show');
+            successTip.classList.remove('show');
+
+            try {
+                const response = await axios.get('/api/course/get', {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    const course = response.data.data.course;
+                    if (course.payImg) {
+                        document.getElementById('payImg').src = course.payImg;
+                        document.getElementById('payModal').classList.add('show');
+                    } else {
+                        errorTip.textContent = '暂无可用支付方式';
+                        errorTip.classList.add('show');
+                    }
+                }
+            } catch (error) {
+                errorTip.textContent = '操作失败，请稍后重试';
+                errorTip.classList.add('show');
+            }
+        }
+
+        async function confirmPurchase() {
+            closeModal();
+            try {
+                const response = await axios.post('/api/purchase/add', null, {
+                    params: { cid: cid }
+                });
+
+                if (response.data.code === 0) {
+                    const successTip = document.getElementById('actionSuccess');
+                    successTip.textContent = '购买成功！';
+                    successTip.classList.add('show');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    const errorTip = document.getElementById('actionError');
+                    errorTip.textContent = response.data.msg || '购买失败';
+                    errorTip.classList.add('show');
+                }
+            } catch (error) {
+                const errorTip = document.getElementById('actionError');
+                errorTip.textContent = '操作失败，请稍后重试';
+                errorTip.classList.add('show');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('payModal').classList.remove('show');
+        }
+
+        function viewLesson(lessonId) {
+            window.location.href = '/page/lesson/detail?id=' + lessonId;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('payModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
