@@ -10,19 +10,19 @@ func CreateCourse(course *model.Course) (err error) {
 	return mysql.CreateCourse(course)
 }
 
+// 获取全部课程
+func GetAllCourse(page int, pagesize int) (courses []model.Course, err error) {
+	return mysql.GetAllCourse(page, pagesize)
+}
+
 // get用户发布的课程列表
 func GetUserAllCourseByUid(uid int, page int, pagesize int) (courses []model.Course, err error) {
 	return mysql.GetUserAllCourseByUid(uid, page, pagesize)
 }
 
-// get圈子中的课程
-func GetAllCourseByCid(cid int, page int, pagesize int) (courses []model.Course, err error) {
-	return mysql.GetAllCourseByCid(cid, page, pagesize)
-}
-
 // get圈子中标题包含title的课程
-func GetAllCourseByTitle(cid int, title string, page int, pagesize int) (courses []model.Course, err error) {
-	return mysql.GetAllCourseByTitle(cid, title, page, pagesize)
+func GetAllCourseByTitle(title string, page int, pagesize int) (courses []model.Course, err error) {
+	return mysql.GetAllCourseByTitle(title, page, pagesize)
 }
 
 // 根据cid获取课程

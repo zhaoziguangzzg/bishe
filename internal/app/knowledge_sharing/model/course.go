@@ -24,8 +24,8 @@ type Course struct {
 	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
 	//课程标题
 	Title string `json:"title" gorm:"column:title" mapstructure:"title"`
-	//所在圈子id
-	Cid int `json:"cid" gorm:"column:cid" mapstructure:"cid"`
+	// //所在圈子id
+	// Cid int `json:"cid" gorm:"column:cid" mapstructure:"cid"`
 	//课程作者id
 	Uid int `json:"uid" gorm:"column:uid" mapstructure:"uid"`
 	//课程内容简介
@@ -35,11 +35,12 @@ type Course struct {
 	//加入人数
 	JoinNum int `json:"joinNum" gorm:"column:join_num" mapstructure:"joinNum"`
 
-	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
-	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
-	UpdateAt    *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`
-	UpdateAtStr string     `json:"-" gorm:"-" mapstructure:"updateAt"`
-	IsDeleted   int        `json:"isDeleted" gorm:"column:is_deleted" mapstructture:"isDeleted"`
+	CreateAt     *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
+	CreateAtStr  string     `json:"-" gorm:"-" mapstructure:"createAt"`
+	UpdateAt     *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`
+	UpdateAtStr  string     `json:"-" gorm:"-" mapstructure:"updateAt"`
+	CourseStatus int        `json:"courseStatus" gorm:"column:course_status" mapstructure:"courseStatus"`
+	IsDeleted    int        `json:"isDeleted" gorm:"column:is_deleted" mapstructure:"isDeleted"`
 }
 
 const (
@@ -47,6 +48,8 @@ const (
 	COURSE_CONTENT_MAX int = 100   //课程内容简介最长100字
 	COURSE_PRICE_MAX   int = 10000 //课程价格最长10000元
 
+	COURSE_STATUS_PUBLISHED   int = 1 //已发布
+	COURSE_STATUS_UNPUBLISHED int = 0 //未发布
 )
 
 // 指定Course对应的表名
