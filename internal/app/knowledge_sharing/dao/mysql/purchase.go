@@ -30,6 +30,7 @@ func GetPurchaseById(id int) (purchase *model.Purchase, err error) {
 // 获取用户购买课程
 func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err error) {
 	err = DB.Model(&model.Purchase{}).
+		//TODO in status
 		Where("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_BUY).
 		Or("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_NOT_BUY).
 		Find(&purchases).Error
@@ -39,6 +40,24 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 	}
 
 	return
+
+}
+
+// 获取购买课程
+func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err error) {
+	purchase = new(model.Purchase)
+	err = DB.Model(&model.Purchase{}).
+		Where("user_id=? and course_id=? and purchase_status=?", uid, cid, model.PURCHASE_STATUS_BUY).
+		First(&purchase).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound { //没查到数据返回空
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return purchase, nil
 
 }
 

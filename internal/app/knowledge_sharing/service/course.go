@@ -16,8 +16,8 @@ func GetAllCourse(page int, pagesize int) (courses []model.Course, err error) {
 }
 
 // get用户发布的课程列表
-func GetUserAllCourseByUid(uid int, page int, pagesize int) (courses []model.Course, err error) {
-	return mysql.GetUserAllCourseByUid(uid, page, pagesize)
+func GetUserAllCourseByUid(uid int, status int, page int, pagesize int) (courses []model.Course, err error) {
+	return mysql.GetUserAllCourseByUid(uid, status, page, pagesize)
 }
 
 // get圈子中标题包含title的课程
@@ -28,4 +28,9 @@ func GetAllCourseByTitle(title string, page int, pagesize int) (courses []model.
 // 根据cid获取课程
 func GetCourseById(cid int) (course *model.Course, err error) {
 	return mysql.GetCourseById(cid)
+}
+
+// 根据courseIds获取courseMap
+func GetCourseMapByCourseIds(courseIds []int) (courseMap map[int]model.Course, err error) {
+	return mysql.GetCourseMapByCourseIds(courseIds)
 }

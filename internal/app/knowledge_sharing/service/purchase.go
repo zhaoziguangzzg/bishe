@@ -21,6 +21,11 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 	return mysql.GetPurchaseByUidCid(uid, cid)
 }
 
+// 获取购买课程
+func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err error) {
+	return mysql.GetUserPurchaseByUidCid(uid, cid)
+}
+
 // 获取用户全部购买课程记录
 func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 	return mysql.GetAllPurchaseByUid(uid)
