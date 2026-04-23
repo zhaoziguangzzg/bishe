@@ -102,13 +102,30 @@ func GetUserAllCourseByUidHandler(c *gin.Context) {
 		return
 	}
 
+	statusStr := c.Query("status")
+	if statusStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	status, err := strconv.Atoi(statusStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if status != model.COURSE_STATUS_PUBLISHED && status != model.COURSE_STATUS_UNPUBLISHED {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
 
 	pagesize := 10
 
 	//获取全部课程
-	courses, err := service.GetUserAllCourseByUid(uid, page, pagesize)
+	courses, err := service.GetUserAllCourseByUid(uid, status, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetUserAllCourseByUid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -182,8 +199,12 @@ func GetCourseHandler(c *gin.Context) {
 		course = &model.Course{}
 	}
 
+	uid, _ := service.GetUserFromCookie(c)
+	isOwner := course.Uid == uid
+
 	MakeApiResponseSuccess(c, map[string]interface{}{
-		"course": course,
+		"course":   course,
+		"is_owner": isOwner,
 	})
 }
 
@@ -375,33 +396,41 @@ func AddPurchaseHandler(c *gin.Context) {
 
 // 获取购买记录
 func GetPurchaseHandler(c *gin.Context) {
-	purchaseIdStr := c.Query("purchase_id")
-	if purchaseIdStr == "" {
+	uid, _ := service.GetUserFromCookie(c)
+	if uid == 0 {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	cidStr := c.Query("course_id")
+	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	purchaseId, err := strconv.Atoi(purchaseIdStr)
+	cid, err := strconv.Atoi(cidStr)
 	if err != nil {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	// 获取用户购买记录
-	purchase, err := service.GetPurchaseById(purchaseId)
+	purchase, err := service.GetUserPurchaseByUidCid(uid, cid)
 	if err != nil {
-		service.Logger.Error("GetPurchaseById", zap.Error(err))
+		service.Logger.Error("GetUserPurchaseByUidCid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
+	isPurchased := true
+
 	if purchase == nil {
-		MakeApiResponseErrorDefault(c)
-		return
+		isPurchased = false
 	}
 
 	data := map[string]interface{}{
-		"purchase": purchase,
+		"purchase":    purchase,
+		"isPurchased": isPurchased,
 	}
 
 	MakeApiResponseSuccess(c, data)
@@ -428,7 +457,7 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 		return
 	}
 
-	if status == model.PURCHASE_STATUS_BUY || status == model.PURCHASE_STATUS_NOT_BUY || status == 0 {
+	if status != model.PURCHASE_STATUS_BUY && status != model.PURCHASE_STATUS_NOT_BUY {
 		MakeApiResponseErrorParams(c)
 		return
 	}
@@ -445,8 +474,44 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 		purchases = make([]model.Purchase, 0)
 	}
 
+	var courseIds []int
+
+	for _, v := range purchases {
+		if v.PurchaseStatus == model.PURCHASE_STATUS_BUY {
+			courseIds = append(courseIds, v.CourseId)
+		}
+	}
+
+	if len(courseIds) == 0 {
+		data := map[string]interface{}{
+			"purchaseCourses": make([]model.PurchaseCourse, 0),
+		}
+		MakeApiResponseSuccess(c, data)
+		return
+	}
+
+	//根据courseIds获取课程map
+	courseMap, err := service.GetCourseMapByCourseIds(courseIds)
+	if err != nil {
+		service.Logger.Error("GetCourseMapByCourseIds err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	var purchaseCourses []model.PurchaseCourse
+
+	for _, v := range purchases {
+		var purchaseCourse model.PurchaseCourse
+		course, _ := courseMap[v.CourseId]
+
+		purchaseCourse.Purchase = v
+		purchaseCourse.Course = course
+		purchaseCourses = append(purchaseCourses, purchaseCourse)
+
+	}
+
 	data := map[string]interface{}{
-		"purchases": purchases,
+		"purchaseCourses": purchaseCourses,
 	}
 
 	MakeApiResponseSuccess(c, data)

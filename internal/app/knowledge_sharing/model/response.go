@@ -11,6 +11,11 @@ type CommentEssay struct {
 	Essay   Essay            `json:"essay"`
 }
 
+type PurchaseCourse struct {
+	Purchase Purchase `json:"purchase"`
+	Course   Course   `json:"course"`
+}
+
 type UserChatContact struct {
 	ChatUser    User        `json:"chatUser"`
 	ChatContact ChatContact `json:"chatContact"`
