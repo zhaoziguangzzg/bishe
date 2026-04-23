@@ -459,6 +459,7 @@
                     <button class="action-btn primary" onclick="window.location.href='/page/user/edit-password'">修改密码</button>
                     <button class="action-btn primary" onclick="window.location.href='/page/stat/index'">数据</button>
                     <button class="action-btn primary" onclick="window.location.href='/page/orders/index'">订单</button>
+                    <button class="action-btn secondary" onclick="logout()">退出登录</button>
                 `;
             } else {
                 const followBtnClass = isFollowed ? 'action-btn follow followed' : 'action-btn follow';
@@ -468,6 +469,15 @@
                     <button class="action-btn secondary" onclick="window.location.href='/page/chat/detail?uid=${profileUserId}'">私信</button>
                 `;
             }
+        }
+
+        async function logout() {
+            try {
+                await axios.get('/api/user/logout');
+            } catch (error) {
+                console.log('logout error');
+            }
+            window.location.href = '/page/user/login';
         }
 
         function toggleMore() {
