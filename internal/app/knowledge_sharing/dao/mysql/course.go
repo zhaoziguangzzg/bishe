@@ -26,9 +26,9 @@ func GetAllCourse(page int, pagesize int) (courses []model.Course, err error) {
 }
 
 // get用户发布的课程列表
-func GetUserAllCourseByUid(uid int, page int, pagesize int) (courses []model.Course, err error) {
+func GetUserAllCourseByUid(uid int, status int, page int, pagesize int) (courses []model.Course, err error) {
 	offset := (page - 1) * pagesize
-	err = DB.Model(&model.Course{}).Where("uid = ?", uid).
+	err = DB.Model(&model.Course{}).Where("uid = ? and course_status=?", uid, status).
 		Order("id desc").Offset(offset).
 		Limit(pagesize).Find(&courses).Error
 	if err != nil {
@@ -62,4 +62,20 @@ func GetCourseById(cid int) (course *model.Course, err error) {
 	}
 
 	return course, nil
+}
+
+// 根据courseIds获取courseMap
+func GetCourseMapByCourseIds(courseIds []int) (courseMap map[int]model.Course, err error) {
+	courses := make([]model.Course, 0)
+	err = DB.Model(&model.Course{}).Where("id IN (?)", courseIds).Find(&courses).Error
+	if err != nil {
+		return
+	}
+
+	courseMap = make(map[int]model.Course, 0)
+	for _, v := range courses {
+		courseMap[v.Id] = v
+	}
+
+	return
 }

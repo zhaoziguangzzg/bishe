@@ -170,7 +170,7 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_ACCUSATION_EXIST:                "举报已存在",
 	CODE_ACCUSATION_NOT_EXIST:            "举报不存在",
 
-	CODE_ORDERS_NOT_EXIST: "用户支付不存在",
+	CODE_ORDERS_NOT_EXIST: "有未支付订单",
 	CODE_USER_PURCHASED:   "用户已购买",
 }
 
