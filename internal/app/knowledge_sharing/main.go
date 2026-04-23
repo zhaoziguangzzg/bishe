@@ -132,8 +132,6 @@ func main() {
 	r.GET("/page/course/index", controller.CourseIndexPageHandler)
 	//课程详情页面
 	r.GET("/page/course/detail", controller.CourseDetailPageHandler)
-	//创建课程页面
-	r.GET("/page/course/add", controller.AddCoursePageHandler)
 	//修改课程页面
 	r.GET("/page/course/edit", controller.EditCoursePageHandler)
 
@@ -144,6 +142,11 @@ func main() {
 	r.GET("/api/course/get", controller.GetCourseHandler)                  //获取课程详情
 
 	//课时
+	//创建课时页面
+	r.GET("/page/lesson/add", controller.AddLessonPageHandler)
+	//课时详情页面
+	r.GET("/page/lesson/detail", controller.LessonDetailPageHandler)
+
 	r.POST("/api/lesson/add", controller.AddLessonHandler)         //添加课时
 	r.GET("/api/lesson/get", controller.GetLessonHandler)          //获取课时详情
 	r.GET("/api/lesson/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
