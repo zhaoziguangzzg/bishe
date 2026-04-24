@@ -82,8 +82,10 @@ func AddUserFollowHandler(c *gin.Context) {
 
 	}
 
+	nowTime := time.Now()
+
 	//更新关注数据总数和详情
-	err = service.UpdateStatAndStatDetail(uid, model.STAT_TYPE_FOLLOW, createTime)
+	err = service.UpdateStatAndStatDetail(uid, model.STAT_TYPE_FOLLOW, model.STAT_DETAILS_STATUS_INCR, nowTime)
 	if err != nil {
 		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -91,7 +93,7 @@ func AddUserFollowHandler(c *gin.Context) {
 	}
 
 	//更新被关注数据总数和详情
-	err = service.UpdateStatAndStatDetail(followerId, model.STAT_TYPE_FAN, createTime)
+	err = service.UpdateStatAndStatDetail(followerId, model.STAT_TYPE_FAN, model.STAT_DETAILS_STATUS_INCR, nowTime)
 	if err != nil {
 		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
