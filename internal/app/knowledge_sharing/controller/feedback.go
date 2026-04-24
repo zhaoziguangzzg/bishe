@@ -151,7 +151,17 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO 给用户发通知
+	// 给用户发通知
+	content := "恭喜您的反馈：" + feedback.Content + " 有结果了"
+	typei := model.NOTICE_TYPE_FEEDBACK
+
+	//添加通知
+	err = service.UserAddNotice(feedback.UserId, content, typei, replyTime)
+	if err != nil {
+		service.Logger.Error("UserAddNotice err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 }
