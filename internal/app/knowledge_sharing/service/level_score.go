@@ -22,6 +22,6 @@ func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.Le
 }
 
 // 更新等级分数 增加
-func IncrUpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
-	return mysql.IncrUpdateLevelScoreByUidCid(uid, cid, score)
+func UpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
+	return mysql.UpdateLevelScoreByUidCid(uid, cid, score)
 }

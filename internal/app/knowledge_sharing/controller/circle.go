@@ -66,8 +66,6 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO 添加/更新收款码
-
 	createTime := time.Now()
 	// 构造圈子对象
 	newCircle := &model.Circle{ //其中包含自动生成的id

@@ -52,8 +52,10 @@ func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.Le
 	return
 }
 
-// 更新等级分数 增加
-func IncrUpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
-	result := DB.Model(&model.LevelScore{}).Where("uid=? and cid=?", uid, cid).UpdateColumn("score", gorm.Expr("score + ?", score))
+// 更新等级分数
+func UpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
+	result := DB.Model(&model.LevelScore{}).
+		Where("uid=? and cid=?", uid, cid).
+		UpdateColumn("score", gorm.Expr("score + ?", score))
 	return result.RowsAffected, result.Error
 }

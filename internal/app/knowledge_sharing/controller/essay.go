@@ -535,11 +535,36 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
+	//根据id获取文章
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayByEid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if essay == nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	switch isEssence {
 	case model.ESSAY_IS_ESSENCE:
 	case model.ESSAY_NOT_ESSENCE:
 	default:
 		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	levelScore, err := service.GetUserLevelScoreByUidCid(essay.AuthorId, essay.CircleId)
+	if err != nil {
+		service.Logger.Error("GetUserLevelScoreByUidCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if levelScore == nil {
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
@@ -551,7 +576,87 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
+	typei := model.LEVEL_SCORE_RECORD_TYPE_ESSENCE
+	levelScoreRecord, err := service.GetUserLevelScoreRecordByUidCidType(essay.AuthorId, essay.CircleId, typei)
+	if err != nil {
+		service.Logger.Error("GetUserLevelScoreRecordByUidCidType err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	//TODO 加分/减分，通知
+	switch isEssence {
+	case model.ESSAY_IS_ESSENCE:
+		//加分
+		score := 100
+
+		//加精，更新等级分数 增加100
+		affectRows, err = service.UpdateLevelScoreByUidCid(essay.AuthorId, essay.CircleId, score)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//根据条件判断是否需要增加等级详情
+		if levelScoreRecord == nil {
+			//增加等级详情
+			err = service.UserAddLevelScoreRecord(essay.AuthorId, essay.CircleId, score, eid, typei, time.Now())
+			if err != nil {
+				service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
+				MakeApiResponseErrorDefault(c)
+				return
+			}
+		}
+
+		if levelScoreRecord.IsDeleted == model.IS_DELETED_YES {
+			//更新等级详情
+			err = service.UserUpdateLevelScoreRecord(essay.AuthorId, essay.CircleId, typei, model.IS_DELETED_NO)
+			if err != nil {
+				service.Logger.Error("UserUpdateLevelScoreRecord err", zap.Error(err))
+				MakeApiResponseErrorDefault(c)
+				return
+			}
+		}
+
+	case model.ESSAY_NOT_ESSENCE:
+		//减分
+		score := -100
+		//减精，更新等级分数 减少100
+		affectRows, err = service.UpdateLevelScoreByUidCid(essay.AuthorId, essay.CircleId, score)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		//根据条件判断是否需要增加等级详情
+		if levelScoreRecord.IsDeleted == model.IS_DELETED_NO {
+			//删除等级详情
+			err = service.UserUpdateLevelScoreRecord(essay.AuthorId, essay.CircleId, typei, model.IS_DELETED_YES)
+			if err != nil {
+				service.Logger.Error("UserUpdateLevelScoreRecord err", zap.Error(err))
+				MakeApiResponseErrorDefault(c)
+				return
+			}
+		}
+
+	default:
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	// 给用户发通知
+	content := "恭喜您的文章：" + essay.Title + " 已被加精"
+	typei = model.NOTICE_TYPE_ESSENCE
+
+	//添加通知
+	err = service.UserAddNotice(essay.AuthorId, content, typei, time.Now())
+	if err != nil {
+		service.Logger.Error("UserAddNotice err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 }
