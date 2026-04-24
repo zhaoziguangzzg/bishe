@@ -147,3 +147,27 @@ func GetEssayEssenceList(cid int, page int, pagesize int) (essays []model.Essay,
 
 	return
 }
+
+// 更新文章点赞数
+func UpdateEssayLikeNum(eid int, num int) (int64, error) {
+	result := DB.Model(&model.Essay{}).
+		Where("id=?", eid).
+		UpdateColumn("like_num", gorm.Expr("like_num + ?", num))
+	return result.RowsAffected, result.Error
+}
+
+// 更新文章评论数
+func UpdateEssayCommentNum(eid int, num int) (int64, error) {
+	result := DB.Model(&model.Essay{}).
+		Where("id=?", eid).
+		UpdateColumn("comment_num", gorm.Expr("comment_num + ?", num))
+	return result.RowsAffected, result.Error
+}
+
+// 更新文章收藏数
+func UpdateEssayCollectNum(eid int, num int) (int64, error) {
+	result := DB.Model(&model.Essay{}).
+		Where("id=?", eid).
+		UpdateColumn("collect_num", gorm.Expr("collect_num + ?", num))
+	return result.RowsAffected, result.Error
+}

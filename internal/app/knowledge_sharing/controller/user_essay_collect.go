@@ -50,8 +50,9 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
+	createTime := time.Now()
 	if collect == nil {
-		createTime := time.Now()
+
 		newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
 			UserId:        uid,
 			EssayId:       eid,
@@ -70,9 +71,6 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 			return
 		}
 
-		MakeApiResponseSuccessDefault(c)
-		return
-
 	} else {
 		//未收藏转为收藏
 		affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, fid)
@@ -81,12 +79,35 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 			MakeApiResponseErrorDefault(c)
 			return
 		}
+	}
 
-		MakeApiResponseSuccessDefault(c)
+	typei := model.STAT_TYPE_COLLECT
+
+	//添加或更新用户统计数
+	err = service.StatInsertUpdate(uid, 1, typei, createTime)
+	if err != nil {
+		service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	//TODO更新文章收藏数
+	//添加文章收藏数据详情
+	err = service.StatDetailsInsert(uid, typei, model.STAT_DETAILS_STATUS_INCR, createTime)
+	if err != nil {
+		service.Logger.Error("StatDetailsInsert err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新文章收藏数
+	affectRows, err := service.UpdateEssayCollectNum(eid, 1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayCollectNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
 }
 
 // 取消用户收藏
@@ -117,7 +138,32 @@ func CancelEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO更新文章收藏数
+	//更新文章收藏数
+	affectRows, err = service.UpdateEssayCollectNum(eid, -1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayCollectNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	typei := model.STAT_TYPE_COLLECT
+	nowTime := time.Now()
+
+	//添加或更新用户统计数
+	err = service.StatInsertUpdate(uid, -1, typei, nowTime)
+	if err != nil {
+		service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新用户统计数
+	err = service.UpdateStatAndStatDetail(uid, typei, model.STAT_DETAILS_STATUS_DECR, nowTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 

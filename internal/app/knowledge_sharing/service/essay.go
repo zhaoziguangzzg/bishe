@@ -64,3 +64,18 @@ func UpdateEssayEssence(eid int, isEssence int) (int64, error) {
 func GetEssayEssenceList(cid int, page int, pagesize int) (essays []model.Essay, err error) {
 	return mysql.GetEssayEssenceList(cid, page, pagesize)
 }
+
+// 更新文章点赞数
+func UpdateEssayLikeNum(eid int, num int) (int64, error) {
+	return mysql.UpdateEssayLikeNum(eid, num)
+}
+
+// 更新文章评论数
+func UpdateEssayCommentNum(eid int, num int) (int64, error) {
+	return mysql.UpdateEssayCommentNum(eid, num)
+}
+
+// 更新文章收藏数
+func UpdateEssayCollectNum(eid int, num int) (int64, error) {
+	return mysql.UpdateEssayCollectNum(eid, num)
+}

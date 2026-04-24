@@ -91,9 +91,9 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		relateId = newUserEssayLike.Id
 		score := 2
 		//点赞 更新等级分数 增加2
-		affectRows, err := service.IncrUpdateLevelScoreByUidCid(uid, cid, score)
+		affectRows, err := service.UpdateLevelScoreByUidCid(uid, cid, score)
 		if err != nil || affectRows == 0 {
-			service.Logger.Error("IncrUpdateLevelScoreByUidCid err", zap.Error(err))
+			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
 		}
@@ -108,9 +108,9 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 		score = 3
 		//被点赞 更新等级分数 增加3
-		affectRows, err = service.IncrUpdateLevelScoreByUidCid(authorId, cid, score)
+		affectRows, err = service.UpdateLevelScoreByUidCid(authorId, cid, score)
 		if err != nil || affectRows == 0 {
-			service.Logger.Error("IncrUpdateLevelScoreByUidCid err", zap.Error(err))
+			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
 			return
 		}
@@ -136,14 +136,20 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 	}
 
 	//更新被点赞数据总数和详情
-	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_LIKED, createTime)
+	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_LIKED, model.STAT_DETAILS_STATUS_INCR, createTime)
 	if err != nil {
 		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	//TODO更新文章点赞数
+	//更新文章点赞数
+	affectRows, err := service.UpdateEssayLikeNum(eid, 1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayLikeNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 }
@@ -176,7 +182,13 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO更新文章点赞数
+	//更新文章点赞数
+	affectRows, err = service.UpdateEssayLikeNum(eid, -1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayLikeNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	MakeApiResponseSuccessDefault(c)
 }

@@ -30,6 +30,14 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
+	//根据eid获取文章
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayByEid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	content := c.PostForm("content")
 	contentLen := len(content)
 	if contentLen > model.COMMENT_MAX_CONTENT || contentLen == 0 {
@@ -56,6 +64,44 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
+	typei := model.STAT_TYPE_COMMENT
+
+	//添加或更新用户统计数
+	err = service.StatInsertUpdate(uid, 1, typei, createTime)
+	if err != nil {
+		service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//添加文章评论数据详情
+	err = service.StatDetailsInsert(uid, typei, model.STAT_DETAILS_STATUS_INCR, createTime)
+	if err != nil {
+		service.Logger.Error("StatDetailsInsert err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新文章评论数
+	affectRows, err := service.UpdateEssayCommentNum(eid, 1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayCommentNum err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//通知
+	noticeContent := "又有人评论了你的标题为" + essay.Title + "的文章"
+	typei = model.NOTICE_TYPE_COMMENT
+
+	//添加通知
+	err = service.UserAddNotice(uid, noticeContent, typei, createTime)
+	if err != nil {
+		service.Logger.Error("UserAddNotice err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	MakeApiResponseSuccessDefault(c)
 }
 
@@ -73,10 +119,47 @@ func DeletedCommentByUpdateIsDeletedHandler(c *gin.Context) {
 		return
 	}
 
+	eidStr := c.PostForm("eid")
+	if eidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	eid, err := strconv.Atoi(eidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayByEid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	nowTime := time.Now()
+
 	//更新isDeleted
 	affectRows, err := service.UpdateIsDeletedByCommentId(commentId)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateIsDeletedByCommentId err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新文章评论数据详情
+	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_COMMENT, model.STAT_DETAILS_STATUS_DECR, nowTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新文章评论数
+	affectRows, err = service.UpdateEssayCommentNum(eid, -1)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateEssayCommentNum err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
