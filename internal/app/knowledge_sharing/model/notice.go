@@ -31,6 +31,7 @@ const (
 	NOTICE_TYPE_ACCUSATION int = 4 //举报
 	NOTICE_TYPE_FEEDBACK   int = 5 //反馈
 	NOTICE_TYPE_DISPATCH   int = 6 //关注发文
+	NOTICE_TYPE_ESSENCE    int = 7 //加精
 )
 
 // 指定Notice对应的表名

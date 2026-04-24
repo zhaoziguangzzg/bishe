@@ -52,6 +52,8 @@ const (
 	LEVEL_SCORE_RECORD_TYPE_COLLECTED int = 3 //被收藏
 	LEVEL_SCORE_RECORD_TYPE_COMMENTED int = 3 //被评论
 
+	LEVEL_SCORE_RECORD_TYPE_ESSENCE int = 100 //加精
+
 )
 
 // 指定LevelScoreRecord对应的表名
