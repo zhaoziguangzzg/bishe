@@ -32,6 +32,22 @@ func StatInsertUpdate(statUid int, num int, typei int, createTime time.Time) (er
 	return
 }
 
+// // 添加各类型用户数据
+// func AddUserStat(statUid int, num int, typei int, createTime time.Time) (err error) {
+// 	stat := &model.Stat{
+// 		StatUid:   statUid,
+// 		Sum:       num,
+// 		Type:      typei,
+// 		CreateAt:  &createTime,
+// 		UpdateAt:  &createTime,
+// 		IsDeleted: model.IS_DELETED_NO,
+// 	}
+
+// 	err = DB.Model(&model.Stat{}).Create(stat).Error
+// 	return
+
+// }
+
 // 获取用户数据列表
 func GetUserStatList(uid int) (stats []model.Stat, err error) {
 
@@ -63,10 +79,12 @@ func GetUserStatMapByType(uid int) (userStatMap map[int]int, err error) {
 }
 
 // 添加各类型数据详情
-func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error) {
+func StatDetailsInsert(statUid int, typei int, statStatus int, createTime time.Time) (err error) {
 	statDetail := &model.StatDetails{
-		StatUid:   statUid,
-		Type:      typei,
+		StatUid:    statUid,
+		Type:       typei,
+		StatStatus: statStatus,
+
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
 		IsDeleted: model.IS_DELETED_NO,

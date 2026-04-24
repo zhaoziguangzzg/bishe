@@ -11,6 +11,8 @@ type StatDetails struct {
 	StatUid int `json:"statUid" gorm:"column:stat_uid" mapstructure:"statUid"`
 	//类型
 	Type int `json:"type" gorm:"column:type" mapstructture:"type"`
+	//状态
+	StatStatus int `json:"statStatus" gorm:"column:stat_status" mapstructure:"statStatus"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
@@ -29,6 +31,9 @@ const (
 
 	STAT_DETAILS_TYPE_FAN   int = 6 //被关注
 	STAT_DETAILS_TYPE_LIKED int = 7 //被点赞
+
+	STAT_DETAILS_STATUS_INCR int = 0 //增加数据
+	STAT_DETAILS_STATUS_DECR int = 1 //减少数据
 
 )
 

@@ -11,6 +11,11 @@ func StatInsertUpdate(statUid int, num int, typei int, createTime time.Time) (er
 	return mysql.StatInsertUpdate(statUid, num, typei, createTime)
 }
 
+// // 添加各类型用户数据
+// func AddUserStat(statUid int, num int, typei int, createTime time.Time) (err error) {
+// 	return mysql.AddUserStat(statUid, num, typei, createTime)
+// }
+
 // 获取用户数据列表
 func GetUserStatList(uid int) (stats []model.Stat, err error) {
 	return mysql.GetUserStatList(uid)
@@ -22,8 +27,8 @@ func GetUserStatMapByType(uid int) (userStatMap map[int]int, err error) {
 }
 
 // 添加各类型数据详情
-func StatDetailsInsert(statUid int, typei int, createTime time.Time) (err error) {
-	return mysql.StatDetailsInsert(statUid, typei, createTime)
+func StatDetailsInsert(statUid int, typei int, statStatus int, createTime time.Time) (err error) {
+	return mysql.StatDetailsInsert(statUid, typei, statStatus, createTime)
 }
 
 // 获取近期各类型数据
@@ -32,7 +37,7 @@ func GetStatDetailsByType(uid int, stime time.Time) (results []model.StatDetails
 }
 
 // 更新数据总数和详情
-func UpdateStatAndStatDetail(uid int, typei int, createTime time.Time) (err error) {
+func UpdateStatAndStatDetail(uid int, typei int, statStatus int, createTime time.Time) (err error) {
 	num := 1
 	//更新数据统计
 	err = StatInsertUpdate(uid, num, typei, createTime)
@@ -41,7 +46,7 @@ func UpdateStatAndStatDetail(uid int, typei int, createTime time.Time) (err erro
 	}
 
 	//添加数据详情
-	err = StatDetailsInsert(uid, typei, createTime)
+	err = StatDetailsInsert(uid, typei, statStatus, createTime)
 	if err != nil {
 		return
 	}
