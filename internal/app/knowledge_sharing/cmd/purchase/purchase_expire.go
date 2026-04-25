@@ -3,6 +3,9 @@ package cmd
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"go.uber.org/zap"
@@ -10,8 +13,25 @@ import (
 
 // 查询30分钟后未支付的订单
 func PurchaseExpire() {
+	sigChan := make(chan os.Signal, 1)
+	//windows收不到命令，只能收到 Ctrl+C / Ctrl+Break,不是sleep，是收不到信号
+	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
+purchase:
 	for {
+		service.Logger.Info("UpdatePurchaseStatusById")
+
+		select {
+		case sig := <-sigChan:
+			//当收到信号时，记录日志，结束循环
+			service.Logger.Info("PurchaseExpire get sig", zap.Any("sig", sig))
+			break purchase
+		default:
+			//没有信号，继续for循环
+		}
+
+		service.Logger.Info("UpdatePurchaseStatusById2")
+
 		t := time.Now().Add(-30 * time.Minute)
 		purchases, err := service.GetPurchaseByStatusTime(model.PURCHASE_STATUS_UNPAID, t, 100)
 		if err != nil {
@@ -19,7 +39,10 @@ func PurchaseExpire() {
 		}
 
 		if len(purchases) == 0 {
-			time.Sleep(5 * time.Second)
+			service.Logger.Info("UpdatePurchaseStatusById3")
+			time.Sleep(time.Second * 2)
+			// <-time.After(time.Second * 2)
+
 			continue
 		}
 
