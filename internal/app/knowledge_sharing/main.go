@@ -13,37 +13,13 @@ import (
 )
 
 func main() {
-	var err error
-	err = service.LoggerInit()
+
+	err := service.ServiceInit()
 	if err != nil {
 		panic(err)
 	}
-	//Logger, err = zap.NewDevelopment()
+	//main结束之前将日志写到文件
 	defer service.SyncLogger()
-
-	err = service.LoadConfig()
-	if err != nil {
-		service.Logger.Error("LoadConfig err", zap.Error(err))
-		panic(err)
-	}
-
-	// 初始化数据库
-	err = service.ServiceInitDB(service.Cfg.Database.Dsn)
-	if err != nil {
-		service.Logger.Error("InitDB err", zap.Error(err))
-		panic(err)
-	}
-
-	//初始化 Redis
-	service.ServiceInitRedis(service.Cfg.Redis.Addr, service.Cfg.Redis.Password, service.Cfg.Redis.DB)
-
-	// //初始化 kafka
-	// err = service.ServiceInitKafka()
-	// if err != nil {
-	// 	service.Logger.Error("InitKafka err", zap.Error(err))
-	// 	panic(err)
-	// }
-	// defer service.Closekafka()
 
 	//创建 Gin 路由引擎
 	r := gin.Default()
@@ -152,9 +128,10 @@ func main() {
 	r.GET("/api/lesson/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
 
 	//买课
-	r.POST("/api/purchase/add", controller.AddPurchaseHandler)             //购买课程
-	r.GET("/api/purchase/all", controller.GetUserPurchaseListHandler)      //获取用户购买记录
-	r.GET("/api/purchase/get", controller.GetPurchaseHandler)              //获取购买记录
+	r.POST("/api/purchase/add", controller.AddPurchaseHandler)        //购买课程
+	r.GET("/api/purchase/all", controller.GetUserPurchaseListHandler) //获取用户购买记录
+	r.GET("/api/purchase/get", controller.GetPurchaseHandler)         //获取购买记录
+	//TODO 支付，取消，退款
 	r.POST("/api/purchase/update", controller.UpdatePurchaseStatusHandler) //更新购买记录状态购买课程
 
 	//点赞
@@ -284,9 +261,10 @@ func main() {
 	//支付
 	r.GET("/page/orders/index", controller.OrdersIndexPageHandler) //获取用户订单首页列表
 
-	r.POST("/api/orders/add", controller.AddOrdersHandler)                //创建支付
-	r.GET("/api/orders/all", controller.GetUserAllOrdersHandler)          //获取用户全部支付
-	r.GET("/api/orders/get", controller.GetOrdersHandler)                 //查看支付
+	r.POST("/api/orders/add", controller.AddOrdersHandler)       //创建支付
+	r.GET("/api/orders/all", controller.GetUserAllOrdersHandler) //获取用户全部支付
+	r.GET("/api/orders/get", controller.GetOrdersHandler)        //查看支付
+	//TODO 支付，取消，退款
 	r.POST("/api/orders/update", controller.UpdateUserOrdersHandler)      //用户支付更新
 	r.GET("/api/orders/getorders", controller.GetUserOrdersCircleHandler) //获取需要支付
 
