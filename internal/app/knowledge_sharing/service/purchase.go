@@ -37,8 +37,8 @@ func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err erro
 }
 
 // 更新用户购买记录状态
-func UpdatePurchaseStatusById(id int, status int) (int64, error) {
-	return mysql.UpdatePurchaseStatusById(id, status)
+func UpdatePurchaseStatusById(id int, status int, newStatus int) (int64, error) {
+	return mysql.UpdatePurchaseStatusById(id, status, newStatus)
 }
 
 // 更新课程购买人数

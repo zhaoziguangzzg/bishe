@@ -357,12 +357,12 @@ func AddPurchaseHandler(c *gin.Context) {
 
 	if len(purchases) != 0 {
 		for _, v := range purchases {
-			if v.PurchaseStatus == model.PURCHASE_STATUS_NOT_BUY {
+			if v.PurchaseStatus == model.PURCHASE_STATUS_UNPAID {
 				MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
 				return
 			}
 
-			if v.PurchaseStatus == model.PURCHASE_STATUS_BUY {
+			if v.PurchaseStatus == model.PURCHASE_STATUS_PAID {
 				MakeApiResponseError(c, CODE_USER_PURCHASED)
 				return
 			}
@@ -375,7 +375,7 @@ func AddPurchaseHandler(c *gin.Context) {
 		CourseId:       cid,
 		CreateAt:       &createTime,
 		UpdateAt:       &createTime,
-		PurchaseStatus: model.PURCHASE_STATUS_NOT_BUY,
+		PurchaseStatus: model.PURCHASE_STATUS_UNPAID,
 	}
 
 	//创建购买记录
@@ -457,7 +457,7 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 		return
 	}
 
-	if status != model.PURCHASE_STATUS_BUY && status != model.PURCHASE_STATUS_NOT_BUY {
+	if status != model.PURCHASE_STATUS_PAID && status != model.PURCHASE_STATUS_UNPAID {
 		MakeApiResponseErrorParams(c)
 		return
 	}
@@ -477,7 +477,7 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 	var courseIds []int
 
 	for _, v := range purchases {
-		if v.PurchaseStatus == model.PURCHASE_STATUS_BUY {
+		if v.PurchaseStatus == model.PURCHASE_STATUS_PAID {
 			courseIds = append(courseIds, v.CourseId)
 		}
 	}
@@ -545,8 +545,17 @@ func UpdatePurchaseStatusHandler(c *gin.Context) {
 		return
 	}
 
+	status := purchase.PurchaseStatus
+
+	statusNew, err := service.MakePurchaseStatus(status, model.PURCHASE_ACTION_PAY)
+	if err != nil {
+		service.Logger.Error("MakePurchaseStatus", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	// 更新用户购买记录状态
-	affectRows, err := service.UpdatePurchaseStatusById(purchaseId, model.PURCHASE_STATUS_BUY)
+	affectRows, err := service.UpdatePurchaseStatusById(purchaseId, status, statusNew)
 	if affectRows == 0 || err != nil {
 		service.Logger.Error("UpdatePurchaseStatusById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

@@ -17,7 +17,7 @@ create table purchase(
 
 //Purchase 定义购买课程结构体
 type Purchase struct {
-	//课时id
+	//id
 	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
 	//课程id
 	CourseId int `json:"courseId" gorm:"column:course_id" mapstructure:"courseId"`
@@ -32,9 +32,16 @@ type Purchase struct {
 }
 
 const (
-	PURCHASE_STATUS_BUY     int = 1 //已购买
-	PURCHASE_STATUS_OVER    int = 2 //过期
-	PURCHASE_STATUS_NOT_BUY int = 0 //未支付
+	PURCHASE_STATUS_UNPAID   int = 0 //未支付
+	PURCHASE_STATUS_PAID     int = 1 //已支付
+	PURCHASE_STATUS_CANCELED int = 2 //已取消
+	PURCHASE_STATUS_EXPIRED  int = 3 //已过期
+	PURCHASE_STATUS_REFUND   int = 4 //已退款
+
+	PURCHASE_ACTION_PAY    int = 1 //支付
+	PURCHASE_ACTION_CANCEL int = 2 //取消
+	PURCHASE_ACTION_EXPIRE int = 3 //过期
+	PURCHASE_ACTION_REFUND int = 4 //退款
 )
 
 // 指定Purchase对应的表名

@@ -31,8 +31,8 @@ func GetPurchaseById(id int) (purchase *model.Purchase, err error) {
 func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err error) {
 	err = DB.Model(&model.Purchase{}).
 		//TODO in status
-		Where("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_BUY).
-		Or("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_NOT_BUY).
+		Where("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_PAID).
+		Or("user_id=? and course_id=? and purchase_status =?", uid, cid, model.PURCHASE_STATUS_UNPAID).
 		Find(&purchases).Error
 
 	if err != nil {
@@ -47,7 +47,7 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err error) {
 	purchase = new(model.Purchase)
 	err = DB.Model(&model.Purchase{}).
-		Where("user_id=? and course_id=? and purchase_status=?", uid, cid, model.PURCHASE_STATUS_BUY).
+		Where("user_id=? and course_id=? and purchase_status=?", uid, cid, model.PURCHASE_STATUS_PAID).
 		First(&purchase).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -82,10 +82,10 @@ func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err erro
 }
 
 // 更新用户购买记录状态
-func UpdatePurchaseStatusById(id int, status int) (int64, error) {
+func UpdatePurchaseStatusById(id int, status int, newStatus int) (int64, error) {
 	result := DB.Model(&model.Purchase{}).
-		Where("id=?", id).
-		Update("purchase_status", status)
+		Where("id=? and purchase_status=?", id, status).
+		Update("purchase_status", newStatus)
 	return result.RowsAffected, result.Error
 }
 
