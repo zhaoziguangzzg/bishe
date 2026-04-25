@@ -67,7 +67,7 @@ func AddOrdersHandler(c *gin.Context) {
 		Discount:    discount,
 		CreateAt:    &createTime,
 		UpdateAt:    &createTime,
-		OrderStatus: model.ORDER_STATUS_WAIT,
+		OrderStatus: model.ORDER_STATUS_UNPAID,
 	}
 
 	//添加支付
@@ -166,20 +166,36 @@ func UpdateUserOrdersHandler(c *gin.Context) {
 		return
 	}
 
-	ordersIdStr := c.PostForm("orders_id")
-	if ordersIdStr == "" {
+	idStr := c.PostForm("orders_id")
+	if idStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	ordersId, err := strconv.Atoi(ordersIdStr)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
+	orders, err := service.GetOrdersById(id)
+	if err != nil {
+		service.Logger.Error("GetOrdersById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	status := orders.OrderStatus
+
+	statusNew, err := service.MakeOrderStatus(status, model.ORDER_ACTION_PAY)
+	if err != nil {
+		service.Logger.Error("MakeOrderStatus err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	//根据id更新支付
-	affectRows, err := service.UpdateOrderById(ordersId)
+	affectRows, err := service.UpdateOrderStatusById(id, status, statusNew)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateOrderById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

@@ -42,7 +42,7 @@ func GetOrdersById(ordersId int) (orders *model.Orders, err error) {
 // 根据uid，cid获取最后支付
 func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
 	err = DB.Model(&model.Orders{}).Where("uid=? and cid=? ", uid, cid).
-		Where("order_status=? or order_status=?", model.ORDER_STATUS_PAID, model.ORDER_STATUS_END).
+		Where("order_status=? or order_status=?", model.ORDER_STATUS_PAID, model.ORDER_STATUS_EXPIRED).
 		Order("id DESC").Limit(1).Find(&orders).Error
 	if err != nil {
 		return
@@ -51,9 +51,9 @@ func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
 	return
 }
 
-// 根据id更新支付
-func UpdateOrderById(id int) (int64, error) {
-
-	result := DB.Model(&model.Orders{}).Where("id=?", id).Update("order_status", model.ORDER_STATUS_PAID)
+// 根据id更新order_status
+func UpdateOrderStatusById(id int, status int, newStatus int) (int64, error) {
+	//防止现在的status与原来的status不一致
+	result := DB.Model(&model.Orders{}).Where("id=? and order_status=?", id, status).Update("order_status", newStatus)
 	return result.RowsAffected, result.Error
 }

@@ -22,10 +22,16 @@ type Orders struct {
 }
 
 const (
-	ORDER_STATUS_WAIT   int = 0 //待支付
-	ORDER_STATUS_PAID   int = 1 //已支付
-	ORDER_STATUS_CANCEL int = 2 //已取消
-	ORDER_STATUS_END    int = 3 //已结束
+	ORDER_STATUS_UNPAID   int = 0 //未支付
+	ORDER_STATUS_PAID     int = 1 //已支付
+	ORDER_STATUS_CANCELED int = 2 //已取消
+	ORDER_STATUS_EXPIRED  int = 3 //已过期
+	ORDER_STATUS_REFUND   int = 4 //已退款
+
+	ORDER_ACTION_PAY    int = 1 //支付
+	ORDER_ACTION_CANCEL int = 2 //取消
+	ORDER_ACTION_EXPIRE int = 3 //过期
+	ORDER_ACTION_REFUND int = 4 //退款
 )
 
 // 指定Orders对应的表名

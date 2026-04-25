@@ -26,6 +26,6 @@ func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
 }
 
 // 根据id更新支付
-func UpdateOrderById(id int) (int64, error) {
-	return mysql.UpdateOrderById(id)
+func UpdateOrderStatusById(id int, status int, newStatus int) (int64, error) {
+	return mysql.UpdateOrderStatusById(id, status, newStatus)
 }
