@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -74,6 +75,20 @@ func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 // 获取用户购买课程记录
 func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
 	err = DB.Model(&model.Purchase{}).Where("user_id = ? and purchase_status=?", uid, status).Find(&purchases).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// 根据状态时间获取订单
+func GetPurchaseByStatusTime(status int, t time.Time, limit int) (purchases []model.Purchase, err error) {
+	err = DB.Model(&model.Purchase{}).
+		Where("purchase_status=? and create_at <? ", status, t).
+		Order("id ASC").
+		Limit(limit).
+		Find(&purchases).Error
 	if err != nil {
 		return
 	}

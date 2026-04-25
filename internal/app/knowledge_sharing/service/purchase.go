@@ -3,12 +3,12 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+	"time"
 )
 
 // 用户购买课程
 func CreatePurchase(purchase *model.Purchase) (err error) {
 	return mysql.CreatePurchase(purchase)
-
 }
 
 // 获取用户购买记录详情
@@ -34,6 +34,11 @@ func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 // 获取用户购买课程记录
 func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
 	return mysql.GetPurchaseByUid(uid, status)
+}
+
+// 根据状态时间获取订单
+func GetPurchaseByStatusTime(status int, t time.Time, limit int) (purchases []model.Purchase, err error) {
+	return mysql.GetPurchaseByStatusTime(status, t, limit)
 }
 
 // 更新用户购买记录状态
