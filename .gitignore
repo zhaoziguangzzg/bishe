@@ -19,3 +19,4 @@ internal/app/knowledge_sharing/web/img/*
 internal/app/knowledge_sharing/*.log
 
 internal/app/knowledge_sharing/cmd/*.exe
+mygo5.log
