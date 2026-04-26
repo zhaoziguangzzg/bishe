@@ -24,6 +24,7 @@ const (
 	CODE_PASSWORD_WRONG               int = 2010
 	CODE_USER_AVATAR_NAME_LEN_INVALID int = 2011
 	CODE_USER_NOT_EXIST               int = 2012
+	CODE_ADMIN_USER_NOT_LOGIN         int = 2013
 
 	CODE_CHECKIN_REPEAT   int = 3001
 	CODE_COMMENT_TOO_LONG int = 3002
@@ -49,6 +50,7 @@ const (
 	CODE_USER_JOIN_CIRCLE                 int = 4007
 	CODE_CIRCLE_FREE                      int = 4008
 	CODE_USER_CIRCLE_RENEW                int = 4009
+	CODE_USER_NOT_CIRCLE_OWNER            int = 4010
 
 	CODE_ESSAY_EXIST                int = 5001
 	CODE_ESSAY_TITLE_LEN_INVASLID   int = 5002
@@ -107,6 +109,7 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_USER_REPLACE:                 "请更换用户名",
 	CODE_USER_AGE_INVALID:             "用户年龄错误",
 	CODE_USER_AVATAR_NAME_LEN_INVALID: "用户头像名长度错误",
+	CODE_ADMIN_USER_NOT_LOGIN:         "管理员用户未登录",
 
 	CODE_CHECKIN_REPEAT:   "重复打卡",
 	CODE_COMMENT_TOO_LONG: "评论最多200字",
@@ -132,6 +135,7 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_USER_JOIN_CIRCLE:                 "用户已加入圈子",
 	CODE_CIRCLE_FREE:                      "免费圈子",
 	CODE_USER_CIRCLE_RENEW:                "用户圈子需要付费",
+	CODE_USER_NOT_CIRCLE_OWNER:            "用户不是圈主",
 
 	CODE_ESSAY_EXIST:                "文章已存在",
 	CODE_ESSAY_TITLE_LEN_INVASLID:   "文章标题长度错误",

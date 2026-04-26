@@ -109,17 +109,7 @@ func AddCircleHandler(c *gin.Context) {
 // 更新圈子信息
 func UpdateCircleHandler(c *gin.Context) {
 	// cid
-	cidStr := c.PostForm("cid")
-	if cidStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	cid, err := strconv.Atoi(cidStr)
-	if err != nil {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
+	cid := service.GetCidFromContext(c)
 
 	title := c.PostForm("title")
 	priceStr := c.PostForm("price")
@@ -149,18 +139,7 @@ func UpdateCircleHandler(c *gin.Context) {
 		return
 	}
 
-	//根据cid获取圈子
-	circle, err := service.GetCircleByCid(cid)
-	if err != nil {
-		service.Logger.Error("GetCircleByCid err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if circle == nil {
-		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
-		return
-	}
+	circle := service.GetCidFromContext(c)
 
 	updateMap := map[string]interface{}{
 		"title":        title,
@@ -171,6 +150,7 @@ func UpdateCircleHandler(c *gin.Context) {
 	fileType := service.FILE_TYPE_PAY_IMG
 	timeNow := time.Now()
 
+	//TODO 图片
 	// 处理头像上传
 	avatarPath := ""
 	file, header, err := c.Request.FormFile("avatar")

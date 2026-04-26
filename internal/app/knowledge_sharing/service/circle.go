@@ -3,7 +3,36 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+
+	"github.com/gin-gonic/gin"
 )
+
+func SetCidToContext(c *gin.Context, cid int) {
+	c.Set("cid", cid)
+}
+
+func GetCidFromContext(c *gin.Context) (cid int) {
+	cid = c.GetInt("cid")
+	return
+}
+
+func SetCircleToContext(c *gin.Context, circle *model.Circle) {
+	c.Set("circle", circle)
+}
+
+// 从context获取圈子
+func GetCircleFromContext(c *gin.Context) (circle *model.Circle, ok bool) {
+	circleAny, ok := c.Get("circle")
+	if !ok {
+		return
+	}
+
+	circle, ok = circleAny.(*model.Circle)
+	if !ok {
+		return
+	}
+	return
+}
 
 // create圈子
 func CreateCircle(newCircle *model.Circle) (err error) {
