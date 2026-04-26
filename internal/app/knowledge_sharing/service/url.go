@@ -1,5 +1,7 @@
 package service
 
+import "strconv"
+
 const (
 	HOST string = "http://localhost:8080"
 )
@@ -7,3 +9,14 @@ const (
 func GetUrlIndex() string {
 	return "/"
 }
+
+func GetUrlLogin() string {
+	return "/page/user/login"
+}
+
+// 圈子首页
+func GetUrlCircleIndex(cid int) string {
+	return "/page/circle/index?cid=" + strconv.Itoa(cid)
+}
+
+//文章
