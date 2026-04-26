@@ -55,10 +55,12 @@ func AddAdminUserHandler(c *gin.Context) {
 
 	createTime := time.Now()
 
+	newPassword := service.MakeAdminUserPassword(password)
+
 	// 构造管理员用户
 	newAdminUser := &model.AdminUser{ //其中包含自动生成的id
 		Name:      name,
-		Password:  password,
+		Password:  newPassword,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
 		IsDeleted: model.IS_DELETED_NO,
@@ -114,8 +116,10 @@ func AdminUserLoginHandler(c *gin.Context) {
 		return
 	}
 
+	newPassword := service.MakeAdminUserPassword(password)
+
 	//验证密码是否正确
-	if password != user.Password {
+	if newPassword != user.Password {
 		MakeApiResponseError(c, CODE_PASSWORD_WRONG)
 		return
 	}

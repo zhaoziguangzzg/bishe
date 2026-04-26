@@ -3,10 +3,22 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+	"bishe/internal/app/knowledge_sharing/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+const (
+	ADMIN_USER_PASSWORD_SALT string = "kjhgfsfd"
+)
+
+// 生成新密码
+func MakeAdminUserPassword(str string) (md5Str string) {
+	newStr := str + ADMIN_USER_PASSWORD_SALT
+	md5Str = utils.MakeMd5(newStr)
+	return
+}
 
 // 添加管理员用户
 func CreateAdminUser(newAdminUser *model.AdminUser) (err error) {
