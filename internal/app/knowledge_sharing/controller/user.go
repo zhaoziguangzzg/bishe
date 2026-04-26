@@ -85,7 +85,7 @@ func AddUserHandler(c *gin.Context) {
 		return
 	}
 
-	service.SetUserCookie(c, newUser.Id, name)
+	service.SetUserJwtCookie(c, newUser.Id, name, createTime)
 
 	// 返回成功响应
 	MakeApiResponseSuccessDefault(c)
@@ -93,6 +93,7 @@ func AddUserHandler(c *gin.Context) {
 
 // POST /api/user/login
 func UserLoginHandler(c *gin.Context) {
+	timeNow := time.Now()
 	// 从表单中获取用户信息
 	name := c.PostForm("name")
 	password := c.PostForm("password")
@@ -137,7 +138,7 @@ func UserLoginHandler(c *gin.Context) {
 		return
 	}
 
-	service.SetUserCookie(c, user.Id, name)
+	service.SetUserJwtCookie(c, user.Id, name, timeNow)
 
 	MakeApiResponseSuccessDefault(c)
 }
@@ -315,7 +316,7 @@ func UpdateUserHandler(c *gin.Context) {
 	}
 
 	//修改cookie中的用户名
-	service.SetUserCookie(c, uid, userName)
+	service.SetUserJwtCookie(c, uid, userName, timeNow)
 
 	MakeApiResponseSuccessDefault(c)
 
