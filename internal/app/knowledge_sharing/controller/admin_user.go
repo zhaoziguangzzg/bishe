@@ -74,7 +74,7 @@ func AddAdminUserHandler(c *gin.Context) {
 		return
 	}
 
-	service.SetAdminUserCookie(c, newAdminUser.Id, name)
+	service.SetAdminUserJwtCookie(c, newAdminUser.Id, name, createTime)
 
 	// 返回成功响应
 	MakeApiResponseSuccessDefault(c)
@@ -82,6 +82,7 @@ func AddAdminUserHandler(c *gin.Context) {
 
 // POST /api/user/login
 func AdminUserLoginHandler(c *gin.Context) {
+	nowTime := time.Now()
 	// 从表单中获取用户信息
 	name := c.PostForm("name")
 	password := c.PostForm("password")
@@ -124,7 +125,7 @@ func AdminUserLoginHandler(c *gin.Context) {
 		return
 	}
 
-	service.SetAdminUserCookie(c, user.Id, name)
+	service.SetAdminUserJwtCookie(c, user.Id, name, nowTime)
 
 	MakeApiResponseSuccessDefault(c)
 }
@@ -139,12 +140,7 @@ func AdminUserLogoutHandler(c *gin.Context) {
 // 获取用户
 func GetAdminUserHandler(c *gin.Context) {
 	//从cookie获取用户信息
-	uid, name := service.GetAdminUserFromCookie(c)
-	if uid == 0 || name == "" {
-		//用户未登录
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("admin_uid")
 
 	//从数据库获取用户信息
 	adminUser, err := service.GetAdminUserByUserId(uid)
@@ -170,12 +166,7 @@ func GetAdminUserHandler(c *gin.Context) {
 // 更新用户信息
 func UpdateAdminUserHandler(c *gin.Context) {
 	//从cookie获取用户登录信息，是验证登录
-	uid, name := service.GetAdminUserFromCookie(c)
-	if uid == 0 || name == "" {
-		//用户未登录
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("admin_uid")
 
 	userName := c.PostForm("name")
 	email := c.PostForm("email")
@@ -260,7 +251,7 @@ func UpdateAdminUserHandler(c *gin.Context) {
 	}
 
 	//修改cookie中的用户名
-	service.SetAdminUserCookie(c, uid, userName)
+	service.SetAdminUserJwtCookie(c, uid, userName, timeNow)
 
 	MakeApiResponseSuccessDefault(c)
 
