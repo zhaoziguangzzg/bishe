@@ -62,10 +62,12 @@ func AddUserHandler(c *gin.Context) {
 		return
 	}
 
+	newPassword := service.MakeUserPassword(password)
+
 	// 构造用户对象
 	newUser := &model.User{ //其中包含自动生成的id
 		Name:       name,
-		Password:   password,
+		Password:   newPassword,
 		Email:      email,
 		CreateAt:   &createTime,
 		UpdateAt:   &createTime,
@@ -126,8 +128,11 @@ func UserLoginHandler(c *gin.Context) {
 		return
 	}
 
+	//密码加密
+	newPassword := service.MakeUserPassword(password)
+
 	//验证密码是否正确
-	if password != user.Password {
+	if newPassword != user.Password {
 		MakeApiResponseError(c, CODE_PASSWORD_WRONG)
 		return
 	}
@@ -272,7 +277,7 @@ func UpdateUserHandler(c *gin.Context) {
 	}
 
 	updateMap := map[string]interface{}{
-		"name":  name,
+		"name":  userName,
 		"email": email,
 		"age":   age,
 		"phone": phone,
@@ -353,10 +358,12 @@ func UpdateUserPasswordHandler(c *gin.Context) {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
+
 	//密码加密
+	newPassword := service.MakeUserPassword(password)
 
 	//更新用户信息
-	affectRows, err := service.UpdateUserPasswordByUid(uid, password)
+	affectRows, err := service.UpdateUserPasswordByUid(uid, newPassword)
 	if !(affectRows > 0 && err == nil) {
 		service.Logger.Error("UpdateUserPasswordByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)

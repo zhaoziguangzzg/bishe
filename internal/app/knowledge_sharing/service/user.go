@@ -3,10 +3,23 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+	"bishe/internal/app/knowledge_sharing/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+// 密码的salt
+const (
+	USER_PASSWORD_SALT string = "asdgsfadf"
+)
+
+// 生成新密码
+func MakeUserPassword(str string) (md5Str string) {
+	newStr := str + USER_PASSWORD_SALT
+	md5Str = utils.MakeMd5(newStr)
+	return
+}
 
 // create用户
 func CreateUser(newUser *model.User) (err error) {
