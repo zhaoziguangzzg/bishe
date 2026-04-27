@@ -54,23 +54,22 @@ func main() {
 	//圈子列表（排行榜更多）
 	r.GET("/page/circle/list", controller.CircleListPageHandler)
 
+	circleUserLoginPage := r.Group("/page/circle")
+	circleUserLoginPage.Use(middleware.MiddlewareUserLoginPage())
 	//创建圈子页面
-	r.GET("/page/circle/add", middleware.MiddlewareUserLoginPage(), controller.AddCirclePageHandler)
-
-	circleJoinPage := r.Group("/page/circle")
-	circleJoinPage.Use(middleware.MiddlewareUserLoginPage(), middleware.MiddlewareIsJoinCirclePage())
+	circleUserLoginPage.GET("/add", controller.AddCirclePageHandler)
 	//获取圈子详情页面
-	circleJoinPage.GET("/detail", controller.CircleDetailPageHandler)
+	circleUserLoginPage.GET("/detail", controller.CircleDetailPageHandler)
 	//加入的圈子页面
-	circleJoinPage.GET("/index", controller.CircleIndexPageHandler)
+	circleUserLoginPage.GET("/index", controller.CircleIndexPageHandler)
+	//创建的圈子页面
+	circleUserLoginPage.GET("/create", controller.CircleCreatePageHandler)
 
 	circleOwnerPage := r.Group("/page/circle/")
 	circleOwnerPage.Use(middleware.MiddlewareUserLoginPage(), middleware.MiddlewareIsJoinCirclePage(),
 		middleware.MiddlewareIsCircleOwnerPage())
 	//修改圈子页面
 	circleOwnerPage.GET("edit", controller.EditCirclePageHandler)
-	//创建的圈子页面
-	circleOwnerPage.GET("create", controller.CircleCreatePageHandler)
 
 	circleUserLoginApi := r.Group("/api/circle")
 	circleUserLoginApi.Use(middleware.MiddlewareUserLoginApi())
@@ -103,139 +102,184 @@ func main() {
 
 	//文章模块
 	//创建文章页面
-	r.GET("/page/essay/add", controller.AddEssayPageHandler)
-	r.GET("/page/essay/detail", controller.EssayDetailPageHandler)
-	r.GET("/page/essay/edit", controller.EditEssayPageHandler)
-	r.GET("/page/essay/search", controller.SearchEssayPageHandler) //获取全部搜索记录
+	essayUserLoginPage := r.Group("/page/essay")
+	essayUserLoginPage.Use(middleware.MiddlewareUserLoginPage())
+	essayUserLoginPage.GET("/add", controller.AddEssayPageHandler)
+	essayUserLoginPage.GET("/detail", controller.EssayDetailPageHandler)
+	essayUserLoginPage.GET("/search", controller.SearchEssayPageHandler) //获取全部搜索记录
+	essayUserLoginPage.GET("/edit", controller.EditEssayPageHandler)
 
-	r.POST("/api/essay/add", controller.AddEssayHandler)                                                     //创建文章
-	r.POST("/api/essay/update", controller.UpdateEssayHandler)                                               //更新文章
-	r.POST("/api/essay/delete", controller.DeletedEssayByUpdateIsDeletedHandler)                             //删除文章
-	r.GET("/api/essay/get", controller.GetEssayHandler)                                                      //查看文章
-	r.GET("/api/essay/circle-all", middleware.MiddlewareUserLoginApi(), controller.GetCircleAllEssayHandler) //获取圈子全部文章
-	r.GET("/api/essay/user-all", controller.GetUserAllEssayHandler)                                          //获取用户全部文章
-	r.GET("/api/essay/user-all-by-uid", controller.GetUserAllEssayByUidHandler)                              //获取根据uid用户全部文章
+	essayUserLoginApi := r.Group("/api/essay")
+	essayUserLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	essayUserLoginApi.POST("/add", controller.AddEssayHandler)                         //创建文章
+	essayUserLoginApi.POST("/delete", controller.DeletedEssayByUpdateIsDeletedHandler) //删除文章
+	essayUserLoginApi.GET("/get", controller.GetEssayHandler)                          //查看文章
+	essayUserLoginApi.GET("/circle-all", controller.GetCircleAllEssayHandler)          //获取圈子全部文章
+	essayUserLoginApi.GET("/user-all", controller.GetUserAllEssayHandler)              //获取用户全部文章
+	essayUserLoginApi.GET("/user-all-by-uid", controller.GetUserAllEssayByUidHandler)  //获取根据uid用户全部文章
+	essayUserLoginApi.POST("/update", controller.UpdateEssayHandler)                   //更新文章
 
 	//周刊
-	r.POST("/api/essay/update-weekly", controller.UpdateEssayWeeklyHandler) //将文章添加周刊
-	r.GET("/api/essay/get-weekly", controller.GetEssayWeeklylistHandler)    //获取文章周刊
+	r.POST("/api/essay/update-weekly", middleware.MiddlewareUserLoginApi(), middleware.MiddlewareIsJoinCircleApi(),
+		middleware.MiddlewareIsCircleOwnerApi(), controller.UpdateEssayWeeklyHandler) //将文章添加周刊
+	r.GET("/api/essay/get-weekly", middleware.MiddlewareUserLoginApi(), controller.GetEssayWeeklylistHandler) //获取文章周刊
 	//精粹
-	r.POST("/api/essay/update-essence", controller.UpdateEssayEssenceHandler) //将文章添加精粹
-	r.GET("/api/essay/get-essence", controller.GetEssayEssonceHandler)        //获取文章精粹
+	r.POST("/api/essay/update-essence", middleware.MiddlewareUserLoginApi(), middleware.MiddlewareIsJoinCircleApi(),
+		middleware.MiddlewareIsCircleOwnerApi(), controller.UpdateEssayEssenceHandler) //将文章添加精粹
+	r.GET("/api/essay/get-essence", middleware.MiddlewareUserLoginApi(), controller.GetEssayEssonceHandler) //获取文章精粹
 
 	//课程
+	userCourseLoginPage := r.Group("/page/course")
+	userCourseLoginPage.Use(middleware.MiddlewareUserLoginPage())
 	//课程首页
-	r.GET("/page/course/index", controller.CourseIndexPageHandler)
+	userCourseLoginPage.GET("/index", controller.CourseIndexPageHandler)
 	//课程详情页面
-	r.GET("/page/course/detail", controller.CourseDetailPageHandler)
-	//修改课程页面
-	r.GET("/page/course/edit", controller.EditCoursePageHandler)
+	userCourseLoginPage.GET("/detail", controller.CourseDetailPageHandler)
 
-	r.POST("/api/course/add", controller.AddCourseHandler)                 //添加课程
-	r.GET("/api/course/all", controller.GetAllCourseHandler)               //获取全部课程
-	r.GET("/api/course/user-all", controller.GetUserAllCourseByUidHandler) //获取用户发布的课程
-	r.GET("/api/course/search", controller.GetCourseByTitleHandler)        //获取全部搜索记录
-	r.GET("/api/course/get", controller.GetCourseHandler)                  //获取课程详情
+	courseAuthorPage := r.Group("/page/course")
+	courseAuthorPage.Use(middleware.MiddlewareUserLoginPage())
+	//修改课程页面
+	userCourseLoginPage.GET("/edit", controller.EditCoursePageHandler)
+
+	userCourseLoginApi := r.Group("/api/course")
+	userCourseLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userCourseLoginApi.POST("/add", controller.AddCourseHandler)                 //添加课程
+	userCourseLoginApi.GET("/all", controller.GetAllCourseHandler)               //获取全部课程
+	userCourseLoginApi.GET("/user-all", controller.GetUserAllCourseByUidHandler) //获取用户发布的课程
+	userCourseLoginApi.GET("/search", controller.GetCourseByTitleHandler)        //获取全部搜索记录
+	userCourseLoginApi.GET("/api/course/get", controller.GetCourseHandler)       //获取课程详情
 
 	//课时
-	//创建课时页面
-	r.GET("/page/lesson/add", controller.AddLessonPageHandler)
-	//课时详情页面
-	r.GET("/page/lesson/detail", controller.LessonDetailPageHandler)
+	lessonOwnerApi := r.Group("/api/lesson")
+	lessonOwnerApi.Use(middleware.MiddlewareUserLoginApi())
+	lessonOwnerApi.POST("/add", controller.AddLessonHandler)         //添加课时
+	lessonOwnerApi.GET("/get", controller.GetLessonHandler)          //获取课时详情
+	lessonOwnerApi.GET("/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
 
-	r.POST("/api/lesson/add", controller.AddLessonHandler)         //添加课时
-	r.GET("/api/lesson/get", controller.GetLessonHandler)          //获取课时详情
-	r.GET("/api/lesson/all", controller.GetCourseAllLessonHandler) //获取课程全部课时
+	lessonOwnerPage := r.Group("/page/lesson")
+	lessonOwnerPage.Use(middleware.MiddlewareUserLoginPage())
+	lessonOwnerPage.GET("/add", controller.AddLessonPageHandler)
+	//创建课时页面
+	lessonOwnerPage.GET("/add", controller.AddLessonPageHandler)
+	//课时详情页面
+	lessonOwnerPage.GET("/detail", controller.LessonDetailPageHandler)
 
 	//买课
-	r.POST("/api/purchase/add", controller.AddPurchaseHandler)        //购买课程
-	r.GET("/api/purchase/all", controller.GetUserPurchaseListHandler) //获取用户购买记录
-	r.GET("/api/purchase/get", controller.GetPurchaseHandler)         //获取购买记录
+	userPurchaseLoginApi := r.Group("/api/purchase")
+	userPurchaseLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userPurchaseLoginApi.POST("/add", controller.AddPurchaseHandler)        //购买课程
+	userPurchaseLoginApi.GET("/all", controller.GetUserPurchaseListHandler) //获取用户购买记录
+	userPurchaseLoginApi.GET("/get", controller.GetPurchaseHandler)         //获取购买记录
 	//TODO 支付，取消，退款
-	r.POST("/api/purchase/update", controller.UpdatePurchaseStatusHandler) //更新购买记录状态购买课程
+	userPurchaseLoginApi.POST("/update", controller.UpdatePurchaseStatusHandler) //更新购买记录状态购买课程
 
 	//点赞
-	r.POST("/api/like/add", controller.AddUserEssayLikeHandler)          //添加点赞
-	r.POST("/api/like/cancel", controller.CancelUserEssayLikeHandler)    //更新点赞删除
-	r.GET("/api/like/get", controller.GetUserEssayLikeHandler)           //获取点赞
-	r.GET("/api/like/all", controller.GetUserAllLikeHandler)             //获取用户点赞
-	r.GET("/api/like/all-by-uid", controller.GetUserAllLikeByUidHandler) //获取根据uid用户点赞
+	userLikeLoginApi := r.Group("/api/like")
+	userLikeLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userLikeLoginApi.POST("/add", controller.AddUserEssayLikeHandler)          //添加点赞
+	userLikeLoginApi.POST("/cancel", controller.CancelUserEssayLikeHandler)    //更新点赞删除
+	userLikeLoginApi.GET("/get", controller.GetUserEssayLikeHandler)           //获取点赞
+	userLikeLoginApi.GET("/all", controller.GetUserAllLikeHandler)             //获取用户点赞
+	userLikeLoginApi.GET("/all-by-uid", controller.GetUserAllLikeByUidHandler) //获取根据uid用户点赞
 
 	//收藏夹
-	r.POST("/api/favorite/add", controller.AddFavoriteHandler)                                            //添加收藏夹
-	r.POST("/api/favorite/update", controller.UpdateFavoriteTitleHandler)                                 //修改收藏夹名
-	r.POST("/api/favorite/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler)                    //删除收藏夹
-	r.GET("/api/favorite/get", controller.GetFavoriteHandler)                                             //获取收藏夹
-	r.GET("/api/favorite/all", middleware.MiddlewareUserLoginApi(), controller.GetUserAllFavoriteHandler) //获取用户全部收藏夹
-	r.GET("/api/favorite/all-by-uid", controller.GetUserAllFavoriteByUidHandler)                          //获取根据uid用户全部收藏夹
+	userFavoriteLoginApi := r.Group("/api/favorite")
+	userFavoriteLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userFavoriteLoginApi.POST("/add", controller.AddFavoriteHandler)                         //添加收藏夹
+	userFavoriteLoginApi.POST("/update", controller.UpdateFavoriteTitleHandler)              //修改收藏夹名
+	userFavoriteLoginApi.POST("/delete", controller.DeletedFavoriteByUpdateIsDeletedHandler) //删除收藏夹
+	userFavoriteLoginApi.GET("/get", controller.GetFavoriteHandler)                          //获取收藏夹
+	userFavoriteLoginApi.GET("/all", controller.GetUserAllFavoriteHandler)                   //获取用户全部收藏夹
+	userFavoriteLoginApi.GET("/all-by-uid", controller.GetUserAllFavoriteByUidHandler)       //获取根据uid用户全部收藏夹
 
 	//TODO 去除唯一键，新建时判断该数量=1，就不能新建
 
 	//收藏
-	r.POST("/api/collect/add", controller.AddUserEssayCollectHandler)   //添加收藏
-	r.POST("/api/collect/cancel", controller.CancelEssayCollectHandler) //更新收藏删除状态
-	r.GET("/api/collect/get", controller.GetEssayCollectHandler)        //获取收藏
-	r.GET("/api/collect/all", controller.GetUserAllCollectHandler)      //获取用户收藏夹的全部收藏
+	userCollectLoginApi := r.Group("/api/collect")
+	userCollectLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userCollectLoginApi.POST("/add", controller.AddUserEssayCollectHandler)   //添加收藏
+	userCollectLoginApi.POST("/cancel", controller.CancelEssayCollectHandler) //更新收藏删除状态
+	userCollectLoginApi.GET("/get", controller.GetEssayCollectHandler)        //获取收藏
+	userCollectLoginApi.GET("/all", controller.GetUserAllCollectHandler)      //获取用户收藏夹的全部收藏
 
 	//评论
-	r.POST("/api/comment/add", controller.AddUserEssayCommentHandle)                 //创建用户评论
-	r.POST("/api/comment/delete", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
-	r.GET("/api/comment/essayall", controller.GetEssayAllCommentHandle)              //获取文章全部评论
-	r.GET("/api/comment/userall", controller.GetUserAllCommentHandler)               //获取用户全部评论
-	r.GET("/api/comment/user-by-uid", controller.GetUserAllCommentByUidHandler)      //获取根据uid用户全部评论
+	userCommentLoginApi := r.Group("/api/comment")
+	userCommentLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userCommentLoginApi.POST("/add", controller.AddUserEssayCommentHandle)                 //创建用户评论
+	userCommentLoginApi.POST("/delete", controller.DeletedCommentByUpdateIsDeletedHandler) //删除评论
+	userCommentLoginApi.GET("/essayall", controller.GetEssayAllCommentHandle)              //获取文章全部评论
+	userCommentLoginApi.GET("/userall", controller.GetUserAllCommentHandler)               //获取用户全部评论
+	userCommentLoginApi.GET("/user-by-uid", controller.GetUserAllCommentByUidHandler)      //获取根据uid用户全部评论
 
 	//关注
-	r.POST("/api/follow/add", controller.AddUserFollowHandler)       //添加关注
-	r.POST("/api/follow/cancel", controller.CancelUserFollowHandler) //更新关注删除
-	r.GET("/api/follow/get", controller.GetUserFollowHandler)        //获取用户关注
-	r.GET("/api/follow/all", controller.GetUserAllFollowHandler)     //获取用户关注列表
-	r.GET("/api/follow/allfan", controller.GetUserAllFanHandler)     //获取用户粉丝列表
+	userFollowLoginApi := r.Group("/api/follow")
+	userFollowLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userFollowLoginApi.POST("/add", controller.AddUserFollowHandler)       //添加关注
+	userFollowLoginApi.POST("/cancel", controller.CancelUserFollowHandler) //更新关注删除
+	userFollowLoginApi.GET("/get", controller.GetUserFollowHandler)        //获取用户关注
+	userFollowLoginApi.GET("/all", controller.GetUserAllFollowHandler)     //获取用户关注列表
+	userFollowLoginApi.GET("/allfan", controller.GetUserAllFanHandler)     //获取用户粉丝列表
 
 	//举报
-	r.GET("/page/accusation/edit", controller.AccusationEditPageHandler)
-
-	r.POST("/api/accusation/add", controller.AddUserAccusationEssayHandler)     //创建举报
-	r.GET("/api/accusation/all", controller.GetAllAccusationEssayHandler)       //获取全部未审核举报
-	r.GET("/api/accusation/get", controller.GetEssayContentByAccusationHandler) //获取举报内容文章
-	r.POST("/api/accusation/update", controller.UpdateAccusationStatusHandler)  //更新举报状态
+	r.GET("/page/accusation/edit", middleware.MiddlewareAdminUserLoginPage(), controller.AccusationEditPageHandler)
+	r.POST("/api/accusation/update", middleware.MiddlewareAdminUserLoginApi(), controller.UpdateAccusationStatusHandler) //更新举报状态
+	userAccusationLoginApi := r.Group("/api/accusation")
+	userAccusationLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userAccusationLoginApi.POST("/add", controller.AddUserAccusationEssayHandler)     //创建举报
+	userAccusationLoginApi.GET("/all", controller.GetAllAccusationEssayHandler)       //获取全部未审核举报
+	userAccusationLoginApi.GET("/get", controller.GetEssayContentByAccusationHandler) //获取举报内容文章
 
 	//反馈
-	r.GET("/page/feedback/index", controller.FeedbackIndexPageHandler)
-	r.GET("/page/feedback/detail", controller.FeedbackDetailPageHandler)
-	r.GET("/page/feedback/edit", controller.FeedbackEditPageHandler)
+	userFeedbackLoginPage := r.Group("/page/feedback")
+	userFeedbackLoginPage.Use(middleware.MiddlewareUserLoginPage())
+	userFeedbackLoginPage.POST("/add", controller.AddUserFeedbackHandler) //创建反馈
+	userFeedbackLoginPage.GET("/all", controller.GetAllFeedbackHandler)   //获取全部未处理反馈
+	r.GET("/page/feedback/edit", middleware.MiddlewareAdminUserLoginPage(), controller.FeedbackEditPageHandler)
 
-	r.POST("/api/feedback/add", controller.AddUserFeedbackHandler)         //创建反馈
-	r.GET("/api/feedback/all", controller.GetAllFeedbackHandler)           //获取全部未处理反馈
-	r.GET("/api/feedback/get", controller.GetFeedbackContentHandler)       //获取反馈
-	r.GET("/api/feedback/get-by-uid", controller.GetFeedbackByUidHandler)  //获取用户反馈
-	r.POST("/api/feedback/update", controller.UpdateFeedbackStatusHandler) //更新反馈状态
+	userFeedbackLoginApi := r.Group("/api/feedback")
+	userFeedbackLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userFeedbackLoginApi.POST("/add", controller.AddUserFeedbackHandler)                                                   //创建反馈
+	userFeedbackLoginApi.GET("/all", controller.GetAllFeedbackHandler)                                                     //获取全部未处理反馈
+	userFeedbackLoginApi.GET("/get", controller.GetFeedbackContentHandler)                                                 //获取反馈
+	userFeedbackLoginApi.GET("/get-by-uid", controller.GetFeedbackByUidHandler)                                            //获取用户反馈
+	userFeedbackLoginApi.POST("/update", middleware.MiddlewareAdminUserLoginApi(), controller.UpdateFeedbackStatusHandler) //更新反馈状态
 
 	//私信
-	r.GET("/page/chat/index", controller.ChatIndexPageHandler)   //获取私信首页
-	r.GET("/page/chat/detail", controller.ChatDetailPageHandler) //获取私信详情页面
+	userChatLoginPage := r.Group("/page/chat")
+	userChatLoginPage.Use(middleware.MiddlewareUserLoginPage())
+	userChatLoginPage.POST("/add", controller.AddChatHandler)          //添加私信
+	userChatLoginPage.GET("/detail", controller.ChatDetailPageHandler) //获取私信详情页面
 
-	r.POST("/api/chat/add", controller.AddChatHandler)    //添加私信
-	r.GET("/api/chat/get", controller.GetChatListHandler) //获取私信记录
+	userChatLoginApi := r.Group("/api/chat")
+	userChatLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userChatLoginApi.POST("/add", controller.AddChatHandler)    //添加私信
+	userChatLoginApi.GET("/get", controller.GetChatListHandler) //获取私信记录
 
 	//联系人
-	r.GET("/api/contact/all", controller.GetChatContactListHandler) //获取最近联系人列表
+	r.GET("/api/contact/all", middleware.MiddlewareUserLoginApi(), controller.GetChatContactListHandler) //获取最近联系人列表
 
 	//通知
-	//获取通知详情页面
-	r.GET("/page/notice/detail", controller.NoticeDetailPageHandler)
+	userNoticeLoginPage := r.Group("/page/notice")
+	userNoticeLoginPage.Use(middleware.MiddlewareUserLoginPage())
+	userNoticeLoginPage.GET("/detail", controller.NoticeDetailPageHandler)
 	//获取通知详情列表
-	r.GET("/page/notice/index", controller.NoticeIndexPageHandler)
+	userNoticeLoginPage.GET("/index", controller.NoticeIndexPageHandler)
 
-	r.GET("/api/notice/all", controller.GetNoticeListHandler)           //获取通知列表
-	r.GET("/api/notice/alltype", controller.GetNoticeListByTypeHandler) //获取某类型通知列表
+	userNoticeLoginApi := r.Group("/api/notice")
+	userNoticeLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userNoticeLoginApi.GET("/all", controller.GetNoticeListHandler)           //获取通知列表
+	userNoticeLoginApi.GET("/alltype", controller.GetNoticeListByTypeHandler) //获取某类型通知列表
 
 	//统计
-	//用户数据首页
-	r.GET("/page/stat/index", controller.StatIndexPageHandler) //获取用户数据首页统计数据
+	userStatLoginPage := r.Group("/page/stat")
+	userStatLoginPage.Use(middleware.MiddlewareUserLoginPage())
+	userStatLoginPage.GET("/index", controller.StatIndexPageHandler) //获取用户数据首页统计数据
 
-	r.GET("/api/stat/by-time", controller.GetUserStatDetailsListByTimeHandler) //获取用户全部数据详情
-	r.GET("/api/stat/map", controller.GetUserStatMapHandler)                   //获取用户某类数据数量
-	r.GET("/api/stat/map-by-uid", controller.GetUserStatMapByUidHandler)       //获取用户某类数据数量
+	userStatLoginApi := r.Group("/api/stat")
+	userStatLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userStatLoginApi.GET("/by-time", controller.GetUserStatDetailsListByTimeHandler) //获取用户全部数据详情
+	userStatLoginApi.GET("/map", controller.GetUserStatMapHandler)                   //获取用户某类数据数量
+	userStatLoginApi.GET("/map-by-uid", controller.GetUserStatMapByUidHandler)       //获取用户某类数据数量
 
 	//等级
 	r.GET("/api/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler) //获取用户在圈子全部等级详情
@@ -259,49 +303,59 @@ func main() {
 	// TODO 菜单权限
 
 	//公告
-	r.GET("/page/announce/edit", controller.AnnounceEditPageHandler)
+	userAnnounceLoginPage := r.Group("/page/announce")
+	userAnnounceLoginPage.Use(middleware.MiddlewareAdminUserLoginPage())
+	userAnnounceLoginPage.GET("/edit", controller.AnnounceEditPageHandler)
 
-	r.POST("/api/announce/add", controller.AddAnnounceHandler)                         //创建公告
-	r.GET("/api/announce/all-time", controller.GetAllAnnounceByTimeHandler)            //获取全部公告
-	r.GET("/api/announce/all", controller.GetAllAnnounceHandler)                       //获取全部公告
-	r.GET("/api/announce/get", controller.GetAnnounceHandler)                          //查看公告
-	r.POST("/api/announce/update", controller.UpdateAnnounceHandler)                   //更新公告
-	r.POST("/api/announce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler) //删除公告
+	userAnnounceLoginApi := r.Group("/api/announce")
+	userAnnounceLoginApi.Use(middleware.MiddlewareAdminUserLoginApi())
+	userAnnounceLoginApi.POST("/add", controller.AddAnnounceHandler)                         //创建公告
+	userAnnounceLoginApi.GET("/all-time", controller.GetAllAnnounceByTimeHandler)            //获取全部公告
+	userAnnounceLoginApi.GET("/all", controller.GetAllAnnounceHandler)                       //获取全部公告
+	userAnnounceLoginApi.GET("/get", controller.GetAnnounceHandler)                          //查看公告
+	userAnnounceLoginApi.POST("/update", controller.UpdateAnnounceHandler)                   //更新公告
+	userAnnounceLoginApi.POST("/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler) //删除公告
 
 	//广告
-	r.GET("/page/advert/edit", controller.AdvertEditPageHandler)
+	userAdvertLoginPage := r.Group("/page/advert")
+	userAdvertLoginPage.Use(middleware.MiddlewareAdminUserLoginPage())
+	userAdvertLoginPage.GET("/edit", controller.AdvertEditPageHandler)
 
-	r.POST("/api/advert/add", controller.AddAdvertHandler)              //创建广告
-	r.GET("/api/advert/all-time", controller.GetAllAdvertByTimeHandler) //获取全部广告
-	r.GET("/api/advert/all", controller.GetAllAdvertHandler)
-	r.GET("/api/advert/get", controller.GetAdvertHandler)                          //查看广告
-	r.POST("/api/advert/update", controller.UpdateAdvertHandler)                   //更新广告
-	r.POST("/api/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
+	adminAdvertLoginApi := r.Group("/api/advert")
+	adminAdvertLoginApi.Use(middleware.MiddlewareAdminUserLoginApi())
+	adminAdvertLoginApi.POST("/add", controller.AddAdvertHandler) //创建广告
+	adminAdvertLoginApi.GET("/all", controller.GetAllAdvertHandler)
+	adminAdvertLoginApi.GET("/get", controller.GetAdvertHandler)                          //查看广告
+	adminAdvertLoginApi.POST("/update", controller.UpdateAdvertHandler)                   //更新广告
+	adminAdvertLoginApi.POST("/delete", controller.DeletedAdvertByUpdateIsDeletedHandler) //删除广告
+
+	r.GET("/all-time", middleware.MiddlewareUserLoginApi(), controller.GetAllAdvertByTimeHandler) //获取全部广告
 
 	//搜索
-
-	r.GET("/api/search/circle", controller.GetCircleByTitleHandler)                                    //搜索圈子
-	r.GET("/api/search/essay", middleware.MiddlewareUserLoginApi(), controller.GetEssayByTitleHandler) //搜索文章
+	apiSearchLoginApi := r.Group("/api/search")
+	apiSearchLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	apiSearchLoginApi.GET("/circle", controller.GetCircleByTitleHandler) //搜索圈子
+	apiSearchLoginApi.GET("/essay", controller.GetEssayByTitleHandler)   //搜索文章
 
 	//支付
-	r.GET("/page/orders/index", controller.OrdersIndexPageHandler) //获取用户订单首页列表
 
-	r.POST("/api/orders/add", controller.AddOrdersHandler)       //创建支付
-	r.GET("/api/orders/all", controller.GetUserAllOrdersHandler) //获取用户全部支付
-	r.GET("/api/orders/get", controller.GetOrdersHandler)        //查看支付
+	r.GET("/page/orders/index", middleware.MiddlewareUserLoginPage(), controller.OrdersIndexPageHandler) //获取用户订单首页列表
+
+	userOrdersLoginApi := r.Group("/api/orders")
+	userOrdersLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userOrdersLoginApi.POST("/add", controller.AddOrdersHandler)       //创建支付
+	userOrdersLoginApi.GET("/all", controller.GetUserAllOrdersHandler) //获取用户全部支付
+	userOrdersLoginApi.GET("/get", controller.GetOrdersHandler)        //查看支付
 	//TODO 支付，取消，退款
-	r.POST("/api/orders/update", controller.UpdateUserOrdersHandler)      //用户支付更新
-	r.GET("/api/orders/getorders", controller.GetUserOrdersCircleHandler) //获取需要支付
+	userOrdersLoginApi.POST("/update", controller.UpdateUserOrdersHandler)      //用户支付更新
+	userOrdersLoginApi.GET("/getorders", controller.GetUserOrdersCircleHandler) //获取需要支付
 
-	//联系人列表（send-receive）
-	r.POST("/api/contact/add", controller.AddUserContactHandler)       //添加联系人
-	r.POST("/api/contact/delete", controller.DeleteUserContactHandler) //删除联系人
-	//r.GET("/api/contact/all", controller.GetUserAllContactHandler)     //获取用户全部联系人
-	r.GET("/api/contact/get", controller.GetUserContactHandler) //获取联系人
-
-	//TODO 与某人消息记录
-	r.GET("/api/information/send", controller.GetUserSendInformationHandler)       //获取用户发送的各消息
-	r.GET("/api/information/receive", controller.GetUserReceiveInformationHandler) //获取用户接收的各消息
+	userContactLoginApi := r.Group("/api/contact")
+	userContactLoginApi.Use(middleware.MiddlewareUserLoginApi())
+	userContactLoginApi.POST("/add", controller.AddUserContactHandler)       //添加联系人
+	userContactLoginApi.POST("/delete", controller.DeleteUserContactHandler) //删除联系人
+	//userContactLoginApi.GET("/all", controller.GetUserAllContactHandler)     //获取用户全部联系人
+	userContactLoginApi.GET("/get", controller.GetUserContactHandler) //获取联系人
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))

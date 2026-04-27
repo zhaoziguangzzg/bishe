@@ -212,10 +212,13 @@ func GetUserByIdHandler(c *gin.Context) {
 
 // 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
-	//从cookie获取用户登录信息，是验证登录
-	uid, name := service.GetUserFromCookie(c)
-	if uid == 0 || name == "" {
-		//用户未登录
+	uid, name, isExpired, err := service.GetUserCookie(c)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if uid == 0 || name == "" || isExpired == true {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}

@@ -19,4 +19,12 @@ func GetUrlCircleIndex(cid int) string {
 	return "/page/circle/index?cid=" + strconv.Itoa(cid)
 }
 
-//文章
+//文章详情
+func GetUrlEssayDetail(eid int) string {
+	return "/page/essay/detail?eid=" + strconv.Itoa(eid)
+}
+
+// 课程详情
+func GetUrlCourseDetail(cid int) string {
+	return "/page/course/detail?cid=" + strconv.Itoa(cid)
+}

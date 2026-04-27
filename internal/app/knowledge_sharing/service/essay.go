@@ -3,7 +3,36 @@ package service
 import (
 	"bishe/internal/app/knowledge_sharing/dao/mysql"
 	"bishe/internal/app/knowledge_sharing/model"
+
+	"github.com/gin-gonic/gin"
 )
+
+func SetEidToContext(c *gin.Context, eid int) {
+	c.Set("eid", eid)
+}
+
+func GetEidFromContext(c *gin.Context) (eid int) {
+	eid = c.GetInt("eid")
+	return
+}
+
+func SetEssayToContext(c *gin.Context, essay *model.Essay) {
+	c.Set("essay", essay)
+}
+
+// 从context获取文章
+func GetEssayFromContext(c *gin.Context) (essay *model.Essay, ok bool) {
+	essayAny, ok := c.Get("essay")
+	if !ok {
+		return
+	}
+
+	essay, ok = essayAny.(*model.Essay)
+	if !ok {
+		return
+	}
+	return
+}
 
 // create文章
 func CreateEssay(newEssay *model.Essay) (err error) {
