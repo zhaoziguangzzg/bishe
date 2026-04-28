@@ -99,6 +99,11 @@ func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	return mysql.GetAdminUserByUserId(uid)
 }
 
+// 更新管理员用户角色
+func UpdateAdminUserRoleId(uid int, roleId int) (int64, error) {
+	return mysql.UpdateAdminUserRoleId(uid, roleId)
+}
+
 // 更新IsDeleted删除
 func UpdateAdminUserIsDeleted(uid int) (int64, error) {
 	return mysql.UpdateAdminUserIsDeleted(uid)

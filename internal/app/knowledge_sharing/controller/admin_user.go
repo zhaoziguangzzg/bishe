@@ -282,3 +282,55 @@ func DeleteAdminUserHandler(c *gin.Context) {
 
 	MakeApiResponseSuccessDefault(c)
 }
+
+// 修改管理员用户角色
+func UpdateAdminUserRoleHandler(c *gin.Context) {
+	uid := c.GetInt("admin_uid")
+
+	roleIdStr := c.PostForm("role_id")
+	if roleIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	roleId, err := strconv.Atoi(roleIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//查询用户是否存在
+	adminUser, err := service.GetAdminUserByUserId(uid)
+	if err != nil {
+		service.Logger.Error("GetAdminUserByUserId", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+	if adminUser == nil {
+		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
+		return
+	}
+
+	//查询角色是否存在
+	role, err := service.GetRoleNotDeletedById(roleId)
+	if err != nil {
+		service.Logger.Error("GetRoleNotDeletedById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if role == nil {
+		MakeApiResponseError(c, CODE_ROLE_NOT_EXIST)
+		return
+	}
+
+	//更新用户角色
+	affectRows, err := service.UpdateAdminUserRoleId(uid, roleId)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateAdminUserRoleId err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}

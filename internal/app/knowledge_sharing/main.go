@@ -158,7 +158,6 @@ func main() {
 
 	lessonOwnerPage := r.Group("/page/lesson")
 	lessonOwnerPage.Use(middleware.MiddlewareUserLoginPage())
-	lessonOwnerPage.GET("/add", controller.AddLessonPageHandler)
 	//创建课时页面
 	lessonOwnerPage.GET("/add", controller.AddLessonPageHandler)
 	//课时详情页面
@@ -296,11 +295,25 @@ func main() {
 
 	adminApi := r.Group("/api/adminuser")
 	adminApi.Use(middleware.MiddlewareAdminUserLoginApi())
-	adminApi.POST("/update", controller.UpdateAdminUserHandler) //更新管理员用户信息
-	adminApi.GET("/get", controller.GetAdminUserHandler)        //获取某管理员用户信息
-	adminApi.POST("/delete", controller.DeleteAdminUserHandler) // 删除管理员用户
-	// TODO 角色
-	// TODO 菜单权限
+	adminApi.POST("/update", controller.UpdateAdminUserHandler)          //更新管理员用户信息
+	adminApi.GET("/get", controller.GetAdminUserHandler)                 //获取某管理员用户信息
+	adminApi.POST("/delete", controller.DeleteAdminUserHandler)          // 删除管理员用户
+	adminApi.POST("/update-role", controller.UpdateAdminUserRoleHandler) //更新管理员用户角色
+
+	//  菜单权限
+	adminUserMenuLoginApi := r.Group("/api/adminmenu")
+	adminUserMenuLoginApi.Use(middleware.MiddlewareAdminUserLoginApi())
+	adminUserMenuLoginApi.GET("/all", controller.GetAllMenuHandler)     //获取全部菜单
+	adminUserMenuLoginApi.POST("/add", controller.AddMenuHandler)       //添加菜单
+	adminUserMenuLoginApi.POST("/delete", controller.DeleteMenuHandler) //删除菜单
+
+	//  角色权限
+	adminUserRoleLoginApi := r.Group("/api/adminrole")
+	adminUserRoleLoginApi.Use(middleware.MiddlewareAdminUserLoginApi())
+	adminUserRoleLoginApi.GET("/all", controller.GetAllRoleHandler)     //获取全部角色
+	adminUserRoleLoginApi.GET("/get", controller.GetRoleHandler)        //获取角色详情
+	adminUserRoleLoginApi.POST("/add", controller.AddRoleHandler)       //添加角色
+	adminUserRoleLoginApi.POST("/delete", controller.DeleteRoleHandler) //删除角色
 
 	//公告
 	userAnnounceLoginPage := r.Group("/page/announce")

@@ -31,6 +31,8 @@ type AdminUser struct {
 	Email string `json:"email" gorm:"column:email" mapstructure:"email"`
 	//电话
 	Phone int `json:"phone" gorm:"column:phone" mapstructure:"phone"`
+	//角色
+	RoleId int `json:"roleId" gorm:"column:role_id" mapstructure:"roleId"`
 	//头像
 	Avatar string `json:"avatar" gorm:"column:avatar" mapstructure:"avatar"`
 

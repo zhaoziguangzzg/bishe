@@ -50,6 +50,12 @@ func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	return adminUser, nil
 }
 
+// 更新管理员用户角色
+func UpdateAdminUserRoleId(uid int, roleId int) (int64, error) {
+	result := DB.Model(&model.AdminUser{}).Where("id=?", uid).Update("role_id", roleId)
+	return result.RowsAffected, result.Error
+}
+
 // 更新IsDeleted删除
 func UpdateAdminUserIsDeleted(uid int) (int64, error) {
 	result := DB.Model(&model.AdminUser{}).Where("id=?", uid).Update("is_deleted", model.IS_DELETED_YES)
