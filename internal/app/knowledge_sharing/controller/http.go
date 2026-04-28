@@ -43,6 +43,12 @@ const (
 	CODE_LESSON_TITLE_LEN_INVASLID   int = 1016
 	CODE_LESSON_CONTENT_LEN_INVASLID int = 1017
 
+	CODE_MENU_NAME_EXIST int = 1021
+	CODE_MENU_NOT_EXIST  int = 1022
+
+	CODE_ROLE_NAME_EXIST int = 1031
+	CODE_ROLE_NOT_EXIST  int = 1032
+
 	CODE_CIRCLE_EXIST                     int = 4001
 	CODE_CIRCLE_TITLE_LEN_INVASLID        int = 4002
 	CODE_CIRCLE_INTRODUCTION_LEN_INVASLID int = 4003
@@ -130,6 +136,12 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_LESSON_TITLE_LEN_INVASLID:   "课时标题长度错误",
 	CODE_LESSON_CONTENT_LEN_INVASLID: "课时内容长度错误",
+
+	CODE_MENU_NAME_EXIST: "菜单名已存在",
+	CODE_MENU_NOT_EXIST:  "菜单不存在",
+
+	CODE_ROLE_NAME_EXIST: "角色名已存在",
+	CODE_ROLE_NOT_EXIST:  "角色不存在",
 
 	CODE_CIRCLE_EXIST:                     "圈子已存在",
 	CODE_CIRCLE_TITLE_LEN_INVASLID:        "圈子标题长度错误",
