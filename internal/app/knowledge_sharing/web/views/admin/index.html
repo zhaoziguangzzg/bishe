@@ -1538,17 +1538,41 @@
                 html += `
                     <div class="role-item" style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 16px; font-weight: 600; color: #333;">${escapeHtml(role.roleName || '--')}</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #667eea; cursor: pointer;" onclick="viewRoleDetail(${role.id})">${escapeHtml(role.roleName || '--')}</span>
                             <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: ${role.isDeleted === 0 ? '#e6f7e6' : '#fff1e6'}; color: ${role.isDeleted === 0 ? '#52c41a' : '#fa8c16'};">${role.isDeleted === 0 ? '启用' : '禁用'}</span>
                         </div>
                         <div style="font-size: 13px; color: #909399; margin-bottom: 4px;">权限IDs: ${midsDisplay}</div>
                         <div style="font-size: 13px; color: #909399; margin-bottom: 8px;">创建时间: ${createAt}</div>
-                        <button class="btn-edit" onclick="deleteRole(${role.id})">删除</button>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn-edit" onclick="editRole(${role.id})">更新</button>
+                            <button class="btn-edit" onclick="deleteRole(${role.id})" style="background: #f56c6c;">删除</button>
+                        </div>
                     </div>
                 `;
             });
             html += '</div>';
             listContainer.innerHTML = html;
+        }
+
+        async function viewRoleDetail(roleId) {
+            try {
+                const response = await axios.get('/api/adminrole/get', {
+                    params: { role_id: roleId }
+                });
+
+                if (response.data.code === 0) {
+                    const role = response.data.data.role;
+                    alert('角色详情: ' + role.roleName + '\n权限IDs: ' + (role.mids || '--'));
+                } else {
+                    alert(response.data.message || '获取角色详情失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        function editRole(roleId) {
+            window.location.href = '/page/adminrole/edit?id=' + roleId;
         }
 
         async function deleteRole(roleId) {
@@ -1645,17 +1669,14 @@
                 return;
             }
 
-            const mids = Array.from(checkboxes).map(cb => cb.value).join('_');
+            const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
             try {
-                const formData = new URLSearchParams();
+                const formData = new FormData();
                 formData.append('role_name', name);
-                formData.append('mids', mids);
-                const response = await axios.post('/api/adminrole/add', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
+                mids.forEach(mid => formData.append('mids', mid));
+
+                const response = await axios.post('/api/adminrole/add', formData);
 
                 if (response.data.code === 0) {
                     successMsg.textContent = '创建成功';
