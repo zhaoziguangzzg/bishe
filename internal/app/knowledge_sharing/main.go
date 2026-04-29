@@ -289,6 +289,11 @@ func main() {
 	adminPage.GET("/index", controller.AdminIndexPageHandler)
 	adminPage.GET("/edit", controller.AdminEditPageHandler)
 
+	//角色权限
+	adminRolePage := r.Group("/page/adminrole")
+	adminRolePage.Use(middleware.MiddlewareAdminUserLoginPage())
+	adminRolePage.GET("/edit", controller.AdminRoleEditPageHandler)
+
 	r.POST("/api/adminuser/add", controller.AddAdminUserHandler)      //添加管理员用户信息
 	r.POST("/api/adminuser/login", controller.AdminUserLoginHandler)  //管理员用户登录
 	r.GET("/api/adminuser/logout", controller.AdminUserLogoutHandler) //管理员用户退出登录
@@ -313,6 +318,7 @@ func main() {
 	adminUserRoleLoginApi.GET("/all", controller.GetAllRoleHandler)     //获取全部角色
 	adminUserRoleLoginApi.GET("/get", controller.GetRoleHandler)        //获取角色详情
 	adminUserRoleLoginApi.POST("/add", controller.AddRoleHandler)       //添加角色
+	adminUserRoleLoginApi.POST("/update", controller.UpdateRoleHandler) //更新角色
 	adminUserRoleLoginApi.POST("/delete", controller.DeleteRoleHandler) //删除角色
 
 	//公告

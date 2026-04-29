@@ -34,6 +34,12 @@ func UpdateRoleNotDeletedById(id int, isDeleted int) (err error) {
 	return
 }
 
+// 更新角色权限
+func UpdateRoleMidsById(id int, mids string) (err error) {
+	err = DB.Model(&model.Role{}).Where("id=?", id).Update("mids", mids).Error
+	return
+}
+
 // 获取全部权限角色
 func GetAllRole(page int, pagesize int) (roles []model.Role, err error) {
 	offset := (page - 1) * pagesize

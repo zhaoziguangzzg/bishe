@@ -20,6 +20,11 @@ func UpdateRoleNotDeletedById(id int, isDeleted int) (err error) {
 	return mysql.UpdateRoleNotDeletedById(id, isDeleted)
 }
 
+// 更新角色权限
+func UpdateRoleMidsById(id int, mids string) (err error) {
+	return mysql.UpdateRoleMidsById(id, mids)
+}
+
 // 获取全部权限角色
 func GetAllRole(page int, pagesize int) (roles []model.Role, err error) {
 	offset := (page - 1) * pagesize

@@ -4,6 +4,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,11 +20,19 @@ func AddRoleHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO传数组，自己拼mids
-	mids := c.PostForm("mids")
-	if mids == "" {
+	mids := c.PostFormArray("mids")
+	if len(mids) == 0 {
 		MakeApiResponseErrorParams(c)
 		return
+	}
+
+	var midsStr string
+	for i, mid := range mids {
+		if i == 0 {
+			midsStr += mid
+		} else {
+			midsStr += "_" + mid
+		}
 	}
 
 	//查询name是否存在
@@ -60,7 +69,7 @@ func AddRoleHandler(c *gin.Context) {
 
 	newRole := &model.Role{ //其中包含自动生成的id
 		RoleName:  name,
-		Mids:      mids,
+		Mids:      midsStr,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
 		IsDeleted: model.IS_DELETED_NO,
@@ -79,6 +88,59 @@ func AddRoleHandler(c *gin.Context) {
 }
 
 // 更新角色权限
+func UpdateRoleHandler(c *gin.Context) {
+
+	roleIdStr := c.PostForm("role_id")
+	if roleIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	id, err := strconv.Atoi(roleIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	mids := c.PostFormArray("mids")
+	if len(mids) == 0 {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	var midsStr string
+	for i, mid := range mids {
+		if i == 0 {
+			midsStr += mid
+		} else {
+			midsStr += "_" + mid
+		}
+	}
+
+	//查询角色是否存在
+	role, err := service.GetRoleNotDeletedById(id)
+	if err != nil {
+		service.Logger.Error("GetRoleNotDeletedById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if role == nil {
+		MakeApiResponseError(c, CODE_ROLE_NOT_EXIST)
+		return
+	}
+
+	//更新mids
+	err = service.UpdateRoleMidsById(id, midsStr)
+	if err != nil {
+		service.Logger.Error("UpdateRoleMidsById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+
+}
 
 // 获取全部权限角色
 func GetAllRoleHandler(c *gin.Context) {
@@ -107,7 +169,7 @@ func GetAllRoleHandler(c *gin.Context) {
 
 // 根据角色ID查询权限角色信息
 func GetRoleHandler(c *gin.Context) {
-	idStr := c.PostForm("role_id")
+	idStr := c.Query("role_id")
 	if idStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -131,8 +193,21 @@ func GetRoleHandler(c *gin.Context) {
 		return
 	}
 
+	//将mids字符串转换为int切片
+	midsSlice := strings.Split(role.Mids, "_")
+	midsInt := make([]int, 0)
+	for _, midStr := range midsSlice {
+		midInt, err := strconv.Atoi(midStr)
+		if err != nil {
+			MakeApiResponseErrorParams(c)
+			return
+		}
+		midsInt = append(midsInt, midInt)
+	}
+
 	data := map[string]interface{}{
 		"role": role,
+		"mids": midsInt,
 	}
 
 	MakeApiResponseSuccess(c, data)
