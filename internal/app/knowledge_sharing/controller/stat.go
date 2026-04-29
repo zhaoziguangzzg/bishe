@@ -12,11 +12,7 @@ import (
 
 // 获取用户全部数据详情
 func GetUserStatDetailsListByTimeHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	stimeStr := c.Query("stime")
 	if stimeStr == "" {
@@ -33,16 +29,16 @@ func GetUserStatDetailsListByTimeHandler(c *gin.Context) {
 	now := time.Now()
 	stime := now.AddDate(0, 0, -stimeInt)
 
-	// 获取近期各类型数据
-	results, err := service.GetStatDetailsByType(uid, stime)
+	// 获取近期各类型按日期数据
+	results, err := service.GetStatDetailsByDateType(uid, stime)
 	if err != nil {
-		service.Logger.Error("GetStatDetailsByType", zap.Error(err))
+		service.Logger.Error("GetStatDetailsByDateType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
 	if len(results) == 0 {
-		results = make([]model.StatDetailsTypeCount, 0)
+		results = make([]model.StatDetailsDateCount, 0)
 	}
 
 	data := map[string]interface{}{
@@ -54,6 +50,7 @@ func GetUserStatDetailsListByTimeHandler(c *gin.Context) {
 
 // 通过uid获取用户数据总数Map
 func GetUserStatMapByUidHandler(c *gin.Context) {
+	// 从请求参数中获取uid
 	uidStr := c.Query("uid")
 	if uidStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -87,11 +84,7 @@ func GetUserStatMapByUidHandler(c *gin.Context) {
 
 // 获取用户数据总数Map
 func GetUserStatMapHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	//根据uid,type获取UserStatMap
 	userStatMap, err := service.GetUserStatMapByType(uid)

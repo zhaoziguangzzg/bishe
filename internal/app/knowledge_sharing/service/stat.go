@@ -36,6 +36,11 @@ func GetStatDetailsByType(uid int, stime time.Time) (results []model.StatDetails
 	return mysql.GetStatDetailsByType(uid, stime)
 }
 
+// 获取近期各类型按日期统计数据
+func GetStatDetailsByDateType(uid int, stime time.Time) (results []model.StatDetailsDateCount, err error) {
+	return mysql.GetStatDetailsByDateType(uid, stime)
+}
+
 // 更新数据总数和详情
 func UpdateStatAndStatDetail(uid int, typei int, statStatus int, createTime time.Time) (err error) {
 	num := 1

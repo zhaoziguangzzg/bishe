@@ -47,3 +47,10 @@ type StatDetailsTypeCount struct {
 	Type  int `json:"type"`
 	Total int `json:"total"`
 }
+
+// 按日期统计详情结构体
+type StatDetailsDateCount struct {
+	Type  int    `json:"type"`
+	Date  string `json:"date"`
+	Total int    `json:"total"`
+}
