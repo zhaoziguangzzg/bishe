@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑角色权限 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .edit-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .edit-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #667eea;
+        }
+        .form-group input:disabled {
+            background: #f5f7fa;
+            color: #999;
+        }
+        .permission-checkbox {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .permission-item {
+            margin-bottom: 12px;
+        }
+        .permission-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .permission-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error-tip {
+            color: #ff4d4f;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #52c41a;
+            font-size: 14px;
+            margin-top: 16px;
+            text-align: center;
+            display: none;
+        }
+        .success-tip.show {
+            display: block;
+        }
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/page/admin/index">← 返回后台管理</a>
+        <span>编辑角色权限</span>
+        <div></div>
+    </div>
+
+    <div class="container">
+        <div class="edit-card">
+            <h2>修改角色权限</h2>
+
+            <div class="form-group">
+                <label>角色名称</label>
+                <input id="roleName" type="text" disabled/>
+            </div>
+
+            <div class="form-group">
+                <label>选择权限</label>
+                <div id="permissionCheckboxes" class="permission-checkbox">
+                    <div class="loading-state">加载中...</div>
+                </div>
+            </div>
+
+            <p id="errorMsg" class="error-tip"></p>
+            <p id="successMsg" class="success-tip"></p>
+
+            <button type="button" id="saveBtn" class="btn" onclick="submitUpdateRole()">保存修改</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleId = urlParams.get('id');
+        let currentRole = null;
+
+        async function loadRoleDetail() {
+            try {
+                const response = await axios.get('/api/adminrole/get', {
+                    params: { role_id: roleId }
+                });
+
+                if (response.data.code === 0) {
+                    currentRole = response.data.data.role;
+                    document.getElementById('roleName').value = currentRole.roleName || '';
+                    loadPermissions();
+                } else {
+                    showError(response.data.message || '获取角色信息失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+            }
+        }
+
+        async function loadPermissions() {
+            try {
+                const response = await axios.get('/api/adminmenu/all');
+
+                if (response.data.code === 0) {
+                    const menus = response.data.data.menus || [];
+                    renderPermissionCheckboxes(menus);
+                } else {
+                    showError('获取权限列表失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+            }
+        }
+
+        function renderPermissionCheckboxes(menus) {
+            const container = document.getElementById('permissionCheckboxes');
+
+            if (!menus || menus.length === 0) {
+                container.innerHTML = '<div class="loading-state">暂无权限</div>';
+                return;
+            }
+
+            const activeMenus = menus.filter(m => m.isDeleted === 0);
+            if (activeMenus.length === 0) {
+                container.innerHTML = '<div class="loading-state">暂无权限</div>';
+                return;
+            }
+
+            const currentMids = currentRole && currentRole.mids ? currentRole.mids.split('_') : [];
+
+            let html = '';
+            activeMenus.forEach(menu => {
+                const checked = currentMids.includes(String(menu.id)) ? 'checked' : '';
+                html += `
+                    <div class="permission-item">
+                        <label>
+                            <input type="checkbox" name="permission" value="${menu.id}" ${checked}/>
+                            <span>${menu.menuName || '--'}</span>
+                            <span style="color: #909399; font-size: 12px;">(${menu.path || '--'})</span>
+                        </label>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function submitUpdateRole() {
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+
+            errorMsg.classList.remove('show');
+            successMsg.classList.remove('show');
+
+            const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
+            if (checkboxes.length === 0) {
+                showError('请至少选择一个权限');
+                return;
+            }
+
+            const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            try {
+                const formData = new FormData();
+                formData.append('role_id', roleId);
+                mids.forEach(mid => formData.append('mids', mid));
+
+                const response = await axios.post('/api/adminrole/update', formData);
+
+                if (response.data.code === 0) {
+                    successMsg.textContent = '更新成功';
+                    successMsg.classList.add('show');
+                    setTimeout(() => {
+                        window.location.href = '/page/admin/index';
+                    }, 1500);
+                } else {
+                    showError(response.data.message || '更新失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+            }
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = msg;
+            errorMsg.classList.add('show');
+        }
+
+        loadRoleDetail();
+    </script>
+</body>
+</html>
