@@ -13,3 +13,7 @@ func AdminIndexPageHandler(c *gin.Context) {
 func AdminEditPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "admin/edit.html", nil)
 }
+
+func AdminRoleEditPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminrole/edit.html", nil)
+}

@@ -43,11 +43,7 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	// 用户创建圈子之前，判断isdelete
 
@@ -241,11 +237,7 @@ func GetCircleHandler(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	//根据uidcid获取用户加入
 	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
@@ -303,11 +295,7 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 	page := GetPage(pageStr)
 	pagesize := 5
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	//获取用户创建的圈子
 	circles, err := service.GetUserCreateCircleByUid(uid, page, pagesize)
@@ -337,11 +325,7 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 
 	pagesize := 5
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	//根据uid获取用户加入的圈子列表
 	circles, err := service.GetUserJoinCircleListByUid(uid, page, pagesize)
