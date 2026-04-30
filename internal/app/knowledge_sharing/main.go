@@ -95,7 +95,8 @@ func main() {
 	circleOwnerApi.POST("/update", controller.UpdateCircleHandler)
 
 	//用户加入圈子
-	r.POST("/api/usercircle/add", middleware.MiddlewareUserLoginApi(), controller.AddUserCircleJoinHandle) //创建用户加入圈子
+	r.POST("/api/usercircle/add", middleware.MiddlewareUserLoginApi(),
+		controller.AddUserCircleJoinHandle) //创建用户加入圈子
 	//用户退出圈子
 	r.POST("/api/usercircle/quit", middleware.MiddlewareUserLoginApi(), middleware.MiddlewareIsJoinCircleApi(),
 		controller.QuitCircleHandler)
@@ -122,7 +123,8 @@ func main() {
 	//周刊
 	r.POST("/api/essay/update-weekly", middleware.MiddlewareUserLoginApi(), middleware.MiddlewareIsJoinCircleApi(),
 		middleware.MiddlewareIsCircleOwnerApi(), controller.UpdateEssayWeeklyHandler) //将文章添加周刊
-	r.GET("/api/essay/get-weekly", middleware.MiddlewareUserLoginApi(), controller.GetEssayWeeklylistHandler) //获取文章周刊
+	r.GET("/api/essay/get-weekly", middleware.MiddlewareUserLoginApi(),
+		controller.GetEssayWeeklylistHandler) //获取文章周刊
 	//精粹
 	r.POST("/api/essay/update-essence", middleware.MiddlewareUserLoginApi(), middleware.MiddlewareIsJoinCircleApi(),
 		middleware.MiddlewareIsCircleOwnerApi(), controller.UpdateEssayEssenceHandler) //将文章添加精粹
@@ -228,11 +230,11 @@ func main() {
 	userAccusationLoginApi.GET("/all", controller.GetAllAccusationEssayHandler)       //获取全部未审核举报
 	userAccusationLoginApi.GET("/get", controller.GetEssayContentByAccusationHandler) //获取举报内容文章
 
-	//反馈
+	//反馈//TODO
 	userFeedbackLoginPage := r.Group("/page/feedback")
 	userFeedbackLoginPage.Use(middleware.MiddlewareUserLoginPage())
-	userFeedbackLoginPage.POST("/add", controller.AddUserFeedbackHandler) //创建反馈
-	userFeedbackLoginPage.GET("/all", controller.GetAllFeedbackHandler)   //获取全部未处理反馈
+	userFeedbackLoginPage.POST("/index", controller.FeedbackIndexPageHandler)  //创建反馈页面
+	userFeedbackLoginPage.GET("/detail", controller.FeedbackDetailPageHandler) //获取反馈详情
 	r.GET("/page/feedback/edit", middleware.MiddlewareAdminUserLoginPage(), controller.FeedbackEditPageHandler)
 
 	userFeedbackLoginApi := r.Group("/api/feedback")

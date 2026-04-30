@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>创建文章 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -83,13 +85,28 @@
             transition: border-color 0.3s;
             font-family: inherit;
         }
-        .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea,
+        .form-group input:focus {
             border-color: #667eea;
         }
         .form-group textarea {
             min-height: 200px;
             resize: vertical;
+        }
+        #editor-wrapper {
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            overflow: hidden;
+            min-height: 300px;
+        }
+        #editor-wrapper .ql-container {
+            height: 250px;
+        }
+        #editor-wrapper .ql-toolbar {
+            border-radius: 6px 6px 0 0;
+        }
+        #editor-wrapper .ql-container.ql-snow {
+            border-radius: 0 0 6px 6px;
         }
         .form-group .hint {
             color: #909399;
@@ -168,8 +185,10 @@
 
                 <div class="form-group">
                     <label for="content">文章内容</label>
-                    <textarea id="content" name="content" placeholder="请输入文章内容" maxlength="200"></textarea>
-                    <div class="hint">最多200个字符</div>
+                    <div id="editor-wrapper">
+                        <div id="editor"></div>
+                    </div>
+                    <div class="hint">请输入文章内容，建议使用富文本格式</div>
                     <div class="error-tip" id="contentError"></div>
                 </div>
 
@@ -191,6 +210,69 @@
         const successTip = document.getElementById('successTip');
         const circleInfo = document.getElementById('circleInfo');
         const backLink = document.getElementById('backLink');
+
+        let editor;
+
+        function initEditor() {
+            if (typeof Quill === 'undefined') {
+                console.error('Quill未加载');
+                return;
+            }
+            editor = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: '请输入文章内容...',
+                modules: {                                                                                   
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                        ['blockquote', 'code-block'],
+                        ['link', 'image', 'video'],
+
+                        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                        [{ 'direction': 'rtl' }],                         // text direction
+
+                        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                        [{ 'font': [] }],
+                        [{ 'align': [] }],
+
+                        ['clean']
+                    ]
+                    
+                }
+            });
+
+            const imageHandler = function() {
+                const range = editor.getSelection();
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function() {
+                    const file = input.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const base64 = e.target.result;
+                            editor.insertEmbed(range.index, 'image', base64);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            };
+
+            editor.getModule('toolbar').addHandler('image', imageHandler);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initEditor);
+        } else {
+            initEditor();
+        }
 
         if (!cid) {
             circleInfo.textContent = '未指定所属圈子，请从圈子详情页进入创建文章';
@@ -219,7 +301,7 @@
 
         function validateForm() {
             const title = document.getElementById('title').value.trim();
-            const content = document.getElementById('content').value.trim();
+            const content = editor.root.innerHTML;
 
             if (!title) {
                 showError('titleError', '请输入文章标题');
@@ -229,12 +311,9 @@
                 showError('titleError', '文章标题最多100个字符');
                 return false;
             }
-            if (!content) {
+            const plainText = editor.getText().trim();
+            if (!plainText) {
                 showError('contentError', '请输入文章内容');
-                return false;
-            }
-            if (content.length > 200) {
-                showError('contentError', '文章内容最多200个字符');
                 return false;
             }
 
@@ -253,14 +332,13 @@
             submitBtn.disabled = true;
             submitBtn.textContent = '创建中...';
 
-            const formData = new FormData(form);
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value.trim());
+            formData.append('content', editor.root.innerHTML);
+            formData.append('cid', document.getElementById('cid').value);
 
             try {
-                const response = await axios.post('/api/essay/add', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
+                const response = await axios.post('/api/essay/add', formData);
 
                 if (response.data.code === 0) {
                     successTip.classList.add('show');

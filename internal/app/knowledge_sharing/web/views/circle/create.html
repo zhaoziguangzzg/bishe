@@ -157,6 +157,21 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+        .add-circle-btn {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        .add-circle-btn:hover {
+            opacity: 0.9;
+        }
         .essay-list {
             display: flex;
             flex-direction: column;
@@ -772,6 +787,7 @@
             <div class="card">
                 <div class="card-title">创建的圈子</div>
                 <ul class="circle-list" id="circleList"></ul>
+                <a href="/page/circle/add" class="add-circle-btn">添加圈子</a>
             </div>
         </div>
 
