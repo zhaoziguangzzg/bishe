@@ -25,11 +25,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	// 用户加入圈子之前，判断join_status 是否=1
 	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
@@ -109,11 +105,7 @@ func QuitCircleHandler(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	// 获取用户是否加入圈子
 	// 用户加入圈子之前，判断not_join_status 是否=0

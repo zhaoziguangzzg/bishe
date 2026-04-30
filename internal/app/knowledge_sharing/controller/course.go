@@ -40,11 +40,7 @@ func AddCourseHandler(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	createTime := time.Now()
 
@@ -96,11 +92,7 @@ func GetAllCourseHandler(c *gin.Context) {
 
 // 根据uid获取用户发布的课程列表
 func GetUserAllCourseByUidHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	statusStr := c.Query("status")
 	if statusStr == "" {
@@ -329,11 +321,7 @@ func GetCourseAllLessonHandler(c *gin.Context) {
 
 // 购买课程
 func AddPurchaseHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	cidStr := c.PostForm("cid")
 	if cidStr == "" {
@@ -396,11 +384,7 @@ func AddPurchaseHandler(c *gin.Context) {
 
 // 获取购买记录
 func GetPurchaseHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	cidStr := c.Query("course_id")
 	if cidStr == "" {
@@ -439,11 +423,7 @@ func GetPurchaseHandler(c *gin.Context) {
 
 // 获取用户购买课程列表
 func GetUserPurchaseListHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	statusStr := c.Query("status")
 	if statusStr == "" {

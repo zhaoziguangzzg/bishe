@@ -12,11 +12,7 @@ import (
 
 // 创建举报
 func AddUserAccusationEssayHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {

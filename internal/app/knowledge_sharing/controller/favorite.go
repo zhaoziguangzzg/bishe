@@ -21,11 +21,7 @@ func AddFavoriteHandler(c *gin.Context) { //c
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	// 用户创建收藏夹之前，判断Favorite
 	favorite, err := service.GetFavoriteByTitle(title, uid)

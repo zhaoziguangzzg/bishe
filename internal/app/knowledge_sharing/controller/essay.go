@@ -40,11 +40,7 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	createTime := time.Now()
 
@@ -162,11 +158,7 @@ func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 
 // 获取全部用户文章列表
 func GetUserAllEssayHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

@@ -12,11 +12,7 @@ import (
 
 // 用户在文章的评论
 func AddUserEssayCommentHandle(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -249,11 +245,7 @@ func GetEssayAllCommentHandle(c *gin.Context) {
 
 // 获取用户全部评论列表
 func GetUserAllCommentHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := c.GetInt("uid")
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
