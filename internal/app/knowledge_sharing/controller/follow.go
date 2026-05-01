@@ -12,19 +12,8 @@ import (
 
 // 添加关注
 func AddUserFollowHandler(c *gin.Context) {
-	uid, userName, isExpired, err := service.GetUserCookie(c)
-	if err != nil {
-		service.Logger.Error("GetUserCookie", zap.Error(err))
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	//判断是否过期
-	if isExpired {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-	if uid == 0 || userName == "" {
+	uid := service.GetUidFromContext(c)
+	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
@@ -40,6 +29,9 @@ func AddUserFollowHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+
+	//从context获取用户名
+	userName := service.GetNameFromContext(c)
 
 	//查询用户的关注
 	follow, err := service.GetUserFollow(uid, followerId)
@@ -116,7 +108,7 @@ func AddUserFollowHandler(c *gin.Context) {
 
 // 取消关注
 func CancelUserFollowHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	followerIdStr := c.PostForm("followerId")
 	if followerIdStr == "" {
@@ -143,7 +135,7 @@ func CancelUserFollowHandler(c *gin.Context) {
 
 // 用户关注状态
 func GetUserFollowHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	followerIdStr := c.Query("followerId")
 	if followerIdStr == "" {
@@ -180,7 +172,7 @@ func GetUserFollowHandler(c *gin.Context) {
 
 // 用户关注列表
 func GetUserAllFollowHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -206,7 +198,7 @@ func GetUserAllFollowHandler(c *gin.Context) {
 
 // 用户粉丝列表
 func GetUserAllFanHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

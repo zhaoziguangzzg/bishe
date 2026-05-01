@@ -43,7 +43,7 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	// 用户创建圈子之前，判断isdelete
 
@@ -237,7 +237,7 @@ func GetCircleHandler(c *gin.Context) {
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	//根据uidcid获取用户加入
 	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
@@ -295,7 +295,7 @@ func GetUserCreateCircleHandler(c *gin.Context) {
 	page := GetPage(pageStr)
 	pagesize := 5
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	//获取用户创建的圈子
 	circles, err := service.GetUserCreateCircleByUid(uid, page, pagesize)
@@ -325,7 +325,7 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 
 	pagesize := 5
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	//根据uid获取用户加入的圈子列表
 	circles, err := service.GetUserJoinCircleListByUid(uid, page, pagesize)

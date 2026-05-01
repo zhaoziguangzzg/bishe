@@ -12,11 +12,7 @@ import (
 
 // 添加支付
 func AddOrdersHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.PostForm("cid")
 	if cidStr == "" {
@@ -83,11 +79,7 @@ func AddOrdersHandler(c *gin.Context) {
 
 // 获取用户全部支付列表
 func GetUserAllOrdersHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -148,11 +140,7 @@ func GetOrdersHandler(c *gin.Context) {
 
 // 用户支付更新
 func UpdateUserOrdersHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.PostForm("cid")
 	if cidStr == "" {
@@ -244,11 +232,7 @@ func UpdateUserOrdersHandler(c *gin.Context) {
 
 // 获取圈子待续费
 func GetUserOrdersCircleHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {
@@ -296,32 +280,16 @@ func GetUserOrdersCircleHandler(c *gin.Context) {
 	var endTime time.Time
 	endTime = *userCircleJoin.EndTime
 	eTime := endTime.AddDate(0, -1, 0)
+	need := false
 
-	if nowTime.After(endTime) {
-		MakeApiResponseError(c, CODE_USER_CIRCLE_RENEW)
-		return
-	} else if eTime.After(nowTime) {
-		MakeApiResponseError(c, CODE_USER_CIRCLE_RENEW)
-		return
+	if nowTime.After(eTime) {
+		need = true
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	data := map[string]bool{
+		"need": need,
+	}
 
-	// joinMap := make(map[int]model.UserCircleJoin, 0)
-	// for _, v := range userCircleJoins {
-	// 	joinMap[v.CircleId] = v
-	// }
-
-	// var userJoins []model.UserCircleJoin
-	// for _, v := range circles {
-	// 	userCircleJoin, ok := joinMap[v.Id]
-	// 	if ok {
-	// 		userJoins = append(userJoins, userCircleJoin)
-	// 	}
-	// }
-
-	// for _, v := range userJoins {
-
-	// }
+	MakeApiResponseSuccess(c, data)
 
 }

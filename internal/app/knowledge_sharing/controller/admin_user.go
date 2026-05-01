@@ -140,7 +140,7 @@ func AdminUserLogoutHandler(c *gin.Context) {
 // 获取用户
 func GetAdminUserHandler(c *gin.Context) {
 	//从cookie获取用户信息
-	uid := c.GetInt("admin_uid")
+	uid := service.GetAdminUidFromContext(c)
 
 	//从数据库获取用户信息
 	adminUser, err := service.GetAdminUserByUserId(uid)
@@ -166,7 +166,7 @@ func GetAdminUserHandler(c *gin.Context) {
 // 更新用户信息
 func UpdateAdminUserHandler(c *gin.Context) {
 	//从cookie获取用户登录信息，是验证登录
-	uid := c.GetInt("admin_uid")
+	uid := service.GetAdminUidFromContext(c)
 
 	userName := c.PostForm("name")
 	email := c.PostForm("email")
@@ -285,7 +285,7 @@ func DeleteAdminUserHandler(c *gin.Context) {
 
 // 修改管理员用户角色
 func UpdateAdminUserRoleHandler(c *gin.Context) {
-	uid := c.GetInt("admin_uid")
+	uid := service.GetAdminUidFromContext(c)
 
 	roleIdStr := c.PostForm("role_id")
 	if roleIdStr == "" {

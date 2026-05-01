@@ -33,11 +33,7 @@ func CreateInformationHandle(c *gin.Context) {
 		return
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	createTime := time.Now()
 
@@ -64,11 +60,7 @@ func CreateInformationHandle(c *gin.Context) {
 
 // 获取消息联系人列表
 func GetInformationUsersHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -97,12 +89,7 @@ func GetInformationUsersHandler(c *gin.Context) {
 
 // 获取用户接收消息
 func GetUserReceiveInformationHandler(c *gin.Context) {
-	//获取uid
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	sendIdStr := c.Query("send_id")
 	if sendIdStr == "" {
@@ -142,12 +129,7 @@ func GetUserReceiveInformationHandler(c *gin.Context) {
 
 // 获取与某人消息
 func GetUserSendInformationHandler(c *gin.Context) {
-	//获取uid
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	receiveIdStr := c.Query("receive_id")
 	if receiveIdStr == "" {
@@ -188,11 +170,7 @@ func GetUserSendInformationHandler(c *gin.Context) {
 
 // 获取用户的消息记录
 func GetUserAllInformationHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

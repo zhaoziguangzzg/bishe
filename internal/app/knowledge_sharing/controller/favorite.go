@@ -21,7 +21,7 @@ func AddFavoriteHandler(c *gin.Context) { //c
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	// 用户创建收藏夹之前，判断Favorite
 	favorite, err := service.GetFavoriteByTitle(title, uid)
@@ -129,7 +129,7 @@ func DeletedFavoriteByUpdateIsDeletedHandler(c *gin.Context) {
 
 // 获取用户全部的收藏夹
 func GetUserAllFavoriteHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

@@ -11,11 +11,7 @@ import (
 
 // 获取用户在圈子全部等级详情
 func GetUserCircleLevelAllRecordHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {

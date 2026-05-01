@@ -40,7 +40,7 @@ func AddCourseHandler(c *gin.Context) {
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	createTime := time.Now()
 
@@ -92,7 +92,7 @@ func GetAllCourseHandler(c *gin.Context) {
 
 // 根据uid获取用户发布的课程列表
 func GetUserAllCourseByUidHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	statusStr := c.Query("status")
 	if statusStr == "" {
@@ -191,7 +191,7 @@ func GetCourseHandler(c *gin.Context) {
 		course = &model.Course{}
 	}
 
-	uid, _ := service.GetUserFromCookie(c)
+	uid := service.GetUidFromContext(c)
 	isOwner := course.Uid == uid
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
@@ -321,7 +321,7 @@ func GetCourseAllLessonHandler(c *gin.Context) {
 
 // 购买课程
 func AddPurchaseHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.PostForm("cid")
 	if cidStr == "" {
@@ -384,7 +384,7 @@ func AddPurchaseHandler(c *gin.Context) {
 
 // 获取购买记录
 func GetPurchaseHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.Query("course_id")
 	if cidStr == "" {
@@ -423,7 +423,7 @@ func GetPurchaseHandler(c *gin.Context) {
 
 // 获取用户购买课程列表
 func GetUserPurchaseListHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	statusStr := c.Query("status")
 	if statusStr == "" {

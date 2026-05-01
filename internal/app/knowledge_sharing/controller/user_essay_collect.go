@@ -12,7 +12,7 @@ import (
 
 // 用户收藏的文章
 func AddUserEssayCollectHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -108,7 +108,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 
 // 取消用户收藏
 func CancelEssayCollectHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -163,7 +163,7 @@ func CancelEssayCollectHandler(c *gin.Context) {
 
 // 获取用户文章是否收藏
 func GetEssayCollectHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
@@ -213,7 +213,7 @@ func GetUserAllCollectHandler(c *gin.Context) {
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

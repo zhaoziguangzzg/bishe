@@ -12,11 +12,7 @@ import (
 
 // 发私信消息
 func AddChatHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	content := c.PostForm("content")
 
@@ -80,11 +76,7 @@ func AddChatHandler(c *gin.Context) {
 
 // 获取私信记录
 func GetChatListHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

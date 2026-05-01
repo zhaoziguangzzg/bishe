@@ -12,7 +12,7 @@ import (
 
 // 创建举报
 func AddUserAccusationEssayHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {

@@ -9,7 +9,7 @@ import (
 )
 
 // 页面检查管理员用户登录
-func MiddlewareAdminUserLoginPage() gin.HandlerFunc {
+func PageAdminUserLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid, name, isExpired, err := service.GetAdminUserJwtCookie(c)
 		if err != nil {
@@ -24,15 +24,15 @@ func MiddlewareAdminUserLoginPage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("admin_uid", uid)
-		c.Set("admin_name", name)
+		service.SetAdminUidToContext(c, uid)
+		service.SetAdminNameToContext(c, name)
 
 		c.Next()
 	}
 }
 
 // 接口检查管理员用户登录
-func MiddlewareAdminUserLoginApi() gin.HandlerFunc {
+func ApiAdminUserLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid, name, isExpired, err := service.GetAdminUserJwtCookie(c)
 		if err != nil {
@@ -47,8 +47,8 @@ func MiddlewareAdminUserLoginApi() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("admin_uid", uid)
-		c.Set("admin_name", name)
+		service.SetAdminUidToContext(c, uid)
+		service.SetAdminNameToContext(c, name)
 
 		c.Next()
 	}

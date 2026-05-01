@@ -114,7 +114,7 @@ func GetAllAnnounceByTimeHandler(c *gin.Context) {
 	})
 }
 
-// 获取全部显示公告列表
+// 获取全部公告列表
 func GetAllAnnounceHandler(c *gin.Context) {
 
 	pageStr := c.Query("page")

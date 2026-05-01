@@ -40,7 +40,7 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	createTime := time.Now()
 
@@ -158,7 +158,7 @@ func DeletedEssayByUpdateIsDeletedHandler(c *gin.Context) {
 
 // 获取全部用户文章列表
 func GetUserAllEssayHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -266,7 +266,7 @@ func GetEssayHandler(c *gin.Context) {
 
 // 获取圈子全部文章
 func GetCircleAllEssayHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	cidStr := c.Query("cid")
 	if cidStr == "" {
@@ -692,7 +692,7 @@ func GetEssayEssonceHandler(c *gin.Context) {
 
 // 获取文章
 func GetEssayByTitleHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 	if uid == 0 {
 		MakeApiResponseErrorDefault(c)
 		return

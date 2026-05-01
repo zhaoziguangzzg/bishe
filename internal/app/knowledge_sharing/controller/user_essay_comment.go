@@ -12,7 +12,7 @@ import (
 
 // 用户在文章的评论
 func AddUserEssayCommentHandle(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -245,7 +245,7 @@ func GetEssayAllCommentHandle(c *gin.Context) {
 
 // 获取用户全部评论列表
 func GetUserAllCommentHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

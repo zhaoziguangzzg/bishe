@@ -12,22 +12,8 @@ import (
 
 // 用户在文章的喜欢
 func AddUserEssayLikeHandler(c *gin.Context) {
-	uid, name, isExpired, err := service.GetUserCookie(c)
-	if err != nil {
-		service.Logger.Error("GetUserCookie", zap.Error(err))
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-
-	//判断是否过期
-	if isExpired {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
-	if uid == 0 || name == "" {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
+	name := service.GetNameFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -167,7 +153,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 // 取消用户喜欢
 func CancelUserEssayLikeHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -202,7 +188,7 @@ func CancelUserEssayLikeHandler(c *gin.Context) {
 
 // 获取用户文章是否喜欢
 func GetUserEssayLikeHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	eidStr := c.Query("eid")
 	if eidStr == "" {
@@ -237,7 +223,7 @@ func GetUserEssayLikeHandler(c *gin.Context) {
 
 // 获取用户全部喜欢
 func GetUserAllLikeHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

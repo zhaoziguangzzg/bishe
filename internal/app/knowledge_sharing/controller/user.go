@@ -153,7 +153,7 @@ func UserLogoutHandler(c *gin.Context) {
 // 获取用户
 func GetUserHandler(c *gin.Context) {
 	//从cookie获取用户信息
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	//从数据库获取用户信息
 	user, err := service.GetUserByUserId(uid)
@@ -212,13 +212,8 @@ func GetUserByIdHandler(c *gin.Context) {
 
 // 更新用户信息
 func UpdateUserHandler(c *gin.Context) {
-	uid, name, isExpired, err := service.GetUserCookie(c)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	if uid == 0 || name == "" || isExpired == true {
+	uid := service.GetUidFromContext(c)
+	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}
@@ -327,10 +322,8 @@ func UpdateUserHandler(c *gin.Context) {
 
 // 更新用户密码
 func UpdateUserPasswordHandler(c *gin.Context) {
-	//从cookie获取用户登录信息，是验证登录
-	uid, name := service.GetUserFromCookie(c)
-	if uid == 0 || name == "" {
-		//用户未登录
+	uid := service.GetUidFromContext(c)
+	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
 	}

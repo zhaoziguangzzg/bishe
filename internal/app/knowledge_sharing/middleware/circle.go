@@ -11,7 +11,7 @@ import (
 )
 
 // 检查是否加入圈子
-func MiddlewareIsJoinCirclePage() gin.HandlerFunc {
+func PageIsJoinCircle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var cidStr string
 		if c.Request.Method == http.MethodGet {
@@ -33,7 +33,7 @@ func MiddlewareIsJoinCirclePage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("cid", cid)
+		service.SetCidToContext(c, cid)
 
 		circle, err := service.GetCircleByCid(cid)
 		if err != nil {
@@ -42,9 +42,9 @@ func MiddlewareIsJoinCirclePage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("circle", circle)
+		service.SetCircleToContext(c, circle)
 
-		uid := c.GetInt("uid")
+		uid := service.GetUidFromContext(c)
 
 		join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 		if err != nil {
@@ -65,7 +65,7 @@ func MiddlewareIsJoinCirclePage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("isJoinCircle", true)
+		service.SetIsJoinCircleToContext(c, true)
 
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()
@@ -75,7 +75,7 @@ func MiddlewareIsJoinCirclePage() gin.HandlerFunc {
 }
 
 // 检查是否加入圈子
-func MiddlewareIsJoinCircleApi() gin.HandlerFunc {
+func ApiIsJoinCircle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var cidStr string
 		if c.Request.Method == http.MethodGet {
@@ -108,7 +108,7 @@ func MiddlewareIsJoinCircleApi() gin.HandlerFunc {
 
 		service.SetCircleToContext(c, circle)
 
-		uid := c.GetInt("uid")
+		uid := service.GetUidFromContext(c)
 
 		join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 		if err != nil {
@@ -129,7 +129,7 @@ func MiddlewareIsJoinCircleApi() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("isJoinCircle", true)
+		service.SetIsJoinCircleToContext(c, true)
 
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()
@@ -139,11 +139,11 @@ func MiddlewareIsJoinCircleApi() gin.HandlerFunc {
 }
 
 // 检查是否是圈主
-func MiddlewareIsCircleOwnerApi() gin.HandlerFunc {
+func ApiIsCircleOwner() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		circle, _ := service.GetCircleFromContext(c)
 
-		uid := c.GetInt("uid")
+		uid := service.GetUidFromContext(c)
 
 		if uid != circle.CircleOwnerId {
 			controller.MakeApiResponseError(c, controller.CODE_USER_NOT_CIRCLE_OWNER)
@@ -151,7 +151,7 @@ func MiddlewareIsCircleOwnerApi() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("isCircleOwner", true)
+		service.SetIsCircleOwnerToContext(c, true)
 
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()
@@ -161,23 +161,16 @@ func MiddlewareIsCircleOwnerApi() gin.HandlerFunc {
 }
 
 // 检查是否是圈主
-func MiddlewareIsCircleOwnerPage() gin.HandlerFunc {
+func PageIsCircleOwner() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		circleAny, ok := c.Get("circle")
+		circle, ok := service.GetCircleFromContext(c)
 		if !ok {
 			c.Redirect(http.StatusFound, service.GetUrlIndex())
 			c.Abort()
 			return
 		}
 
-		circle, ok := circleAny.(*model.Circle)
-		if !ok {
-			c.Redirect(http.StatusFound, service.GetUrlIndex())
-			c.Abort()
-			return
-		}
-
-		uid := c.GetInt("uid")
+		uid := service.GetUidFromContext(c)
 
 		if uid != circle.CircleOwnerId {
 			c.Redirect(http.StatusFound, service.GetUrlCircleIndex(circle.Id))
@@ -185,7 +178,7 @@ func MiddlewareIsCircleOwnerPage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("isCircleOwner", true)
+		service.SetIsCircleOwnerToContext(c, true)
 
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()

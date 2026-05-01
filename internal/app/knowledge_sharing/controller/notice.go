@@ -11,11 +11,7 @@ import (
 
 // 获取通知列表
 func GetNoticeListHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -43,11 +39,7 @@ func GetNoticeListHandler(c *gin.Context) {
 
 // 获取某类型通知列表
 func GetNoticeListByTypeHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	typeStr := c.Query("type")
 	if typeStr == "" {

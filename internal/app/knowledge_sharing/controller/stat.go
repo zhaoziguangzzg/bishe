@@ -12,7 +12,7 @@ import (
 
 // 获取用户全部数据详情
 func GetUserStatDetailsListByTimeHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	stimeStr := c.Query("stime")
 	if stimeStr == "" {
@@ -84,7 +84,7 @@ func GetUserStatMapByUidHandler(c *gin.Context) {
 
 // 获取用户数据总数Map
 func GetUserStatMapHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	//根据uid,type获取UserStatMap
 	userStatMap, err := service.GetUserStatMapByType(uid)

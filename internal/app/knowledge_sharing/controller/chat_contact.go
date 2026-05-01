@@ -12,11 +12,7 @@ import (
 
 // 获取联系人列表
 func GetChatContactListHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -107,11 +103,7 @@ func GetChatContactListHandler(c *gin.Context) {
 
 // 添加联系人
 func AddUserContactHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	// model.Contact
 
@@ -161,11 +153,7 @@ func AddUserContactHandler(c *gin.Context) {
 
 // 删除联系人
 func DeleteUserContactHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	receiveIdStr := c.PostForm("receive_id")
 	if receiveIdStr == "" {
@@ -192,11 +180,7 @@ func DeleteUserContactHandler(c *gin.Context) {
 
 // 获取全部联系人
 func GetUserAllContactHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
-	}
+	uid := service.GetUidFromContext(c)
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)

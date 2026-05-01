@@ -9,8 +9,15 @@ import (
 )
 
 // 接口检查用户登录
-func MiddlewareUserLoginApi() gin.HandlerFunc {
+func ApiUserLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 登录、注册、退出不校验登录状态
+		path := c.Request.URL.Path
+		if path == "/api/user/login" || path == "/api/user/add" || path == "/api/user/logout" {
+			c.Next()
+			return
+		}
+
 		uid, name, isExpired, err := service.GetUserCookie(c)
 		if err != nil {
 			controller.MakeApiResponseErrorDefault(c)
@@ -25,8 +32,8 @@ func MiddlewareUserLoginApi() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("uid", uid)
-		c.Set("name", name)
+		service.SetUidToContext(c, uid)
+		service.SetNameToContext(c, name)
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()
 
@@ -35,8 +42,15 @@ func MiddlewareUserLoginApi() gin.HandlerFunc {
 }
 
 // 在页面检查用户登录
-func MiddlewareUserLoginPage() gin.HandlerFunc {
+func PageUserLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 登录、注册页面不校验登录状态
+		path := c.Request.URL.Path
+		if path == "/page/user/login" || path == "/page/user/register" {
+			c.Next()
+			return
+		}
+
 		uid, name, isExpired, err := service.GetUserCookie(c)
 		if err != nil {
 			//错误就跳转到指定页面
@@ -52,8 +66,8 @@ func MiddlewareUserLoginPage() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("uid", uid)
-		c.Set("name", name)
+		service.SetUidToContext(c, uid)
+		service.SetNameToContext(c, name)
 		// ========= 【2】调用后续的中间件/控制器 =========
 		c.Next()
 

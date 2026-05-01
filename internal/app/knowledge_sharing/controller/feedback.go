@@ -13,7 +13,7 @@ import (
 
 // 创建反馈
 func AddUserFeedbackHandler(c *gin.Context) {
-	uid := c.GetInt("uid")
+	uid := service.GetUidFromContext(c)
 
 	content := c.PostForm("content")
 
@@ -164,7 +164,7 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 
 // 获取当前用户的反馈列表
 func GetFeedbackByUidHandler(c *gin.Context) {
-	uid, _ := service.GetUserFromCookie(c)
+	uid := service.GetUidFromContext(c)
 	if uid == 0 {
 		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
 		return
