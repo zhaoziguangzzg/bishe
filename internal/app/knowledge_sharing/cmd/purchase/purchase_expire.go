@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
@@ -10,6 +10,18 @@ import (
 
 	"go.uber.org/zap"
 )
+
+func main() {
+	err := service.ServiceInit()
+	if err != nil {
+		panic(err)
+	}
+	//main结束之前将日志写到文件
+	defer service.SyncLogger()
+	defer service.Closekafka()
+
+	PurchaseExpire()
+}
 
 // 查询30分钟后未支付的订单
 func PurchaseExpire() {

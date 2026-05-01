@@ -19,6 +19,7 @@ func main() {
 	}
 	//main结束之前将日志写到文件
 	defer service.SyncLogger()
+	defer service.Closekafka()
 
 	//创建 Gin 路由引擎
 	r := gin.Default()

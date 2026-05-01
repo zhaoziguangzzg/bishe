@@ -12,11 +12,30 @@ import (
 
 // 添加关注
 func AddUserFollowHandler(c *gin.Context) {
-	uid := service.GetUidFromContext(c)
-	if uid == 0 {
-		MakeApiResponseError(c, CODE_USER_NOT_LOGIN)
-		return
+	typei := model.STAT_TYPE_FOLLOW
+	//TODO 异步处理
+	for i := 0; i < 10; i++ {
+		nowTime := time.Now()
+		followerId := i
+		userName := strconv.Itoa(i)
+
+		noticeMsg := &model.NoticeMsg{
+			Type:     typei,
+			Uid:      followerId,
+			Time:     nowTime.Unix(),
+			UserName: userName,
+		}
+
+		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)
+		if err != nil {
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
+		}
 	}
+	MakeApiResponseSuccessDefault(c)
+	return
+
+	uid := service.GetUidFromContext(c)
 
 	followerIdStr := c.PostForm("followerId")
 	if followerIdStr == "" {
@@ -41,7 +60,7 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	createTime := time.Now()
+	nowTime := time.Now()
 
 	//仅 不存在，存在状态为删除 两种
 	if follow == nil {
@@ -49,9 +68,9 @@ func AddUserFollowHandler(c *gin.Context) {
 		newFollow := &model.Follow{ //其中包含自动生成的id
 			FanId:        uid,
 			FollowerId:   followerId,
-			FollowTime:   &createTime,
-			CreateAt:     &createTime,
-			UpdateAt:     &createTime,
+			FollowTime:   &nowTime,
+			CreateAt:     &nowTime,
+			UpdateAt:     &nowTime,
 			FollowStatus: model.FOLLOW_STATUS_NORMAL,
 		}
 
@@ -62,15 +81,20 @@ func AddUserFollowHandler(c *gin.Context) {
 			return
 		}
 
-		content := "又有新用户" + userName + "关注啦"
 		typei := model.STAT_TYPE_FOLLOW
+		//TODO 异步处理
 
-		//添加通知
-		err = service.UserAddNotice(followerId, content, typei, createTime)
+		noticeMsg := &model.NoticeMsg{
+			Type:     typei,
+			Uid:      followerId,
+			Time:     nowTime.Unix(),
+			UserName: userName,
+		}
+
+		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)
 		if err != nil {
-			service.Logger.Error("UserAddNotice err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
 		}
 
 	} else {
@@ -84,8 +108,6 @@ func AddUserFollowHandler(c *gin.Context) {
 		}
 
 	}
-
-	nowTime := time.Now()
 
 	//更新关注数据总数和详情
 	err = service.UpdateStatAndStatDetail(uid, model.STAT_TYPE_FOLLOW, model.STAT_DETAILS_STATUS_INCR, nowTime)

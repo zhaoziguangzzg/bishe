@@ -25,13 +25,12 @@ func ServiceInit() (err error) {
 	//初始化 Redis
 	ServiceInitRedis(Cfg.Redis.Addr, Cfg.Redis.Password, Cfg.Redis.DB)
 
-	// //初始化 kafka
-	// err = ServiceInitKafka()
-	// if err != nil {
-	// 	Logger.Error("InitKafka err", zap.Error(err))
-	// 	return
-	// }
-	// defer Closekafka()
+	//初始化 kafka
+	err = ServiceInitKafka()
+	if err != nil {
+		Logger.Error("InitKafka err", zap.Error(err))
+		return
+	}
 
 	return
 }

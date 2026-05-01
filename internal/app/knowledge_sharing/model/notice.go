@@ -21,6 +21,15 @@ type Notice struct {
 	IsDeleted   int        `json:"isDeleted" gorm:"column:is_deleted" mapstructture:"isDeleted"`
 }
 
+type NoticeMsg struct {
+	Type int `json:"type,omitempty"`
+	Uid  int `json:"uid,omitempty"`
+	//产生时间
+	Time int64 `json:"time,omitempty"`
+	//谁关注了uid
+	UserName string `json:"userName,omitempty"`
+}
+
 const (
 	NOTICE_MAX_CONTENT int = 100 //通知最长100字
 
@@ -32,6 +41,8 @@ const (
 	NOTICE_TYPE_FEEDBACK   int = 5 //反馈
 	NOTICE_TYPE_DISPATCH   int = 6 //关注发文
 	NOTICE_TYPE_ESSENCE    int = 7 //加精
+	//通知topic
+	KAFKA_TOPIC_NOTICE string = "topic_user_notice"
 )
 
 // 指定Notice对应的表名
