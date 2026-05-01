@@ -20,3 +20,4 @@ internal/app/knowledge_sharing/*.log
 
 internal/app/knowledge_sharing/cmd/*.exe
 mygo5.log
+mygo.log
