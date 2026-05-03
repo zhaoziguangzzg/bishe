@@ -42,7 +42,6 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 	authorId := essay.AuthorId
 	cid := essay.CircleId
-	title := essay.Title
 
 	var relateId int
 
@@ -54,7 +53,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	createTime := time.Now()
+	nowTime := time.Now()
 
 	//仅 不存在，存在状态为删除 两种
 	if like == nil {
@@ -62,8 +61,8 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		newUserEssayLike := &model.UserEssayLike{ //其中包含自动生成的id
 			UserId:     uid,
 			EssayId:    eid,
-			CreateAt:   &createTime,
-			UpdateAt:   &createTime,
+			CreateAt:   &nowTime,
+			UpdateAt:   &nowTime,
 			LikeStatus: model.LIKE_STATUS_NORMAL,
 		}
 
@@ -74,15 +73,20 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 			return
 		}
 
-		content := "又有新用户" + name + "点赞你的标题为" + title + "的文章了"
 		typei := model.NOTICE_TYPE_LIKE
 
-		//添加通知
-		err = service.UserAddNotice(authorId, content, typei, createTime)
+		//TODO 异步处理
+		noticeMsg := &model.NoticeMsg{
+			Type:     typei,
+			Uid:      authorId,
+			Time:     nowTime.Unix(),
+			UserName: name,
+		}
+
+		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)
 		if err != nil {
-			service.Logger.Error("UserAddNotice err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
 		}
 
 		relateId = newUserEssayLike.Id
@@ -96,7 +100,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		}
 
 		//增加等级详情
-		err = service.UserAddLevelScoreRecord(uid, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKE, createTime)
+		err = service.UserAddLevelScoreRecord(uid, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKE, nowTime)
 		if err != nil {
 			service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -113,7 +117,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		}
 
 		//增加等级详情
-		err = service.UserAddLevelScoreRecord(authorId, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKED, createTime)
+		err = service.UserAddLevelScoreRecord(authorId, cid, score, relateId, model.LEVEL_SCORE_RECORD_TYPE_LIKED, nowTime)
 		if err != nil {
 			service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -133,7 +137,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 	}
 
 	//更新被点赞数据总数和详情
-	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_LIKED, model.STAT_DETAILS_STATUS_INCR, createTime)
+	err = service.UpdateStatAndStatDetail(essay.AuthorId, model.STAT_TYPE_LIKED, model.STAT_DETAILS_STATUS_INCR, nowTime)
 	if err != nil {
 		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

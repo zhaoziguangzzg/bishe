@@ -40,9 +40,15 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	uid := service.GetUidFromContext(c)
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
 
-	createTime := time.Now()
+	pageSize := 10
+
+	uid := service.GetUidFromContext(c)
+	name := service.GetNameFromContext(c)
+
+	nowTime := time.Now()
 
 	// 构造文章
 	newEssay := &model.Essay{ //其中包含自动生成的id
@@ -50,8 +56,8 @@ func AddEssayHandler(c *gin.Context) {
 		Content:     content,
 		CircleId:    cid,
 		AuthorId:    uid,
-		CreateAt:    &createTime,
-		UpdateAt:    &createTime,
+		CreateAt:    &nowTime,
+		UpdateAt:    &nowTime,
 		EssayStatus: model.ESSAY_STATUS_NORMAL,
 		IsDeleted:   model.ESSAY_NOT_DELETED,
 	}
@@ -61,6 +67,34 @@ func AddEssayHandler(c *gin.Context) {
 		service.Logger.Error("CreateEssay err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
+	}
+
+	//获取文章作者的粉丝
+	fans, err := service.GetUserFanListByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserFanUidByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	typei := model.NOTICE_TYPE_DISPATCH
+
+	for _, fan := range fans {
+		fanUid := fan.Id
+		//TODO循环
+		//TODO 异步处理
+		noticeMsg := &model.NoticeMsg{
+			Type:     typei,
+			Uid:      fanUid,
+			Time:     nowTime.Unix(),
+			UserName: name,
+		}
+
+		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
+		if err != nil {
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
+		}
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{

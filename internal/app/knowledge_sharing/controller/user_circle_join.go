@@ -26,6 +26,19 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 	}
 
 	uid := service.GetUidFromContext(c)
+	name := service.GetNameFromContext(c)
+
+	circle, err := service.GetCircleByCid(cid)
+	if err != nil {
+		service.Logger.Error("GetCircleByCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if circle == nil {
+		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
+		return
+	}
 
 	// 用户加入圈子之前，判断join_status 是否=1
 	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
@@ -64,9 +77,9 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	} else {
 		//空，未加入过
-		joinTime := time.Now()
-		endTime := joinTime.AddDate(1, 0, 0)
-		joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, cid, joinTime, endTime)
+		nowTime := time.Now()
+		endTime := nowTime.AddDate(1, 0, 0)
+		joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, cid, nowTime, endTime)
 		if err != nil {
 			service.Logger.Error("CreateUserJoinCircleAndUpdateJoinNum err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -78,7 +91,22 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 			return
 		}
 
-		err = service.UserAddLevelScore(uid, cid, joinTime)
+		//用户加入圈子，发送通知
+		typei := model.NOTICE_TYPE_JOIN
+		noticeMsg := &model.NoticeMsg{
+			Type:     typei,
+			Uid:      circle.CircleOwnerId,
+			Time:     nowTime.Unix(),
+			UserName: name,
+		}
+
+		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
+		if err != nil {
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
+		}
+
+		err = service.UserAddLevelScore(uid, cid, nowTime)
 		if err != nil {
 			service.Logger.Error("UserAddLevelScore err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)

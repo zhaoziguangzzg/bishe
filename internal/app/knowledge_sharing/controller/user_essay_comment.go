@@ -13,6 +13,7 @@ import (
 // 用户在文章的评论
 func AddUserEssayCommentHandle(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
+	name := service.GetNameFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -41,14 +42,14 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 		return
 	}
 
-	createTime := time.Now()
+	nowTime := time.Now()
 
 	newUserEssayComment := &model.UserEssayComment{ //其中包含自动生成的id
 		UserId:        uid,
 		EssayId:       eid,
 		Content:       content,
-		CreateAt:      &createTime,
-		UpdateAt:      &createTime,
+		CreateAt:      &nowTime,
+		UpdateAt:      &nowTime,
 		CommentStatus: model.COMMENT_STATUS_NORMAL,
 		IsDeleted:     model.COMMENT_NOT_DELETED,
 	}
@@ -63,7 +64,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	typei := model.STAT_TYPE_COMMENT
 
 	//添加或更新用户统计数
-	err = service.StatInsertUpdate(uid, 1, typei, createTime)
+	err = service.StatInsertUpdate(uid, 1, typei, nowTime)
 	if err != nil {
 		service.Logger.Error("StatInsertUpdate err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -71,7 +72,7 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	}
 
 	//添加文章评论数据详情
-	err = service.StatDetailsInsert(uid, typei, model.STAT_DETAILS_STATUS_INCR, createTime)
+	err = service.StatDetailsInsert(uid, typei, model.STAT_DETAILS_STATUS_INCR, nowTime)
 	if err != nil {
 		service.Logger.Error("StatDetailsInsert err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -87,15 +88,20 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 	}
 
 	//通知
-	noticeContent := "又有人评论了你的标题为" + essay.Title + "的文章"
 	typei = model.NOTICE_TYPE_COMMENT
+	//TODO 异步处理
 
-	//添加通知
-	err = service.UserAddNotice(uid, noticeContent, typei, createTime)
+	noticeMsg := &model.NoticeMsg{
+		Type:     typei,
+		Uid:      essay.AuthorId,
+		Time:     nowTime.Unix(),
+		UserName: name,
+	}
+
+	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 	if err != nil {
-		service.Logger.Error("UserAddNotice err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
+		service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+		err = nil
 	}
 
 	MakeApiResponseSuccessDefault(c)

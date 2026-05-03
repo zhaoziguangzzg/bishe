@@ -32,18 +32,17 @@ func main() {
 
 func Notice() {
 	sigChan := make(chan os.Signal, 1)
-	//windows收不到命令，只能收到 Ctrl+C / Ctrl+Break,不是sleep，是收不到信号
 	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	brokers := []string{"localhost:9092"}
 	topic := model.KAFKA_TOPIC_NOTICE
 	groupID := "group_notice"
 	config := sarama.NewConfig()
-	// config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	consumerGroup, err := sarama.NewConsumerGroup(brokers, groupID, config)
 	if err != nil {
 		service.Logger.Error("NewConsumerGroup err", zap.Error(err))
+		return
 	}
 	defer func() {
 		err := consumerGroup.Close()
@@ -53,44 +52,54 @@ func Notice() {
 	}()
 	ctx := context.Background()
 
-notice:
-	for msg := range noticeChan {
-		select {
-		case sig := <-sigChan:
-			//当收到信号时，记录日志，结束循环
-			service.Logger.Info("KafkaNotice get sig", zap.Any("sig", sig))
-			break notice
-		default:
-			//没有信号，继续for循环
+	go func() {
+		for {
+			err := consumerGroup.Consume(ctx, []string{topic}, &consumerGroupHandler{})
+			if err != nil {
+				service.Logger.Error("ConsumerGroup.Consume err", zap.Error(err))
+			}
 		}
+	}()
 
-		var noticeMsg model.NoticeMsg
-		err := json.Unmarshal(msg, &noticeMsg)
-		if err != nil {
-			service.Logger.Error("Unmarshal noticeMsg err", zap.Error(err))
-			continue
+	go func() {
+	notice:
+		for {
+			select {
+			case sig := <-sigChan:
+				service.Logger.Info("KafkaNotice get sig", zap.Any("sig", sig))
+				break notice
+			case msg := <-noticeChan:
+				var noticeMsg model.NoticeMsg
+				err := json.Unmarshal(msg, &noticeMsg)
+				if err != nil {
+					service.Logger.Error("Unmarshal noticeMsg err", zap.Error(err))
+					continue
+				}
+
+				//判断type，组合通知内容
+				userName := noticeMsg.UserName
+				var noticeContent string
+				switch noticeMsg.Type {
+				case model.NOTICE_TYPE_FOLLOW:
+					noticeContent = "又有用户" + userName + "关注啦"
+				case model.NOTICE_TYPE_LIKE:
+					noticeContent = "又有用户" + userName + "点赞啦"
+				case model.NOTICE_TYPE_COMMENT:
+					noticeContent = "又有用户" + userName + "评论啦"
+				case model.NOTICE_TYPE_DISPATCH:
+					noticeContent = "又有用户" + userName + "关注发文啦"
+				case model.NOTICE_TYPE_JOIN:
+					noticeContent = "又有用户" + userName + "加入圈子啦"
+				default:
+					noticeContent = "又有通知了"
+				}
+				fmt.Println(noticeContent)
+
+				service.Logger.Info("notice msg", zap.Any("noticeMsg", noticeMsg))
+			default:
+			}
 		}
-
-		userName := noticeMsg.UserName
-		content := "又有新用户" + userName + "关注啦"
-		fmt.Println(content)
-		// //添加通知
-		// err = service.UserAddNotice(noticeMsg.Uid, content, noticeMsg.Type, time.Unix(noticeMsg.Time, 0))
-		// if err != nil {
-		// 	service.Logger.Error("UserAddNotice err", zap.Error(err))
-		// 	return
-		// }
-
-		service.Logger.Info("v", zap.Any("v value", noticeMsg))
-		err = consumerGroup.Consume(ctx, []string{topic}, &consumerGroupHandler{})
-		if err != nil {
-			service.Logger.Error("ConsumerGroup.Consume err", zap.Error(err))
-		}
-
-	}
-
-	close(noticeChan)
-
+	}()
 }
 
 type consumerGroupHandler struct{}

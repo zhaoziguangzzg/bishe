@@ -23,6 +23,7 @@ func main() {
 
 	//创建 Gin 路由引擎
 	r := gin.Default()
+	r.SetTrustedProxies(nil)
 	// 给 Gin 设置自定义模板引擎
 	r.SetHTMLTemplate(tpl)
 	r.Static("/img", "web/img")

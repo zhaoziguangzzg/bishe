@@ -12,29 +12,6 @@ import (
 
 // 添加关注
 func AddUserFollowHandler(c *gin.Context) {
-	typei := model.STAT_TYPE_FOLLOW
-	//TODO 异步处理
-	for i := 0; i < 10; i++ {
-		nowTime := time.Now()
-		followerId := i
-		userName := strconv.Itoa(i)
-
-		noticeMsg := &model.NoticeMsg{
-			Type:     typei,
-			Uid:      followerId,
-			Time:     nowTime.Unix(),
-			UserName: userName,
-		}
-
-		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)
-		if err != nil {
-			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
-			err = nil
-		}
-	}
-	MakeApiResponseSuccessDefault(c)
-	return
-
 	uid := service.GetUidFromContext(c)
 
 	followerIdStr := c.PostForm("followerId")
@@ -81,7 +58,7 @@ func AddUserFollowHandler(c *gin.Context) {
 			return
 		}
 
-		typei := model.STAT_TYPE_FOLLOW
+		typei := model.NOTICE_TYPE_FOLLOW
 		//TODO 异步处理
 
 		noticeMsg := &model.NoticeMsg{

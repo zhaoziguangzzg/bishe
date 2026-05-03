@@ -41,6 +41,8 @@ const (
 	NOTICE_TYPE_FEEDBACK   int = 5 //反馈
 	NOTICE_TYPE_DISPATCH   int = 6 //关注发文
 	NOTICE_TYPE_ESSENCE    int = 7 //加精
+	NOTICE_TYPE_JOIN       int = 8 //加入圈子
+
 	//通知topic
 	KAFKA_TOPIC_NOTICE string = "topic_user_notice"
 )
