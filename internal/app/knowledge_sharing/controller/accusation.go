@@ -194,6 +194,8 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		return
 	}
 
+	nowTime := time.Now()
+
 	if status == model.ACCUSATION_STATUS_NORMAL {
 		// 更新举报信息为无违规
 		affectRows, err := service.UpdateAccusationNormalByAid(aid)
@@ -203,15 +205,19 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 			return
 		}
 
-		content := "该举报文章无违规"
-		receiveId := userId
+		typei := model.NOTICE_TYPE_ACCUSATION
+		//TODO 异步处理
 
-		// 插入数据库
-		err = service.AddAccusationInformation(content, receiveId)
+		noticeMsg := &model.NoticeMsg{
+			Type: typei,
+			Uid:  userId,
+			Time: nowTime.Unix(),
+		}
+
+		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 		if err != nil {
-			service.Logger.Error("AddAccusationInformation err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
 		}
 
 		MakeApiResponseSuccessDefault(c)
@@ -226,15 +232,18 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 			return
 		}
 
-		content := "该文章有违规，以被封禁"
-		receiveId := authorId
+		typei := model.NOTICE_TYPE_ACCUSATIONED
+		//TODO 异步处理
+		noticeMsg := &model.NoticeMsg{
+			Type: typei,
+			Uid:  authorId,
+			Time: nowTime.Unix(),
+		}
 
-		// 插入数据库
-		err = service.AddAccusationInformation(content, receiveId)
+		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 		if err != nil {
-			service.Logger.Error("AddAccusationInformation err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
+			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+			err = nil
 		}
 		MakeApiResponseSuccessDefault(c)
 	}

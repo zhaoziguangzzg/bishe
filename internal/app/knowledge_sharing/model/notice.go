@@ -33,15 +33,16 @@ type NoticeMsg struct {
 const (
 	NOTICE_MAX_CONTENT int = 100 //通知最长100字
 
-	NOTICE_TYPE_OTHER      int = 0 //其他
-	NOTICE_TYPE_FOLLOW     int = 1 //关注
-	NOTICE_TYPE_LIKE       int = 2 //点赞
-	NOTICE_TYPE_COMMENT    int = 3 //评论
-	NOTICE_TYPE_ACCUSATION int = 4 //举报
-	NOTICE_TYPE_FEEDBACK   int = 5 //反馈
-	NOTICE_TYPE_DISPATCH   int = 6 //关注发文
-	NOTICE_TYPE_ESSENCE    int = 7 //加精
-	NOTICE_TYPE_JOIN       int = 8 //加入圈子
+	NOTICE_TYPE_OTHER        int = 0 //其他
+	NOTICE_TYPE_FOLLOW       int = 1 //关注
+	NOTICE_TYPE_LIKE         int = 2 //点赞
+	NOTICE_TYPE_COMMENT      int = 3 //评论
+	NOTICE_TYPE_ACCUSATION   int = 4 //举报
+	NOTICE_TYPE_FEEDBACK     int = 5 //反馈
+	NOTICE_TYPE_DISPATCH     int = 6 //关注发文
+	NOTICE_TYPE_ESSENCE      int = 7 //加精
+	NOTICE_TYPE_JOIN         int = 8 //加入圈子
+	NOTICE_TYPE_ACCUSATIONED int = 9 //被举报
 
 	//通知topic
 	KAFKA_TOPIC_NOTICE string = "topic_user_notice"

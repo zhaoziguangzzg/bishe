@@ -90,6 +90,13 @@ func Notice() {
 					noticeContent = "又有用户" + userName + "关注发文啦"
 				case model.NOTICE_TYPE_JOIN:
 					noticeContent = "又有用户" + userName + "加入圈子啦"
+				case model.NOTICE_TYPE_ACCUSATION:
+					noticeContent = "用户" + userName + "举报没有违规"
+				case model.NOTICE_TYPE_ACCUSATIONED:
+					noticeContent = "用户" + userName + "举报有违规"
+				case model.NOTICE_TYPE_FEEDBACK:
+					noticeContent = "用户" + userName + "反馈了"
+
 				default:
 					noticeContent = "又有通知了"
 				}

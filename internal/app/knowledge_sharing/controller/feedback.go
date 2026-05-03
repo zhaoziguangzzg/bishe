@@ -137,10 +137,10 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 		return
 	}
 
-	replyTime := time.Now()
+	nowTime := time.Now()
 
 	//保存回复，更新状态
-	affectRows, err := service.UpdateFeedbackStatusReplyById(id, reply, replyTime)
+	affectRows, err := service.UpdateFeedbackStatusReplyById(id, reply, nowTime)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateFeedbackStatusReplyById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -148,15 +148,18 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 	}
 
 	// 给用户发通知
-	content := "恭喜您的反馈：" + feedback.Content + " 有结果了"
 	typei := model.NOTICE_TYPE_FEEDBACK
+	//TODO 异步处理
+	noticeMsg := &model.NoticeMsg{
+		Type: typei,
+		Uid:  feedback.UserId,
+		Time: nowTime.Unix(),
+	}
 
-	//添加通知
-	err = service.UserAddNotice(feedback.UserId, content, typei, replyTime)
+	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 	if err != nil {
-		service.Logger.Error("UserAddNotice err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
+		service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+		err = nil
 	}
 
 	MakeApiResponseSuccessDefault(c)
