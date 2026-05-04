@@ -466,7 +466,7 @@
                 const followBtnText = isFollowed ? '已关注' : '关注';
                 container.innerHTML = `
                     <button class="${followBtnClass}" id="followBtn" onclick="toggleFollow()">${followBtnText}</button>
-                    <button class="action-btn secondary" onclick="window.location.href='/page/chat/detail?uid=${profileUserId}'">私信</button>
+                    <button class="action-btn secondary" onclick="window.location.href='/page/chat/index?uid=${profileUserId}'">私信</button>
                 `;
             }
         }

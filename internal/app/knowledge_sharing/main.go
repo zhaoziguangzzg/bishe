@@ -23,7 +23,7 @@ func main() {
 
 	//创建 Gin 路由引擎
 	r := gin.Default()
-	r.SetTrustedProxies(nil)
+	// r.SetTrustedProxies(nil)
 	// 给 Gin 设置自定义模板引擎
 	r.SetHTMLTemplate(tpl)
 	r.Static("/img", "web/img")
@@ -222,7 +222,6 @@ func main() {
 	api.POST("/accusation/add", controller.AddUserAccusationEssayHandler)
 
 	//私信
-	//TODO 首页左边联系人列表，右边与某联系人聊天列表
 	//获取私信首页
 	page.GET("/chat/index", controller.ChatIndexPageHandler)
 	//获取最近联系人列表
@@ -295,10 +294,12 @@ func main() {
 	//购买课程
 	api.POST("/purchase/add", controller.AddPurchaseHandler)
 	//更新购买记录状态购买课程
-	api.POST("/purchase/update", controller.UpdatePurchaseStatusHandler)
+	api.POST("/purchase/pay", controller.UpdatePurchaseStatusHandler)
 
+	//修改课程页面
 	page.GET("/course/edit", controller.EditCoursePageHandler)
-	//TODO 修改课程
+	//修改课程
+	api.POST("/course/update", controller.UpdateCourseHandler)
 
 	//课时
 	//课时页面
@@ -314,6 +315,9 @@ func main() {
 	//获取课时详情
 	api.GET("/lesson/get", controller.GetLessonHandler)
 	//TODO 作者修改课时
+	page.GET("/lesson/edit", controller.EditLessonPageHandler)
+	//修改课时
+	api.POST("/lesson/update", controller.UpdateLessonHandler)
 
 	//公告
 	//TODO 显示公告页面

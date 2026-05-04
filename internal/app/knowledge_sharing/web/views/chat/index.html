@@ -32,21 +32,35 @@
         .header a:hover {
             text-decoration: underline;
         }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .page-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .contact-list {
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            max-width: 1200px;
+            margin: 20px auto;
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .left-panel {
+            width: 360px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        .left-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .page-title {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        .contact-list {
+            flex: 1;
+            overflow-y: auto;
         }
         .contact-item {
             display: flex;
@@ -56,15 +70,16 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .contact-item:last-child {
-            border-bottom: none;
-        }
         .contact-item:hover {
             background: #f8f9fa;
         }
+        .contact-item.active {
+            background: #ecf5ff;
+            border-left: 3px solid #667eea;
+        }
         .contact-avatar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
             margin-right: 12px;
@@ -95,6 +110,125 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f7fa;
+        }
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+            background: white;
+            display: flex;
+            align-items: center;
+        }
+        .chat-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+        .chat-user-name {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        .chat-user-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-user-desc {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 2px;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f5f7fa;
+        }
+        .message-item {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
+        .message-item.sent {
+            align-self: flex-end;
+        }
+        .message-item.received {
+            align-self: flex-start;
+        }
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .message-item.sent .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message-item.received .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .message-time {
+            font-size: 11px;
+            color: #909399;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+        .message-item.sent .message-time {
+            text-align: right;
+        }
+        .chat-input-section {
+            padding: 16px 24px;
+            border-top: 1px solid #eee;
+            background: white;
+        }
+        .chat-input-form {
+            display: flex;
+            gap: 12px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+        .send-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .send-btn:hover {
+            opacity: 0.9;
+        }
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .empty-tip {
             text-align: center;
             padding: 60px 20px;
@@ -111,6 +245,15 @@
             padding: 60px 20px;
             color: #f56c6c;
         }
+        .no-chat-tip {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #909399;
+            font-size: 14px;
+            background: #f5f7fa;
+        }
     </style>
 </head>
 <body>
@@ -119,15 +262,26 @@
         <a href="/page/index">返回首页</a>
     </div>
 
-    <div class="container">
-        <h1 class="page-title">我的私信</h1>
-        <div class="contact-list" id="contactList">
-            <div class="loading">加载中...</div>
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="left-header">
+                <h1 class="page-title">我的私信</h1>
+            </div>
+            <div class="contact-list" id="contactList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+        <div class="right-panel" id="rightPanel">
+            <div class="no-chat-tip">请选择左侧联系人开始聊天</div>
         </div>
     </div>
 
     <script>
         let currentUserId = null;
+        let selectedUserId = null;
+        let contactData = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const initUid = urlParams.get('uid');
 
         (async function init() {
             await loadCurrentUser();
@@ -136,7 +290,38 @@
                 return;
             }
             await loadContactList();
+            
+            if (initUid) {
+                const contact = contactData.find(c => c.chatUser && c.chatUser.id === parseInt(initUid));
+                if (contact && contact.chatUser) {
+                    selectedUserId = parseInt(initUid);
+                    renderChatPanel(
+                        contact.chatUser.id,
+                        contact.chatUser.name,
+                        contact.chatUser.avatar
+                    );
+                    renderContactList(contactData);
+                } else {
+                    await openNewChat(parseInt(initUid));
+                }
+            }
         })();
+
+        async function openNewChat(uid) {
+            try {
+                const response = await axios.get('/api/user/get-by-id', {
+                    params: { uid: uid }
+                });
+                if (response.data.code === 0 && response.data.data && response.data.data.user) {
+                    const user = response.data.data.user;
+                    selectedUserId = uid;
+                    renderChatPanel(uid, user.name, user.avatar);
+                    renderContactList(contactData);
+                }
+            } catch (error) {
+                console.error('获取用户信息失败', error);
+            }
+        }
 
         async function loadCurrentUser() {
             try {
@@ -155,7 +340,8 @@
                     params: { uid: currentUserId }
                 });
                 if (response.data.code === 0 && response.data.data) {
-                    renderContactList(response.data.data);
+                    contactData = response.data.data.userChatContacts || [];
+                    renderContactList(contactData);
                 } else {
                     document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败</div>';
                 }
@@ -165,22 +351,21 @@
         }
 
         function renderContactList(data) {
-            const userChatContacts = data.userChatContacts || [];
-
-            if (userChatContacts.length === 0) {
+            if (data.length === 0) {
                 document.getElementById('contactList').innerHTML = '<div class="empty-tip">暂无私信联系人</div>';
                 return;
             }
 
-            const html = userChatContacts.map(contact => {
+            const html = data.map((contact, index) => {
                 const avatarUrl = contact.chatUser && contact.chatUser.avatar ? contact.chatUser.avatar : '/img/default-avatar.png';
                 const userName = contact.chatUser && contact.chatUser.name ? contact.chatUser.name : '未知用户';
                 const userId = contact.chatUser && contact.chatUser.id ? contact.chatUser.id : 0;
                 const chatContent = contact.chatContact && contact.chatContact.content ? contact.chatContact.content : '暂无消息';
                 const updateAt = contact.chatContact && contact.chatContact.updateAt ? contact.chatContact.updateAt : '';
+                const activeClass = selectedUserId === userId ? 'active' : '';
 
                 return `
-                    <div class="contact-item" onclick="openChat(${userId}, '${escapeHtml(userName)}')">
+                    <div class="contact-item ${activeClass}" onclick="selectContact(${userId}, '${escapeHtml(userName)}', '${avatarUrl}', ${index})">
                         <img class="contact-avatar" src="${avatarUrl}" alt="头像">
                         <div class="contact-info">
                             <div class="contact-header">
@@ -196,8 +381,102 @@
             document.getElementById('contactList').innerHTML = html;
         }
 
-        function openChat(uid, userName) {
-            window.location.href = '/page/chat/detail?uid=' + uid;
+        function selectContact(userId, userName, avatarUrl, index) {
+            selectedUserId = userId;
+            renderContactList(contactData);
+            renderChatPanel(userId, userName, avatarUrl);
+        }
+
+        function renderChatPanel(userId, userName, avatarUrl) {
+            document.getElementById('rightPanel').innerHTML = `
+                <div class="chat-header">
+                    <img class="chat-user-avatar" src="${avatarUrl}" alt="头像">
+                    <div class="chat-user-info">
+                        <div class="chat-user-name">${escapeHtml(userName)}</div>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="loading">加载消息...</div>
+                </div>
+                <div class="chat-input-section">
+                    <form class="chat-input-form" id="chatForm">
+                        <input type="text" class="chat-input" id="messageInput" placeholder="输入消息..." maxlength="100">
+                        <button type="submit" class="send-btn" id="sendBtn">发送</button>
+                    </form>
+                </div>
+            `;
+
+            loadChatHistory(userId);
+
+            document.getElementById('chatForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await sendMessage(userId);
+            });
+        }
+
+        async function loadChatHistory(chatUid) {
+            try {
+                const response = await axios.get('/api/chat/get', {
+                    params: { chat_uid: chatUid }
+                });
+                if (response.data.code === 0 && response.data.data) {
+                    renderMessages(response.data.data);
+                } else {
+                    document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败</div>';
+                }
+            } catch (error) {
+                document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
+            }
+        }
+
+        function renderMessages(data) {
+            const chats = data.chats || [];
+            const messagesContainer = document.getElementById('chatMessages');
+
+            if (chats.length === 0) {
+                messagesContainer.innerHTML = '<div class="empty-tip">暂无消息，开始聊天吧</div>';
+                return;
+            }
+
+            const html = chats.map(chat => {
+                const isSent = chat.sendUid === currentUserId;
+                return `
+                    <div class="message-item ${isSent ? 'sent' : 'received'}">
+                        <div class="message-content">${escapeHtml(chat.content)}</div>
+                        <div class="message-time">${chat.createAt || ''}</div>
+                    </div>
+                `;
+            }).join('');
+
+            messagesContainer.innerHTML = html;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage(chatUid) {
+            const content = document.getElementById('messageInput').value.trim();
+            if (!content) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('content', content);
+                formData.append('receive_uid', chatUid);
+
+                const response = await axios.post('/api/chat/add', formData);
+
+                if (response.data.code === 0) {
+                    document.getElementById('messageInput').value = '';
+                    await loadChatHistory(chatUid);
+                } else {
+                    alert(response.data.msg || '发送失败');
+                }
+            } catch (error) {
+                alert('发送失败，请稍后重试');
+            }
+
+            sendBtn.disabled = false;
         }
 
         function escapeHtml(text) {
@@ -205,25 +484,6 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) {
-                return '刚刚';
-            } else if (diff < 3600000) {
-                return Math.floor(diff / 60000) + '分钟前';
-            } else if (diff < 86400000) {
-                return Math.floor(diff / 3600000) + '小时前';
-            } else if (diff < 604800000) {
-                return Math.floor(diff / 86400000) + '天前';
-            } else {
-                return date.toLocaleDateString();
-            }
         }
     </script>
 </body>
