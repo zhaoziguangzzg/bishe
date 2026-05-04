@@ -19,3 +19,8 @@ func GetLessonById(lessonId int) (lesson *model.Lesson, err error) {
 func GetAllLessonByCid(cid int) (lessons []model.Lesson, err error) {
 	return mysql.GetAllLessonByCid(cid)
 }
+
+// 更新课时信息
+func UpdateLesson(lessonId int, updateMap map[string]interface{}) (int64, error) {
+	return mysql.UpdateLesson(lessonId, updateMap)
+}

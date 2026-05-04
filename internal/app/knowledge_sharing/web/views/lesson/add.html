@@ -186,7 +186,7 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const cid = urlParams.get('cid');
+        const cid = urlParams.get('course_id');
 
         if (!cid) {
             alert('缺少课程ID参数');
@@ -231,14 +231,14 @@
                 const formData = new FormData();
                 formData.append('title', title);
                 formData.append('content', content);
-                formData.append('cid', cid);
+                formData.append('course_id', cid);
 
                 const response = await axios.post('/api/lesson/add', formData);
 
                 if (response.data.code === 0) {
                     showSuccess('添加成功！');
                     setTimeout(() => {
-                        window.location.href = '/page/course/detail?cid=' + cid;
+                        window.location.href = '/page/course/detail?course_id=' + cid;
                     }, 1500);
                 } else {
                     showError(response.data.msg || '添加失败');
@@ -253,7 +253,7 @@
         }
 
         function goBack() {
-            window.location.href = '/page/course/detail?cid=' + cid;
+            window.location.href = '/page/course/detail?course_id=' + cid;
         }
     </script>
 </body>

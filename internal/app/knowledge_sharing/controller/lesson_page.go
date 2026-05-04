@@ -15,3 +15,8 @@ func AddLessonPageHandler(c *gin.Context) {
 func LessonDetailPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "lesson/detail.html", nil)
 }
+
+// EditLessonPageHandler 课时修改页面
+func EditLessonPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "lesson/edit.html", nil)
+}
