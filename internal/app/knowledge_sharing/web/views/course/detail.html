@@ -324,9 +324,9 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const cid = urlParams.get('cid');
+        const courseId = urlParams.get('course_id');
 
-        if (!cid) {
+        if (!courseId) {
             alert('缺少课程ID参数');
             window.location.href = '/page/course/index';
         } else {
@@ -336,7 +336,7 @@
         async function loadCourseDetail() {
             try {
                 const courseResponse = await axios.get('/api/course/get', {
-                    params: { cid: cid }
+                    params: { course_id: courseId }
                 });
 
                 if (courseResponse.data.code === 0) {
@@ -345,7 +345,7 @@
                     const isFree = data.course.price === 0;
 
                     const purchaseResponse = await axios.get('/api/purchase/get', {
-                        params: { course_id: cid }
+                        params: { course_id: courseId }
                     });
                     const isPurchased = purchaseResponse.data.data && purchaseResponse.data.data.isPurchased ? true : false;
 
@@ -362,7 +362,7 @@
         async function loadLessons(isPurchased, isOwner, isFree) {
             try {
                 const response = await axios.get('/api/lesson/all', {
-                    params: { cid: cid }
+                    params: { course_id: courseId }
                 });
 
                 if (response.data.code === 0) {
@@ -443,7 +443,7 @@
 
             const addLessonBtn = isOwner ? `
                 <div style="margin-top: 16px; text-align: center;">
-                    <button class="btn btn-primary" onclick="window.location.href='/page/lesson/add?cid=${cid}'">添加课时</button>
+                    <button class="btn btn-primary" onclick="window.location.href='/page/lesson/add?course_id=${courseId}'">添加课时</button>
                 </div>
             ` : '';
 
@@ -460,14 +460,14 @@
         function renderActionButton(isPurchased, isFree, isOwner) {
             if (isOwner) {
                 return `
-                    <button class="btn btn-primary" onclick="window.location.href='/page/course/edit?cid=${cid}'">编辑课程</button>
+                    <button class="btn btn-primary" onclick="window.location.href='/page/course/edit?course_id=${courseId}'">编辑课程</button>
                     <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
                 `;
             }
 
             if (isPurchased || isFree) {
                 return `
-                    <button class="btn btn-study" onclick="window.location.href='/page/lesson/index?cid=${cid}'">开始学习</button>
+                    <button class="btn btn-study" onclick="window.location.href='/page/lesson/index?course_id=${courseId}'">开始学习</button>
                     <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
                 `;
             } else {
@@ -486,7 +486,7 @@
 
             try {
                 const response = await axios.post('/api/purchase/add', null, {
-                    params: { cid: cid }
+                    params: { course_id: courseId }
                 });
 
                 if (response.data.code === 0) {
@@ -509,7 +509,7 @@
             closeModal();
             try {
                 const response = await axios.post('/api/purchase/add', null, {
-                    params: { cid: cid }
+                    params: { course_id: courseId }
                 });
 
                 if (response.data.code === 0) {

@@ -64,6 +64,12 @@ func GetCourseById(cid int) (course *model.Course, err error) {
 	return course, nil
 }
 
+// 根据cid更新课程信息
+func UpdateCourse(cid int, updateMap map[string]interface{}) (int64, error) {
+	result := DB.Model(&model.Course{}).Where("id=?", cid).Updates(updateMap)
+	return result.RowsAffected, result.Error
+}
+
 // 根据courseIds获取courseMap
 func GetCourseMapByCourseIds(courseIds []int) (courseMap map[int]model.Course, err error) {
 	courses := make([]model.Course, 0)

@@ -59,6 +59,11 @@ func GetCourseById(cid int) (course *model.Course, err error) {
 	return mysql.GetCourseById(cid)
 }
 
+// 更新课程信息
+func UpdateCourse(cid int, updateMap map[string]interface{}) (int64, error) {
+	return mysql.UpdateCourse(cid, updateMap)
+}
+
 // 根据courseIds获取courseMap
 func GetCourseMapByCourseIds(courseIds []int) (courseMap map[int]model.Course, err error) {
 	return mysql.GetCourseMapByCourseIds(courseIds)

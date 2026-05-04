@@ -168,7 +168,7 @@ func GetCourseByTitleHandler(c *gin.Context) {
 
 // 获取课程详情
 func GetCourseHandler(c *gin.Context) {
-	cidStr := c.Query("cid")
+	cidStr := c.Query("course_id")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -200,6 +200,72 @@ func GetCourseHandler(c *gin.Context) {
 	})
 }
 
+// 修改课程
+func UpdateCourseHandler(c *gin.Context) {
+	title := c.PostForm("title")
+	content := c.PostForm("content")
+	priceStr := c.PostForm("price")
+
+	titleLen := len(title)
+	if titleLen > model.COURSE_TITLE_MAX || titleLen == 0 {
+		MakeApiResponseError(c, CODE_COURSE_TITLE_LEN_INVASLID)
+		return
+	}
+
+	contentLen := len(content)
+	if contentLen > model.COURSE_CONTENT_MAX || contentLen == 0 {
+		MakeApiResponseError(c, CODE_COURSE_CONTENT_LEN_INVASLID)
+		return
+	}
+
+	cidStr := c.PostForm("course_id")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	price, err := strconv.Atoi(priceStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	course, err := service.GetCourseById(cid)
+	if err != nil {
+		service.Logger.Error("GetCourseById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if course == nil {
+		service.Logger.Error("GetCourseById course == nil")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	courseMap := map[string]interface{}{
+		"title":   title,
+		"content": content,
+		"price":   price,
+	}
+
+	rowsAffected, err := service.UpdateCourse(cid, courseMap)
+	if err != nil || rowsAffected == 0 {
+		service.Logger.Error("UpdateCourse err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 添加课时
 func AddLessonHandler(c *gin.Context) {
 	title := c.PostForm("title")
 	content := c.PostForm("content")
@@ -216,7 +282,7 @@ func AddLessonHandler(c *gin.Context) {
 		return
 	}
 
-	cidStr := c.PostForm("cid")
+	cidStr := c.PostForm("course_id")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -289,7 +355,7 @@ func GetLessonHandler(c *gin.Context) {
 
 // 获取课程全部课时
 func GetCourseAllLessonHandler(c *gin.Context) {
-	cidStr := c.Query("cid")
+	cidStr := c.Query("course_id")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return
@@ -319,11 +385,68 @@ func GetCourseAllLessonHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
+// 修改课时
+func UpdateLessonHandler(c *gin.Context) {
+	title := c.PostForm("title")
+	content := c.PostForm("content")
+
+	titleLen := len(title)
+	if titleLen > model.LESSON_TITLE_MAX || titleLen == 0 {
+		MakeApiResponseError(c, CODE_LESSON_TITLE_LEN_INVASLID)
+		return
+	}
+
+	contentLen := len(content)
+	if contentLen > model.LESSON_CONTENT_MAX || contentLen == 0 {
+		MakeApiResponseError(c, CODE_LESSON_CONTENT_LEN_INVASLID)
+		return
+	}
+
+	lessonIdStr := c.PostForm("lesson_id")
+	if lessonIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	lessonId, err := strconv.Atoi(lessonIdStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	lesson, err := service.GetLessonById(lessonId)
+	if err != nil {
+		service.Logger.Error("GetLessonById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if lesson == nil {
+		service.Logger.Error("GetLessonById lesson == nil")
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	updateMap := map[string]interface{}{
+		"title":   title,
+		"content": content,
+	}
+
+	rowsAffected, err := service.UpdateLesson(lessonId, updateMap)
+	if err != nil || rowsAffected == 0 {
+		service.Logger.Error("UpdateLesson err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
 // 购买课程
 func AddPurchaseHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
-	cidStr := c.PostForm("cid")
+	cidStr := c.PostForm("course_id")
 	if cidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return

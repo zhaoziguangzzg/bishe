@@ -26,5 +26,5 @@ func GetUrlEssayDetail(eid int) string {
 
 // 课程详情
 func GetUrlCourseDetail(cid int) string {
-	return "/page/course/detail?cid=" + strconv.Itoa(cid)
+	return "/page/course/detail?course_id=" + strconv.Itoa(cid)
 }
