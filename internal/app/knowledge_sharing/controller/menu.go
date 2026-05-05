@@ -77,6 +77,54 @@ func AddMenuHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
+// 更新菜单
+func UpdateMenuHandler(c *gin.Context) {
+	idStr := c.PostForm("menu_id")
+	if idStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	menuName := c.PostForm("menu_name")
+	if menuName == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	path := c.PostForm("menu_path")
+	if path == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	menu, err := service.GetMenuNotDeletedById(id)
+	if err != nil {
+		service.Logger.Error("GetMenuNotDeletedById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if menu == nil {
+		MakeApiResponseError(c, CODE_MENU_NOT_EXIST)
+		return
+	}
+
+	err = service.UpdateMenuById(id, menuName, path)
+	if err != nil {
+		service.Logger.Error("UpdateMenuById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
 // 获取全部权限菜单
 func GetAllMenuHandler(c *gin.Context) {
 	pageStr := c.Query("page")

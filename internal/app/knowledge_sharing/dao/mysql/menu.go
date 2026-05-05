@@ -59,3 +59,12 @@ func GetMenuNotDeletedById(id int) (menu *model.Menu, err error) {
 
 	return menu, nil
 }
+
+// 更新菜单信息
+func UpdateMenuById(id int, menuName string, path string) (err error) {
+	err = DB.Model(&model.Menu{}).Where("id=?", id).Updates(map[string]interface{}{
+		"menu_name": menuName,
+		"path":      path,
+	}).Error
+	return
+}

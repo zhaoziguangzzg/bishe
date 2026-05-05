@@ -29,3 +29,8 @@ func GetAllMenu(page int, pagesize int) (menus []model.Menu, err error) {
 func GetMenuNotDeletedById(id int) (menu *model.Menu, err error) {
 	return mysql.GetMenuNotDeletedById(id)
 }
+
+// 更新菜单信息
+func UpdateMenuById(id int, menuName string, path string) (err error) {
+	return mysql.UpdateMenuById(id, menuName, path)
+}

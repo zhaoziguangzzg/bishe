@@ -287,10 +287,12 @@ func main() {
 	//获取用户购买记录
 	api.GET("/purchase/all", controller.GetUserPurchaseListHandler)
 
+	//课程详情页面
 	page.GET("/course/detail", controller.CourseDetailPageHandler)
 	//获取课程详情
 	api.GET("/course/get", controller.GetCourseHandler)
-	//api.GET("/purchase/get", controller.GetPurchaseHandler)              //获取购买记录
+	//获取购买记录
+	api.GET("/purchase/get", controller.GetPurchaseHandler)
 	//购买课程
 	api.POST("/purchase/add", controller.AddPurchaseHandler)
 	//更新购买记录状态购买课程
@@ -307,14 +309,13 @@ func main() {
 	//添加课时
 	api.POST("/lesson/add", controller.AddLessonHandler)
 
-	//课时详情 左边课时列表，右边是某课时的详情
-	//TODO 校验是否已购买
+	//课时详情 页面
 	page.GET("/lesson/detail", controller.LessonDetailPageHandler)
 	//获取课程全部课时
 	api.GET("/lesson/all", controller.GetCourseAllLessonHandler)
 	//获取课时详情
 	api.GET("/lesson/get", controller.GetLessonHandler)
-	//TODO 作者修改课时
+	// 作者修改课时
 	page.GET("/lesson/edit", controller.EditLessonPageHandler)
 	//修改课时
 	api.POST("/lesson/update", controller.UpdateLessonHandler)
@@ -333,7 +334,7 @@ func main() {
 	r.GET("/api/adminuser/logout", controller.AdminUserLogoutHandler)
 
 	//管理员用户
-	//TODO admin/page   admin/api
+	// admin/page   admin/api
 	adminPage := r.Group("/page")
 	adminPage.Use(middleware.PageAdminUserLogin())
 	adminApi := r.Group("/api")
@@ -341,38 +342,51 @@ func main() {
 
 	adminPage.GET("/admin/index", controller.AdminIndexPageHandler)
 
-	//TODO 添加菜单页
+	// 添加菜单页
+	adminPage.GET("/adminmenu/add", controller.MenuAddPageHandler)
 	//添加菜单
 	adminApi.POST("/adminmenu/add", controller.AddMenuHandler)
+
+	// 修改菜单页
+	adminPage.GET("/adminmenu/edit", controller.MenuEditPageHandler)
+	//修改菜单
+	adminApi.POST("/adminmenu/update", controller.UpdateMenuHandler)
+
+	// 菜单列表页
+	adminPage.GET("/adminmenu/list", controller.MenuListPageHandler)
+	adminApi.GET("/adminmenu/all", controller.GetAllMenuHandler)
 	//删除菜单
 	adminApi.POST("/adminmenu/delete", controller.DeleteMenuHandler)
-	// TODO修改菜单页面
-	//TODO 菜单列表页
-	adminApi.GET("/adminmenu/all", controller.GetAllMenuHandler)
 
 	//角色权限
-	//TODO 添加角色页
+	//添加角色页
+	adminPage.GET("/adminrole/add", controller.RoleAddPageHandler)
 	//添加角色
 	adminApi.POST("/adminrole/add", controller.AddRoleHandler)
-	//删除角色
-	adminApi.POST("/adminrole/delete", controller.DeleteRoleHandler)
-	//TODO 改接口，修改角色名，权限可修改，
+
+	//修改角色页
 	adminPage.GET("/adminrole/edit", controller.AdminRoleEditPageHandler)
 	//更新角色
 	adminApi.POST("/adminrole/update", controller.UpdateRoleHandler)
-	// TODO 角色列表页
+
+	// 角色列表页
+	adminPage.GET("/adminrole/list", controller.RoleListPageHandler)
 	//获取全部角色
 	adminApi.GET("/adminrole/all", controller.GetAllRoleHandler)
-	//TODO 角色详情页
+	//删除角色
+	adminApi.POST("/adminrole/delete", controller.DeleteRoleHandler)
+	//角色详情页
+	adminPage.GET("/adminrole/detail", controller.RoleDetailPageHandler)
 	//获取角色详情
 	adminApi.GET("/adminrole/get", controller.GetRoleHandler)
 
 	//添加管理员用户信息
 
-	//TODO 添加管理员页
+	// 添加管理员页
+	adminPage.GET("/adminuser/add", controller.AdminUserAddPageHandler)
 	adminApi.POST("/adminuser/add", controller.AddAdminUserHandler)
 
-	adminPage.GET("/admin/edit", controller.AdminEditPageHandler)
+	adminPage.GET("/adminuser/edit", controller.AdminEditPageHandler)
 	//更新管理员用户信息
 	//TODO 更新管理员所有信息
 	adminApi.POST("/adminuser/update", controller.UpdateAdminUserHandler)
@@ -382,57 +396,60 @@ func main() {
 	//TODO 查看管理员详情页
 	//获取某管理员用户信息
 	adminApi.GET("/adminuser/get", controller.GetAdminUserHandler)
-	//TODO page/adminuser/list api
+	// 管理员列表页
+	adminPage.GET("/adminuser/list", controller.AdminUserListPageHandler)
+	//获取全部管理员用户
+	adminApi.GET("/adminuser/all", controller.GetAllAdminUserHandler)
 
 	//举报
 	//TODO 举报列表页
 	//获取全部未审核举报
-	adminApi.GET("/accusation/all", controller.GetAllAccusationEssayHandler)
-	adminPage.GET("/accusation/edit", controller.AccusationEditPageHandler)
+	adminApi.GET("/adminaccusation/all", controller.GetAllAccusationEssayHandler)
+	adminPage.GET("/adminaccusation/edit", controller.AccusationEditPageHandler)
 	//获取举报内容文章
-	adminApi.GET("/accusation/get", controller.GetEssayContentByAccusationHandler)
+	adminApi.GET("/adminaccusation/get", controller.GetEssayContentByAccusationHandler)
 	//更新举报状态
-	adminApi.POST("/accusation/update", controller.UpdateAccusationStatusHandler)
+	adminApi.POST("/adminaccusation/update", controller.UpdateAccusationStatusHandler)
 
 	//TODO page/all
 	//获取全部未处理反馈
-	adminApi.GET("/feedback/all", controller.GetAllFeedbackHandler)
-	adminPage.GET("/feedback/edit", controller.FeedbackEditPageHandler)
+	adminApi.GET("/adminfeedback/all", controller.GetAllFeedbackHandler)
+	adminPage.GET("/adminfeedback/edit", controller.FeedbackEditPageHandler)
 	//获取反馈
-	adminApi.GET("/admin/feedback/get", controller.GetFeedbackContentHandler)
+	adminApi.GET("/adminfeedback/get", controller.GetFeedbackContentHandler)
 	//更新反馈状态
-	adminApi.POST("/feedback/update", controller.UpdateFeedbackStatusHandler)
+	adminApi.POST("/adminfeedback/update", controller.UpdateFeedbackStatusHandler)
 
 	//公告
 	//TODO page/add
 	//创建公告
-	adminApi.POST("/announce/add", controller.AddAnnounceHandler)
+	adminApi.POST("/adminannounce/add", controller.AddAnnounceHandler)
 	//TODO page/list
 	//adminApi.GET("/announce/all-time", controller.GetAllAnnounceByTimeHandler) //获取全部公告
 	//获取全部公告
-	adminApi.GET("/admin/announce/all", controller.GetAllAnnounceHandler)
-	adminPage.GET("/announce/edit", controller.AnnounceEditPageHandler)
+	adminApi.GET("/adminannounce/all", controller.GetAllAnnounceHandler)
+	adminPage.GET("/adminannounce/edit", controller.AnnounceEditPageHandler)
 	//查看公告
-	adminApi.GET("/admin/announce/get", controller.GetAnnounceHandler)
+	adminApi.GET("/adminannounce/get", controller.GetAnnounceHandler)
 	//更新公告
-	adminApi.POST("/announce/update", controller.UpdateAnnounceHandler)
+	adminApi.POST("/adminannounce/update", controller.UpdateAnnounceHandler)
 	//删除公告
-	adminApi.POST("/announce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler)
+	adminApi.POST("/adminannounce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler)
 
 	//广告
 	//TODO page/add
 	//创建广告
-	adminApi.POST("/advert/add", controller.AddAdvertHandler)
+	adminApi.POST("/adminadvert/add", controller.AddAdvertHandler)
 	//TODO page/list
-	adminApi.GET("/advert/all", controller.GetAllAdvertHandler)
+	adminApi.GET("/adminadvert/all", controller.GetAllAdvertHandler)
 
-	adminPage.GET("/advert/edit", controller.AdvertEditPageHandler)
+	adminPage.GET("/adminadvert/edit", controller.AdvertEditPageHandler)
 	//查看广告
-	adminApi.GET("/advert/get", controller.GetAdvertHandler)
+	adminApi.GET("/adminadvert/get", controller.GetAdvertHandler)
 	//更新广告
-	adminApi.POST("/advert/update", controller.UpdateAdvertHandler)
+	adminApi.POST("/adminadvert/update", controller.UpdateAdvertHandler)
 	//删除广告
-	adminApi.POST("/advert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler)
+	adminApi.POST("/adminadvert/delete", controller.DeletedAdvertByUpdateIsDeletedHandler)
 
 	// 启动服务器
 	service.Logger.Info("The server started at port", zap.String("port", "8080"))
