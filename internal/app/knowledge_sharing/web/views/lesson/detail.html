@@ -47,16 +47,104 @@
         .nav a:hover {
             background: rgba(255,255,255,0.2);
         }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .detail-card {
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            max-width: 1200px;
+            margin: 20px auto;
             background: white;
             border-radius: 12px;
-            padding: 32px;
+            overflow: hidden;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .left-panel {
+            width: 320px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        .left-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .course-title {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .back-link {
+            font-size: 12px;
+            color: #667eea;
+            cursor: pointer;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .lesson-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .lesson-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .lesson-item:hover {
+            background: #f8f9fa;
+        }
+        .lesson-item.active {
+            background: #ecf5ff;
+            border-left: 3px solid #667eea;
+        }
+        .lesson-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .lesson-item.active .lesson-number {
+            background: #667eea;
+            color: white;
+        }
+        .lesson-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lesson-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lesson-time {
+            font-size: 12px;
+            color: #909399;
+        }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f7fa;
+            overflow-y: auto;
+        }
+        .lesson-detail {
+            background: white;
+            padding: 32px;
+            flex: 1;
         }
         .lesson-header {
             text-align: center;
@@ -106,12 +194,12 @@
             border-top: 1px solid #eee;
         }
         .btn {
-            padding: 12px 32px;
+            padding: 10px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
-            margin: 0 10px;
+            margin: 0 8px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -141,6 +229,11 @@
             color: #666;
             margin-bottom: 20px;
         }
+        .empty-tip {
+            text-align: center;
+            padding: 60px;
+            color: #909399;
+        }
     </style>
 </head>
 <body>
@@ -156,8 +249,17 @@
         </div>
     </div>
 
-    <div class="container">
-        <div class="detail-card" id="content">
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="left-header">
+                <div class="course-title" id="courseTitle">课时列表</div>
+                <div class="back-link" onclick="backToCourse()">← 返回课程</div>
+            </div>
+            <div class="lesson-list" id="lessonList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+        <div class="right-panel" id="rightPanel">
             <div class="loading">加载中...</div>
         </div>
     </div>
@@ -165,12 +267,22 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const lessonId = urlParams.get('lesson_id');
+        let courseId = null;
+        let lessonsData = [];
+        let isOwner = false;
+        let currentLesson = null;
 
         if (!lessonId) {
-            alert('缺少课时ID参数');
-            window.location.href = '/page/course/index';
+            document.getElementById('rightPanel').innerHTML = '<div class="not-found"><h2>缺少课时ID参数</h2></div>';
         } else {
-            loadLessonDetail();
+            initPage();
+        }
+
+        async function initPage() {
+            await loadLessonDetail();
+            if (courseId) {
+                await loadLessons();
+            }
         }
 
         async function loadLessonDetail() {
@@ -179,37 +291,117 @@
                     params: { lesson_id: lessonId }
                 });
 
-                if (response.data.code === 0 && response.data.data) {
-                    renderLessonDetail(response.data.data.lesson);
+                if (response.data.code === 0 && response.data.data && response.data.data.lesson) {
+                    const lesson = response.data.data.lesson;
+                    currentLesson = lesson;
+                    courseId = lesson.courseId;
+                    renderLessonDetail(lesson);
                 } else {
-                    document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '课时不存在') + '</h2><a href="/page/course/index">返回课程首页</a></div>';
+                    document.getElementById('rightPanel').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '课时不存在') + '</h2></div>';
                 }
             } catch (error) {
-                document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/course/index">返回课程首页</a></div>';
+                document.getElementById('rightPanel').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2></div>';
             }
         }
 
+        async function loadLessons() {
+            try {
+                const response = await axios.get('/api/course/get', {
+                    params: { course_id: courseId }
+                });
+
+                if (response.data.code === 0 && response.data.data) {
+                    isOwner = response.data.data.is_owner || false;
+                    document.getElementById('courseTitle').textContent = response.data.data.course?.title || '课时列表';
+                    
+                    if (currentLesson) {
+                        renderLessonDetail(currentLesson);
+                    }
+                }
+            } catch (error) {
+                console.error('加载课程信息失败', error);
+            }
+
+            try {
+                const response = await axios.get('/api/lesson/all', {
+                    params: { course_id: courseId }
+                });
+
+                if (response.data.code === 0 && response.data.data) {
+                    lessonsData = response.data.data.lessons || [];
+                    renderLessonList();
+                } else {
+                    document.getElementById('lessonList').innerHTML = '<div class="empty-tip">暂无课时</div>';
+                }
+            } catch (error) {
+                document.getElementById('lessonList').innerHTML = '<div class="empty-tip">加载失败</div>';
+            }
+        }
+
+        function renderLessonList() {
+            const container = document.getElementById('lessonList');
+            
+            if (lessonsData.length === 0) {
+                container.innerHTML = '<div class="empty-tip">暂无课时</div>';
+                return;
+            }
+
+            const html = lessonsData.map((lesson, index) => {
+                const isActive = lesson.id === parseInt(lessonId);
+                const activeClass = isActive ? 'active' : '';
+                
+                return `
+                    <div class="lesson-item ${activeClass}" onclick="selectLesson(${lesson.id})">
+                        <div class="lesson-number">${index + 1}</div>
+                        <div class="lesson-info">
+                            <div class="lesson-name">${escapeHtml(lesson.title)}</div>
+                            <div class="lesson-time">${formatDate(lesson.createAt)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function selectLesson(id) {
+            window.location.href = '/page/lesson/detail?lesson_id=' + id;
+        }
+
         function renderLessonDetail(lesson) {
-            const cid = lesson.courseId;
             const html = `
-                <div class="lesson-header">
-                    <div class="lesson-icon">📚</div>
-                    <h1 class="lesson-title">${escapeHtml(lesson.title)}</h1>
-                    <div class="lesson-meta">创建于 ${formatDate(lesson.createAt)}</div>
-                </div>
+                <div class="lesson-detail">
+                    <div class="lesson-header">
+                        <div class="lesson-icon">📚</div>
+                        <h1 class="lesson-title">${escapeHtml(lesson.title)}</h1>
+                        <div class="lesson-meta">创建于 ${formatDate(lesson.createAt)}</div>
+                    </div>
 
-                <div class="lesson-content">
-                    <div class="content-label">课时内容</div>
-                    <div class="content-value">${escapeHtml(lesson.content) || '暂无内容'}</div>
-                </div>
+                    <div class="lesson-content">
+                        <div class="content-label">课时内容</div>
+                        <div class="content-value">${escapeHtml(lesson.content) || '暂无内容'}</div>
+                    </div>
 
-                <div class="action-section">
-                    <button class="btn btn-primary" onclick="window.location.href='/page/course/detail?course_id=${cid}'">返回课程</button>
-                    <button class="btn btn-secondary" onclick="window.history.back()">返回</button>
+                    <div class="action-section">
+                        ${isOwner ? `<button class="btn btn-primary" onclick="editLesson(${lesson.id})">修改课时</button>` : ''}
+                        <button class="btn btn-secondary" onclick="backToCourse()">返回课程</button>
+                    </div>
                 </div>
             `;
 
-            document.getElementById('content').innerHTML = html;
+            document.getElementById('rightPanel').innerHTML = html;
+        }
+
+        function editLesson(id) {
+            window.location.href = '/page/lesson/edit?lesson_id=' + id;
+        }
+
+        function backToCourse() {
+            if (courseId) {
+                window.location.href = '/page/course/detail?course_id=' + courseId;
+            } else {
+                window.location.href = '/page/course/index';
+            }
         }
 
         function escapeHtml(text) {
