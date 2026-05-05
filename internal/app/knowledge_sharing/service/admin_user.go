@@ -99,6 +99,11 @@ func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	return mysql.GetAdminUserByUserId(uid)
 }
 
+// 获取所有管理员用户
+func GetAllAdminUser(page int, pagesize int) (adminUsers []model.AdminUser, err error) {
+	return mysql.GetAllAdminUser(page, pagesize)
+}
+
 // 更新管理员用户角色
 func UpdateAdminUserRoleId(uid int, roleId int) (int64, error) {
 	return mysql.UpdateAdminUserRoleId(uid, roleId)

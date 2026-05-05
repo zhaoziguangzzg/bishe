@@ -50,6 +50,21 @@ func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	return adminUser, nil
 }
 
+// 获取所有管理员用户
+func GetAllAdminUser(page int, pagesize int) (adminUsers []model.AdminUser, err error) {
+	offset := (page - 1) * pagesize
+
+	err = DB.Model(&model.AdminUser{}).
+		Where("is_deleted=?", model.IS_DELETED_NO).
+		Order("id DESC").Offset(offset).
+		Limit(pagesize).Find(&adminUsers).Error
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // 更新管理员用户角色
 func UpdateAdminUserRoleId(uid int, roleId int) (int64, error) {
 	result := DB.Model(&model.AdminUser{}).Where("id=?", uid).Update("role_id", roleId)

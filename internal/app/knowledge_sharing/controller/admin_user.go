@@ -17,6 +17,7 @@ func AddAdminUserHandler(c *gin.Context) {
 	// 从表单中获取用户信息
 	name := c.PostForm("name")
 	password := c.PostForm("password")
+	roleIdStr := c.PostForm("role_id")
 
 	//验证 name超长
 	nameLen := len(name)
@@ -26,12 +27,23 @@ func AddAdminUserHandler(c *gin.Context) {
 	}
 
 	if password == "" || len(password) < 8 {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	if !utils.IsValidPassword(password) {
-		MakeApiResponseError(c, CODE_PARAMS_ERROR)
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if roleIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	roleId, err := strconv.Atoi(roleIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
@@ -61,6 +73,7 @@ func AddAdminUserHandler(c *gin.Context) {
 	newAdminUser := &model.AdminUser{ //其中包含自动生成的id
 		Name:      name,
 		Password:  newPassword,
+		RoleId:    roleId,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
 		IsDeleted: model.IS_DELETED_NO,
@@ -137,7 +150,7 @@ func AdminUserLogoutHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 获取用户
+// 获取管理员用户
 func GetAdminUserHandler(c *gin.Context) {
 	//从cookie获取用户信息
 	uid := service.GetAdminUidFromContext(c)
@@ -161,6 +174,32 @@ func GetAdminUserHandler(c *gin.Context) {
 
 	MakeApiResponseSuccess(c, data)
 
+}
+
+// 获取所有管理员用户
+func GetAllAdminUserHandler(c *gin.Context) {
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+	pagesize := 10
+
+	//从数据库获取用户信息
+	adminUsers, err := service.GetAllAdminUser(page, pagesize)
+	if err != nil {
+		service.Logger.Error("GetAllAdminUser", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	if len(adminUsers) == 0 {
+		adminUsers = make([]model.AdminUser, 0)
+		return
+	}
+
+	data := map[string]interface{}{
+		"users": adminUsers,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 更新用户信息
