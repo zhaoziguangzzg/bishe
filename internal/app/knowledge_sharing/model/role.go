@@ -30,6 +30,10 @@ type Role struct {
 	IsDeleted   int        `json:"isDeleted" gorm:"column:is_deleted" mapstructture:"isDeleted"`
 }
 
+const (
+	ROLE_NAME_LEN_MAX = 100 //角色名最长为100个字
+)
+
 // 指定Role对应的表名
 func (Role) TableName() string {
 	return "role"

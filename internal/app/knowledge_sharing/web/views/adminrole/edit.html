@@ -152,7 +152,7 @@
 
             <div class="form-group">
                 <label>角色名称</label>
-                <input id="roleName" type="text" disabled/>
+                <input id="roleName" type="text" placeholder="请输入角色名称"/>
             </div>
 
             <div class="form-group">
@@ -246,6 +246,12 @@
             errorMsg.classList.remove('show');
             successMsg.classList.remove('show');
 
+            const roleName = document.getElementById('roleName').value.trim();
+            if (!roleName) {
+                showError('请输入角色名称');
+                return;
+            }
+
             const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
             if (checkboxes.length === 0) {
                 showError('请至少选择一个权限');
@@ -257,6 +263,7 @@
             try {
                 const formData = new FormData();
                 formData.append('role_id', roleId);
+                formData.append('role_name', roleName);
                 mids.forEach(mid => formData.append('mids', mid));
 
                 const response = await axios.post('/api/adminrole/update', formData);

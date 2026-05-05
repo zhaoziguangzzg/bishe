@@ -35,9 +35,9 @@ func UpdateRoleNotDeletedById(id int, isDeleted int) (err error) {
 }
 
 // 更新角色权限
-func UpdateRoleMidsById(id int, mids string) (err error) {
-	err = DB.Model(&model.Role{}).Where("id=?", id).Update("mids", mids).Error
-	return
+func UpdateRoleById(id int, roleMap map[string]interface{}) (int64, error) {
+	result := DB.Model(&model.Role{}).Where("id=?", id).Updates(roleMap)
+	return result.RowsAffected, result.Error
 }
 
 // 获取全部权限角色

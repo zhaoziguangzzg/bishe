@@ -90,6 +90,13 @@ func AddRoleHandler(c *gin.Context) {
 // 更新角色权限
 func UpdateRoleHandler(c *gin.Context) {
 
+	name := c.PostForm("role_name")
+	lenName := len(name)
+	if name == "" || lenName > model.ROLE_NAME_LEN_MAX {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
 	roleIdStr := c.PostForm("role_id")
 	if roleIdStr == "" {
 		MakeApiResponseErrorParams(c)
@@ -118,9 +125,9 @@ func UpdateRoleHandler(c *gin.Context) {
 	}
 
 	//查询角色是否存在
-	role, err := service.GetRoleNotDeletedById(id)
+	role, err := service.GetRoleByName(name)
 	if err != nil {
-		service.Logger.Error("GetRoleNotDeletedById err", zap.Error(err))
+		service.Logger.Error("GetRoleByName err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -130,10 +137,15 @@ func UpdateRoleHandler(c *gin.Context) {
 		return
 	}
 
+	roleMap := map[string]interface{}{
+		"role_name": name,
+		"mids":      midsStr,
+	}
+
 	//更新mids
-	err = service.UpdateRoleMidsById(id, midsStr)
-	if err != nil {
-		service.Logger.Error("UpdateRoleMidsById err", zap.Error(err))
+	affectRows, err := service.UpdateRoleById(id, roleMap)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdateRoleById err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
