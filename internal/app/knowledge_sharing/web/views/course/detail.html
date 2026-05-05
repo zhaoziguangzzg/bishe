@@ -415,22 +415,17 @@
 
         function renderLessons(lessons, isPurchased, isOwner, isFree) {
             const canView = isPurchased || isOwner || isFree;
+            let displayLessons = lessons;
 
-            if (!canView) {
-                const noAccessSection = document.createElement('div');
-                noAccessSection.innerHTML = `
-                    <h3 class="section-title">课时列表</h3>
-                    <div class="no-lesson">购买课程后即可查看课时列表</div>
-                `;
-                document.getElementById('content').appendChild(noAccessSection);
-                return;
+            if (!canView && lessons.length > 0) {
+                displayLessons = lessons.slice(0, 1);
             }
 
             let lessonsHtml;
-            if (lessons.length === 0) {
+            if (displayLessons.length === 0) {
                 lessonsHtml = '<div class="no-lesson">暂无课时</div>';
             } else {
-                lessonsHtml = '<div class="lesson-list">' + lessons.map((lesson, index) => `
+                lessonsHtml = '<div class="lesson-list">' + displayLessons.map((lesson, index) => `
                     <div class="lesson-item" onclick="viewLesson(${lesson.id})">
                         <div class="lesson-icon">${index + 1}</div>
                         <div class="lesson-info">
@@ -447,10 +442,16 @@
                 </div>
             ` : '';
 
+            let purchaseTip = '';
+            if (!canView && lessons.length > 1) {
+                purchaseTip = '<div class="no-lesson">购买课程后即可查看全部课时</div>';
+            }
+
             const lessonSection = document.createElement('div');
             lessonSection.innerHTML = `
                 <h3 class="section-title">课时列表</h3>
                 ${lessonsHtml}
+                ${purchaseTip}
                 ${addLessonBtn}
             `;
 
