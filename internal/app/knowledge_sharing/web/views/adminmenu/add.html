@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加菜单 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            gap: 24px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .add-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .add-card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-group .hint {
+            color: #909399;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #f5f7fa;
+            color: #666;
+            border: 1px solid #dcdfe6;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            background: #ebeef5;
+        }
+        .error-tip {
+            color: #f56c6c;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-tip.show {
+            display: block;
+        }
+        .success-tip {
+            color: #67c23a;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .success-tip.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav">
+            <a href="/page/admin/index">管理员首页</a>
+        </div>
+        <div style="flex: 1;"></div>
+        <div class="nav">
+            <a href="/api/adminuser/logout">退出登录</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="add-card">
+            <h2>添加权限</h2>
+            <div class="error-tip" id="errorTip"></div>
+            <div class="success-tip" id="successTip"></div>
+
+            <form id="menuForm">
+                <div class="form-group">
+                    <label>权限名称</label>
+                    <input type="text" id="menu_name" name="menu_name" placeholder="请输入权限名称" maxlength="100" required>
+                    <div class="hint">最多100个字符</div>
+                </div>
+
+                <div class="form-group">
+                    <label>权限路径</label>
+                    <input type="text" id="menu_path" name="menu_path" placeholder="请输入权限路径" maxlength="200" required>
+                    <div class="hint">例如：/page/circle/index</div>
+                </div>
+
+                <button type="button" class="btn" onclick="submitMenu()">提交</button>
+                <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorTip = document.getElementById('errorTip');
+            const successTip = document.getElementById('successTip');
+            errorTip.textContent = message;
+            errorTip.classList.add('show');
+            successTip.classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const errorTip = document.getElementById('errorTip');
+            const successTip = document.getElementById('successTip');
+            successTip.textContent = message;
+            successTip.classList.add('show');
+            errorTip.classList.remove('show');
+        }
+
+        async function submitMenu() {
+            const menuName = document.getElementById('menu_name').value.trim();
+            const menuPath = document.getElementById('menu_path').value.trim();
+
+            if (!menuName) {
+                showError('请输入菜单名称');
+                return;
+            }
+
+            if (!menuPath) {
+                showError('请输入菜单路径');
+                return;
+            }
+
+            const btn = document.querySelector('.btn');
+            btn.disabled = true;
+            btn.textContent = '提交中...';
+
+            try {
+                const formData = new FormData();
+                formData.append('menu_name', menuName);
+                formData.append('menu_path', menuPath);
+
+                const response = await axios.post('/api/adminmenu/add', formData);
+
+                if (response.data.code === 0) {
+                    showSuccess('添加成功！');
+                    setTimeout(() => {
+                        window.location.href = '/page/admin/index';
+                    }, 1500);
+                } else {
+                    showError(response.data.msg || '添加失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('请求失败，请稍后重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '提交';
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/page/admin/index';
+        }
+    </script>
+</body>
+</html>
