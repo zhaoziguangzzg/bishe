@@ -49,3 +49,27 @@ func AdminUserAddPageHandler(c *gin.Context) {
 func AdminUserListPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "adminuser/list.html", nil)
 }
+
+func AdminUserDetailPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminuser/detail.html", nil)
+}
+
+func AdminUserRolePageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminuser/role.html", nil)
+}
+
+func AdminAccusationListPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminaccusation/list.html", nil)
+}
+
+func AdminFeedbackListPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminfeedback/list.html", nil)
+}
+
+func AdminAnnounceAddPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminannounce/add.html", nil)
+}
+
+func AdminAnnounceListPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminannounce/list.html", nil)
+}

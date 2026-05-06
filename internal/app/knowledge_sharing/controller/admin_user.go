@@ -323,8 +323,18 @@ func DeleteAdminUserHandler(c *gin.Context) {
 }
 
 // 修改管理员用户角色
-func UpdateAdminUserRoleHandler(c *gin.Context) {
-	uid := service.GetAdminUidFromContext(c)
+func UpdateAdminUserRoleByUidHandler(c *gin.Context) {
+	uidStr := c.PostForm("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
 
 	roleIdStr := c.PostForm("role_id")
 	if roleIdStr == "" {

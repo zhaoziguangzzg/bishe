@@ -380,40 +380,47 @@ func main() {
 	//获取角色详情
 	adminApi.GET("/adminrole/get", controller.GetRoleHandler)
 
-	//添加管理员用户信息
-
 	// 添加管理员页
 	adminPage.GET("/adminuser/add", controller.AdminUserAddPageHandler)
 	adminApi.POST("/adminuser/add", controller.AddAdminUserHandler)
 
+	// 更新管理员页
 	adminPage.GET("/adminuser/edit", controller.AdminEditPageHandler)
 	//更新管理员用户信息
-	//TODO 更新管理员所有信息
 	adminApi.POST("/adminuser/update", controller.UpdateAdminUserHandler)
-	//adminApi.POST("/adminuser/update-role", controller.UpdateAdminUserRoleHandler) //更新管理员用户角色
-	// 删除管理员用户
-	adminApi.POST("/adminuser/delete", controller.DeleteAdminUserHandler)
-	//TODO 查看管理员详情页
-	//获取某管理员用户信息
-	adminApi.GET("/adminuser/get", controller.GetAdminUserHandler)
+	//修改管理员用户角色页
+	adminPage.GET("/adminuser/role", controller.AdminUserRolePageHandler)
+	//更新管理员用户角色
+	adminApi.POST("/adminuser/update-role", controller.UpdateAdminUserRoleByUidHandler)
+
 	// 管理员列表页
 	adminPage.GET("/adminuser/list", controller.AdminUserListPageHandler)
 	//获取全部管理员用户
 	adminApi.GET("/adminuser/all", controller.GetAllAdminUserHandler)
+	// 删除管理员用户
+	adminApi.POST("/adminuser/delete", controller.DeleteAdminUserHandler)
+	//查看管理员详情页
+	adminPage.GET("/adminuser/detail", controller.AdminUserDetailPageHandler)
+	//获取某管理员用户信息
+	adminApi.GET("/adminuser/get", controller.GetAdminUserHandler)
 
-	//举报
-	//TODO 举报列表页
+	//举报列表页
+	adminPage.GET("/adminaccusation/list", controller.AdminAccusationListPageHandler)
 	//获取全部未审核举报
 	adminApi.GET("/adminaccusation/all", controller.GetAllAccusationEssayHandler)
+
+	//修改举报页
 	adminPage.GET("/adminaccusation/edit", controller.AccusationEditPageHandler)
 	//获取举报内容文章
 	adminApi.GET("/adminaccusation/get", controller.GetEssayContentByAccusationHandler)
 	//更新举报状态
 	adminApi.POST("/adminaccusation/update", controller.UpdateAccusationStatusHandler)
 
-	//TODO page/all
-	//获取全部未处理反馈
+	//反馈列表页
+	adminPage.GET("/adminfeedback/list", controller.AdminFeedbackListPageHandler)
+	//获取全部反馈
 	adminApi.GET("/adminfeedback/all", controller.GetAllFeedbackHandler)
+	//处理反馈页
 	adminPage.GET("/adminfeedback/edit", controller.FeedbackEditPageHandler)
 	//获取反馈
 	adminApi.GET("/adminfeedback/get", controller.GetFeedbackContentHandler)
@@ -421,13 +428,16 @@ func main() {
 	adminApi.POST("/adminfeedback/update", controller.UpdateFeedbackStatusHandler)
 
 	//公告
-	//TODO page/add
+	//添加公告页
+	adminPage.GET("/adminannounce/add", controller.AdminAnnounceAddPageHandler)
 	//创建公告
 	adminApi.POST("/adminannounce/add", controller.AddAnnounceHandler)
-	//TODO page/list
+	//公告列表页
+	adminPage.GET("/adminannounce/list", controller.AdminAnnounceListPageHandler)
 	//adminApi.GET("/announce/all-time", controller.GetAllAnnounceByTimeHandler) //获取全部公告
 	//获取全部公告
 	adminApi.GET("/adminannounce/all", controller.GetAllAnnounceHandler)
+	//修改公告页
 	adminPage.GET("/adminannounce/edit", controller.AnnounceEditPageHandler)
 	//查看公告
 	adminApi.GET("/adminannounce/get", controller.GetAnnounceHandler)
