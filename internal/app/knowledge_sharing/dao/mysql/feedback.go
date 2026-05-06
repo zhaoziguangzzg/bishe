@@ -13,12 +13,12 @@ func CreateUserFeedback(newFeedback *model.Feedback) (err error) {
 	return
 }
 
-// 获取全部未处理反馈
-func GetAllFeedback(page int, pagesize int) (feedbacks []model.Feedback, err error) {
+// 获取全部反馈
+func GetAllFeedback(page int, pagesize int, status int) (feedbacks []model.Feedback, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Feedback{}).
-		Where("feedback_status=? and is_deleted=?", model.FEEDBACK_STATUS_OPEN, model.FEEDBACK_NOT_DELETED).
+		Where("feedback_status=? and is_deleted=?", status, model.FEEDBACK_NOT_DELETED).
 		Order("feedback_time DESC").Offset(offset).Limit(pagesize).Find(&feedbacks).Error
 	return
 }

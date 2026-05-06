@@ -45,14 +45,29 @@ func AddUserFeedbackHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 获取全部未处理反馈
+// 获取全部反馈
 func GetAllFeedbackHandler(c *gin.Context) {
+	statusStr := c.Query("status")
+	if statusStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	status, err := strconv.Atoi(statusStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	if status != model.FEEDBACK_STATUS_OPEN && status != model.FEEDBACK_STATUS_CLOSE {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
 
 	pagesize := 10
 
-	feedbacks, err := service.GetAllFeedback(page, pagesize)
+	feedbacks, err := service.GetAllFeedback(page, pagesize, status)
 	if err != nil {
 		service.Logger.Error("GetAllFeedback", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

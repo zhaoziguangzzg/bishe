@@ -11,9 +11,9 @@ func CreateUserFeedback(newFeedback *model.Feedback) (err error) {
 	return mysql.CreateUserFeedback(newFeedback)
 }
 
-// 获取全部未处理反馈
-func GetAllFeedback(page int, pagesize int) (feedbacks []model.Feedback, err error) {
-	return mysql.GetAllFeedback(page, pagesize)
+// 获取全部反馈
+func GetAllFeedback(page int, pagesize int, status int) (feedbacks []model.Feedback, err error) {
+	return mysql.GetAllFeedback(page, pagesize, status)
 }
 
 // 获取反馈内容
