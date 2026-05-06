@@ -164,6 +164,18 @@
         .btn-edit:hover {
             background: #66b1ff;
         }
+        .btn-detail {
+            padding: 6px 12px;
+            background: #909399;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-detail:hover {
+            background: #82848a;
+        }
         .btn-delete {
             padding: 6px 12px;
             background: #f56c6c;
@@ -267,6 +279,7 @@
                             <td>${user.createAt || '-'}</td>
                             <td>
                                 <div class="action-btns">
+                                    <button class="btn-detail" onclick="viewDetail(${user.id})">详情</button>
                                     <button class="btn-edit" onclick="editUser(${user.id})">编辑</button>
                                     <button class="btn-delete" onclick="deleteUser(${user.id})">删除</button>
                                 </div>
@@ -279,6 +292,10 @@
                 document.getElementById('userTableBody').innerHTML = 
                     '<tr><td colspan="5" class="empty-tip">加载失败</td></tr>';
             }
+        }
+
+        function viewDetail(id) {
+            window.location.href = `/page/adminuser/detail?id=${id}`;
         }
 
         function editUser(id) {

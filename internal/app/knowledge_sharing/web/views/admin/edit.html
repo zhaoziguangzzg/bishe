@@ -182,24 +182,41 @@
     </div>
 
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const adminId = urlParams.get('id');
+        
         let currentAdmin = null;
 
         async function loadAdminInfo() {
             try {
-                const response = await axios.get('/api/adminuser/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentAdmin = response.data.data.user;
+                let response;
+                if (adminId) {
+                    response = await axios.get('/api/adminuser/all?page=1&pagesize=1000');
+                    if (response.data.code === 0) {
+                        const users = response.data.data.users || [];
+                        currentAdmin = users.find(u => u.id == adminId);
+                    }
+                } else {
+                    response = await axios.get('/api/adminuser/get');
+                    if (response.data.code === 0 && response.data.data) {
+                        currentAdmin = response.data.data.user;
+                    }
+                }
+                
+                if (currentAdmin) {
                     document.getElementById('username').value = currentAdmin.name || '';
                     document.getElementById('email').value = currentAdmin.email || '';
                     document.getElementById('phone').value = currentAdmin.phone || '';
                     if (currentAdmin.avatar) {
                         document.getElementById('avatarPreview').src = currentAdmin.avatar;
                     }
-                } else {
+                } else if (!adminId) {
                     window.location.href = '/page/user/login';
                 }
             } catch (error) {
-                window.location.href = '/page/user/login';
+                if (!adminId) {
+                    window.location.href = '/page/user/login';
+                }
             }
         }
 
