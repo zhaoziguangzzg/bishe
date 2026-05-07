@@ -7,5 +7,5 @@ import (
 )
 
 func AdvertEditPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "advert/edit.html", nil)
+	c.HTML(http.StatusOK, "adminadvert/edit.html", nil)
 }

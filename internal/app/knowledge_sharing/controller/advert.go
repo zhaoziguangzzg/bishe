@@ -13,13 +13,13 @@ import (
 
 // 添加广告
 func AddAdvertHandler(c *gin.Context) {
-	position := c.PostForm("position")
+	positionStr := c.PostForm("position")
 	content := c.PostForm("content")
 	advertAddr := c.PostForm("addvert_addr")
 
-	positionLen := len(position)
-	if positionLen > model.ADVERT_MAX_POSITION || positionLen == 0 {
-		MakeApiResponseError(c, CODE_ADVERT_POSITION_LEN_INVASLID)
+	position, err := strconv.Atoi(positionStr)
+	if err != nil || !service.CheckPosition(position) {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
@@ -108,14 +108,14 @@ func AddAdvertHandler(c *gin.Context) {
 
 // 获取全部广告列表
 func GetAllAdvertByTimeHandler(c *gin.Context) {
-	position := c.Query("position")
-
-	positionLen := len(position)
-	if positionLen > model.ADVERT_MAX_POSITION || positionLen == 0 {
-		MakeApiResponseError(c, CODE_ADVERT_POSITION_LEN_INVASLID)
+	positionStr := c.Query("position")
+	position, err := strconv.Atoi(positionStr)
+	if err != nil || !service.CheckPosition(position) {
+		MakeApiResponseErrorParams(c)
 		return
 	}
-	cTime := time.Now()
+
+	nowTime := time.Now()
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
@@ -123,7 +123,7 @@ func GetAllAdvertByTimeHandler(c *gin.Context) {
 	pagesize := 10
 
 	//获取全部广告
-	adverts, err := service.GetAllAdvertByTime(cTime, position, page, pagesize)
+	adverts, err := service.GetAllAdvertByTime(nowTime, position, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetAllAdvertByTime", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -201,19 +201,13 @@ func GetAdvertHandler(c *gin.Context) {
 
 // 更新广告信息
 func UpdateAdvertHandler(c *gin.Context) {
-	position := c.PostForm("position")
+	positionStr := c.PostForm("position")
 	content := c.PostForm("content")
 	advertAddr := c.PostForm("addvert_addr")
 
-	positionLen := len(position)
-	if positionLen > model.ADVERT_MAX_POSITION || positionLen == 0 {
-		MakeApiResponseError(c, CODE_ADVERT_POSITION_LEN_INVASLID)
-		return
-	}
-
-	contentLen := len(content)
-	if contentLen > model.ADVERT_MAX_CONTENT || contentLen == 0 {
-		MakeApiResponseError(c, CODE_ADVERT_CONTENT_LEN_INVASLID)
+	position, err := strconv.Atoi(positionStr)
+	if err != nil || !service.CheckPosition(position) {
+		MakeApiResponseErrorParams(c)
 		return
 	}
 
