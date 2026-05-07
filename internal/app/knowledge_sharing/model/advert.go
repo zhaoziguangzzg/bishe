@@ -6,8 +6,8 @@ import "time"
 type Advert struct {
 	Id int `json:"id" gorm:"column:id" mapstructure:"id"`
 	//广告位置
-	Position string `json:"position" gorm:"column:position" mapstructure:"position"`
-	//广告地址
+	Position int `json:"position" gorm:"column:position" mapstructure:"position"`
+	//跳转链接
 	AdvertAddr string `json:"advertAddr" gorm:"column:advert_addr" mapstructure:"advertAddr"`
 	//广告内容
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
@@ -26,9 +26,12 @@ type Advert struct {
 }
 
 const (
-	ADVERT_MAX_ADDR     int = 200 //广告地址最长200字
-	ADVERT_MAX_CONTENT  int = 100 //广告内容最长100字
-	ADVERT_MAX_POSITION int = 100 //广告位置最长100字
+	ADVERT_MAX_ADDR              int = 200 //广告地址最长200字
+	ADVERT_MAX_CONTENT           int = 100 //广告内容最长100字
+	ADVERT_POSITION_CIRCLE_INDEX int = 1   //圈子首页
+	ADVERT_POSITION_COURSE_INDEX int = 2   //课程首页
+	ADVERT_POSITION_USER_PROFILE int = 3   //用户个人中心
+	ADVERT_POSITION_INDEX        int = 4   //首页
 )
 
 // 指定Advert对应的表名

@@ -14,7 +14,7 @@ func CreateAdvert(advert *model.Advert) (err error) {
 }
 
 // 获取全部显示广告
-func GetAllAdvertByTime(ctime time.Time, position string, page int, pagesize int) (adverts []model.Advert, err error) {
+func GetAllAdvertByTime(ctime time.Time, position int, page int, pagesize int) (adverts []model.Advert, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Advert{}).Where("start_time<? and end_time>? and position=? and is_deleted=?", ctime, ctime, position, model.IS_DELETED_NO).

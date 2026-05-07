@@ -12,7 +12,7 @@ func CreateAdvert(advert *model.Advert) (err error) {
 }
 
 // 获取全部广告
-func GetAllAdvertByTime(ctime time.Time, position string, page int, pagesize int) (adverts []model.Advert, err error) {
+func GetAllAdvertByTime(ctime time.Time, position int, page int, pagesize int) (adverts []model.Advert, err error) {
 	return mysql.GetAllAdvertByTime(ctime, position, page, pagesize)
 }
 
@@ -34,4 +34,18 @@ func UpdateAdvertById(id int, advert map[string]interface{}) (int64, error) {
 // 根据id删除广告
 func UpdateAdvertIsDeleted(id int) (int64, error) {
 	return mysql.UpdateAdvertIsDeleted(id)
+}
+
+// 检查position
+func CheckPosition(position int) (b bool) {
+	b = true
+	switch position {
+	case model.ADVERT_POSITION_CIRCLE_INDEX:
+	case model.ADVERT_POSITION_COURSE_INDEX:
+	case model.ADVERT_POSITION_USER_PROFILE:
+	case model.ADVERT_POSITION_INDEX:
+	default:
+		return false
+	}
+	return
 }
