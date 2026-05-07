@@ -73,3 +73,11 @@ func AdminAnnounceAddPageHandler(c *gin.Context) {
 func AdminAnnounceListPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "adminannounce/list.html", nil)
 }
+
+func AdminAdvertAddPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminadvert/add.html", nil)
+}
+
+func AdminAdvertListPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "adminadvert/list.html", nil)
+}

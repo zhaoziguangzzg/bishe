@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广告列表 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .menu-item {
+            padding: 14px 24px;
+            color: rgba(255,255,255,0.85);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left: 3px solid white;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .top-bar {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .top-bar h1 {
+            font-size: 20px;
+            color: #333;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: #f56c6c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover {
+            background: #e64545;
+        }
+        .content-area {
+            padding: 24px 32px;
+        }
+        .tool-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .tool-bar h2 {
+            font-size: 18px;
+            color: #333;
+        }
+        .add-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            text-decoration: none;
+        }
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th {
+            text-align: left;
+            padding: 14px 16px;
+            background: #f9fafb;
+            color: #606266;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .table td {
+            padding: 14px 16px;
+            color: #606266;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .table tr:hover {
+            background: #f5f7fa;
+        }
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-edit {
+            padding: 6px 12px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-edit:hover {
+            background: #66b1ff;
+        }
+        .btn-delete {
+            padding: 6px 12px;
+            background: #f56c6c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-delete:hover {
+            background: #f78989;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 40px;
+            color: #909399;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>管理后台</h2>
+            <p>知识分享平台</p>
+        </div>
+        <a href="/page/admin/index" class="menu-item">首页</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1>广告列表</h1>
+            <div class="user-info">
+                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="tool-bar">
+                <h2>广告管理</h2>
+                <a href="/page/adminadvert/add" class="add-btn">添加广告</a>
+            </div>
+
+            <div class="table-card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>位置</th>
+                            <th>内容</th>
+                            <th>地址</th>
+                            <th>图片</th>
+                            <th>开始时间</th>
+                            <th>结束时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="advertTableBody">
+                        <tr>
+                            <td colspan="8" class="empty-tip">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatTime(time) {
+            if (!time) return '-';
+            return time;
+        }
+
+        function truncateContent(content, maxLength = 30) {
+            if (!content) return '-';
+            if (content.length <= maxLength) return content;
+            return content.substring(0, maxLength) + '...';
+        }
+
+        async function loadAdverts() {
+            try {
+                const response = await axios.get('/api/adminadvert/all?page=1&pagesize=1000');
+                if (response.data.code === 0) {
+                    const adverts = response.data.data.adverts || [];
+                    const tbody = document.getElementById('advertTableBody');
+                    
+                    if (!adverts || adverts.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" class="empty-tip">暂无数据</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = adverts.map(advert => `
+                        <tr>
+                            <td>${advert.id}</td>
+                            <td>${advert.position || '-'}</td>
+                            <td title="${advert.content || ''}">${truncateContent(advert.content)}</td>
+                            <td title="${advert.advertAddr || ''}">${truncateContent(advert.advertAddr, 20)}</td>
+                            <td>${advert.img ? '<img src="' + advert.img + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" />' : '-'}</td>
+                            <td>${formatTime(advert.startTime)}</td>
+                            <td>${formatTime(advert.endTime)}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-edit" onclick="editAdvert(${advert.id})">修改</button>
+                                    <button class="btn-delete" onclick="deleteAdvert(${advert.id})">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('advertTableBody').innerHTML = 
+                    '<tr><td colspan="8" class="empty-tip">加载失败</td></tr>';
+            }
+        }
+
+        function editAdvert(id) {
+            window.location.href = `/page/adminadvert/edit?id=${id}`;
+        }
+
+        async function deleteAdvert(id) {
+            if (!confirm('确定要删除该广告吗？')) {
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('id', id);
+
+                const response = await axios.post('/api/adminadvert/delete', formData);
+                if (response.data.code === 0) {
+                    alert('删除成功');
+                    loadAdverts();
+                } else {
+                    alert(response.data.msg || '删除失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('请求失败，请稍后重试');
+            }
+        }
+
+        loadAdverts();
+    </script>
+</body>
+</html>

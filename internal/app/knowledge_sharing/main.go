@@ -321,10 +321,12 @@ func main() {
 	api.POST("/lesson/update", controller.UpdateLessonHandler)
 
 	//公告
-	//TODO 显示公告页面
+	//公告列表页
+	page.GET("/announce/list", controller.AnnounceListPageHandler)
 	//获取全部公告
 	api.GET("/announce/all", controller.GetAllAnnounceHandler)
-	//TODO page/detail
+	//公告详情页
+	page.GET("/announce/detail", controller.AnnounceDetailPageHandler)
 	//查看公告
 	api.GET("/announce/get", controller.GetAnnounceHandler)
 
@@ -447,12 +449,14 @@ func main() {
 	adminApi.POST("/adminannounce/delete", controller.DeletedAnnounceByUpdateIsDeletedHandler)
 
 	//广告
-	//TODO page/add
+	//添加广告页
+	adminPage.GET("/adminadvert/add", controller.AdminAdvertAddPageHandler)
 	//创建广告
 	adminApi.POST("/adminadvert/add", controller.AddAdvertHandler)
-	//TODO page/list
+	//广告列表页
+	adminPage.GET("/adminadvert/list", controller.AdminAdvertListPageHandler)
 	adminApi.GET("/adminadvert/all", controller.GetAllAdvertHandler)
-
+	//修改广告页
 	adminPage.GET("/adminadvert/edit", controller.AdvertEditPageHandler)
 	//查看广告
 	adminApi.GET("/adminadvert/get", controller.GetAdvertHandler)
