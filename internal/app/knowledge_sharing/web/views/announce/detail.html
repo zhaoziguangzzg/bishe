@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告详情 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .header a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .header span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .detail-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        .detail-info {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 24px;
+            color: #909399;
+            font-size: 14px;
+        }
+        .detail-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #606266;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
+            font-size: 16px;
+        }
+        .error-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: #f56c6c;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="javascript:history.back()">← 返回</a>
+        <span>公告详情</span>
+        <div></div>
+    </div>
+
+    <div class="container">
+        <div class="detail-card">
+            <div id="content" class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
+        function formatTime(time) {
+            if (!time) return '';
+            return time;
+        }
+
+        async function loadAnnounceDetail() {
+            const announceId = getQueryParam('id');
+            const contentDiv = document.getElementById('content');
+
+            if (!announceId) {
+                contentDiv.className = 'error-tip';
+                contentDiv.textContent = '缺少公告ID参数';
+                return;
+            }
+
+            try {
+                const response = await axios.get('/api/announce/get', {
+                    params: { announce_id: announceId }
+                });
+
+                if (response.data.code === 0 && response.data.data && response.data.data.announce) {
+                    const announce = response.data.data.announce;
+                    contentDiv.className = '';
+                    contentDiv.innerHTML = `
+                        <h1 class="detail-title">${announce.title || ''}</h1>
+                        <div class="detail-info">
+                            <span>开始时间: ${formatTime(announce.startTime)}</span>
+                            <span>结束时间: ${formatTime(announce.endTime)}</span>
+                        </div>
+                        <div class="detail-content">${announce.content || ''}</div>
+                    `;
+                } else {
+                    contentDiv.className = 'error-tip';
+                    contentDiv.textContent = response.data.msg || '公告不存在';
+                }
+            } catch (error) {
+                console.error('加载公告详情失败', error);
+                contentDiv.className = 'error-tip';
+                contentDiv.textContent = '加载失败，请稍后重试';
+            }
+        }
+
+        loadAnnounceDetail();
+    </script>
+</body>
+</html>
