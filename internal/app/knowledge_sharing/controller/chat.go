@@ -94,8 +94,6 @@ func GetChatListHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO 排序不正确
-
 	chats, err := service.GetChatList(uid, chatUid, page, pageSize)
 	if err != nil {
 		service.Logger.Error("GetChatList", zap.Error(err))

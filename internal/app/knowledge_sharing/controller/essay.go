@@ -610,7 +610,6 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
-	//TODO 加分/减分，通知
 	switch isEssence {
 	case model.ESSAY_IS_ESSENCE:
 		//加分

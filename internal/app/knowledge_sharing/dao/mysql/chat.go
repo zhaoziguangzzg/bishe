@@ -15,7 +15,7 @@ func GetChatList(uid int, chatUid int, page int, pageSize int) (chats []model.Ch
 	err = DB.Model(&model.Chat{}).
 		Where("send_uid=? and receive_uid=? and is_deleted=?", uid, chatUid, model.IS_DELETED_NO).
 		Or("send_uid=? and receive_uid=? and is_deleted=?", chatUid, uid, model.IS_DELETED_NO).
-		Order("id DESC").Offset(offset).Limit(pageSize).Find(&chats).Error
+		Order("id ASC").Offset(offset).Limit(pageSize).Find(&chats).Error
 	if err != nil {
 		return
 	}

@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"bishe/internal/app/knowledge_sharing/model"
-	"math/rand/v2"
 	"time"
 
 	"gorm.io/gorm"
@@ -120,27 +119,6 @@ func GetStatDetailsByDateType(uid int, stime time.Time) (results []model.StatDet
 		Find(&results).Error
 	if err != nil {
 		return
-	}
-
-	//TODO 去除
-	t := stime
-	for i := 0; i <= 9; i++ {
-		t = t.AddDate(0, 0, 1)
-		tStr := t.Format("2006-01-02")
-
-		result := model.StatDetailsDateCount{
-			Type:  2,
-			Total: rand.IntN(10),
-			Date:  tStr,
-		}
-
-		result2 := model.StatDetailsDateCount{
-			Type:  3,
-			Total: rand.IntN(10),
-			Date:  tStr,
-		}
-
-		results = append(results, result, result2)
 	}
 
 	return
