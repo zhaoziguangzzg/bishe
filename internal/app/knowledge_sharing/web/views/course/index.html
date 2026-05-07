@@ -93,6 +93,20 @@
             margin-right: 10px;
             font-size: 16px;
         }
+        .ad-slot-container {
+            margin-top: 16px;
+        }
+        .ad-slot {
+            background: #f5f7fa;
+            border-radius: 12px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #909399;
+            font-size: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
         .content {
             flex: 1;
             min-width: 0;
@@ -335,6 +349,9 @@
                     <span>我的学习</span>
                 </div>
             </div>
+            <div class="ad-slot-container">
+                <div id="adSlot1" class="ad-slot"></div>
+            </div>
         </div>
 
         <div class="content">
@@ -362,6 +379,26 @@
         let currentTab = 1;
         let isSearchMode = false;
         let searchTitle = '';
+
+        async function loadAds() {
+            try {
+                const response = await axios.get('/api/advert/all-time?page=1&pagesize=1');
+                if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
+                    const advert = response.data.data.adverts[0];
+                    const adSlot = document.getElementById('adSlot1');
+                    if (advert.img) {
+                        adSlot.innerHTML = `<a href="${advert.advertAddr || '#'}" target="_blank"><img src="${advert.img}" style="max-width:100%;border-radius:12px;"></a>`;
+                    } else {
+                        adSlot.innerHTML = `<a href="${advert.advertAddr || '#'}" target="_blank" style="color:#333;text-decoration:none;padding:10px;display:block;">
+                            <div style="font-weight:bold;margin-bottom:8px;">${advert.position || ''}</div>
+                            <div style="font-size:12px;">${advert.content || ''}</div>
+                        </a>`;
+                    }
+                }
+            } catch (error) {
+                console.error('Load ads error:', error);
+            }
+        }
 
         function switchMenu(menu) {
             currentMenu = menu;
@@ -671,6 +708,7 @@
         }
 
         loadCourseList(currentPage);
+        loadAds();
     </script>
 </body>
 </html>
