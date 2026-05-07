@@ -165,6 +165,18 @@
         .btn-delete:hover {
             background: #f78989;
         }
+        .btn-edit {
+            padding: 6px 12px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-edit:hover {
+            background: #66b1ff;
+        }
         .empty-tip {
             text-align: center;
             padding: 40px;
@@ -250,6 +262,7 @@
                             <td>${formatTime(announce.endTime)}</td>
                             <td>
                                 <div class="action-btns">
+                                    <button class="btn-edit" onclick="editAnnounce(${announce.id})">修改</button>
                                     <button class="btn-delete" onclick="deleteAnnounce(${announce.id})">删除</button>
                                 </div>
                             </td>
@@ -261,6 +274,10 @@
                 document.getElementById('announceTableBody').innerHTML = 
                     '<tr><td colspan="6" class="empty-tip">加载失败</td></tr>';
             }
+        }
+
+        function editAnnounce(id) {
+            window.location.href = `/page/adminannounce/edit?id=${id}`;
         }
 
         async function deleteAnnounce(id) {

@@ -46,6 +46,22 @@
             margin: 0 auto;
             padding: 30px 20px;
         }
+        .ad-banner {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .ad-banner-item {
+            display: block;
+            width: 100%;
+            border-radius: 12px;
+        }
+        .ad-banner-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+        }
         .rank-section {
             background: white;
             border-radius: 12px;
@@ -244,6 +260,7 @@
             <a href="/page/circle/index">加入的圈子</a>
             <a href="/page/circle/create">创建的圈子</a>
             <a href="/page/course/index">课程</a>
+            <a href="/page/announce/list" id="headerAnnounce">公告</a>
         </div>
         <div class="header-search">
             <div class="search-box">
@@ -260,6 +277,7 @@
     </div>
 
     <div class="container">
+        <div class="ad-banner" id="indexAdBanner"></div>
         <div class="rankings-container">
             <div class="rank-section">
                 <h2>💰 付费圈子排行榜 <a class="more-link" href="/page/circle/list?type=charge">更多</a></h2>
@@ -279,6 +297,45 @@
     </div>
 
     <script>
+        async function loadLatestAnnounce() {
+            try {
+                const response = await axios.get('/api/announce/all?page=1&pagesize=1');
+                if (response.data.code === 0 && response.data.data && response.data.data.announces && response.data.data.announces.length > 0) {
+                    const announce = response.data.data.announces[0];
+                    const announceLink = document.getElementById('headerAnnounce');
+                    announceLink.textContent = announce.title || '公告';
+                    announceLink.href = '/page/announce/list';
+                }
+            } catch (error) {
+                console.error('Load announcement error:', error);
+            }
+        }
+
+        async function loadIndexAds() {
+            const adBanner = document.getElementById('indexAdBanner');
+            if (!adBanner) return;
+
+            try {
+                const response = await axios.get('/api/advert/all-time?position=4');
+                if (response.data.code === 0 && response.data.data && response.data.data.adverts && response.data.data.adverts.length > 0) {
+                    const adverts = response.data.data.adverts;
+                    const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
+                    
+                    if (randomAd.img) {
+                        if (randomAd.addvert_addr) {
+                            adBanner.innerHTML = '<a href="' + escapeHtml(randomAd.addvert_addr) + '" class="ad-banner-item" target="_blank"><img src="' + escapeHtml(randomAd.img) + '" alt="广告"/></a>';
+                        } else {
+                            adBanner.innerHTML = '<div class="ad-banner-item"><img src="' + escapeHtml(randomAd.img) + '" alt="广告"/></div>';
+                        }
+                    } else if (randomAd.content) {
+                        adBanner.innerHTML = '<div class="ad-banner-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; text-align: center;">' + escapeHtml(randomAd.content) + '</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Load index ads error:', error);
+            }
+        }
+
         async function loadChargeRank() {
             try {
                 const response = await axios.get('/api/circle/charge');
@@ -397,6 +454,7 @@
         loadFreeRank();
         loadHotRank();
         checkLogin();
+        loadLatestAnnounce();
     </script>
 </body>
 </html>
