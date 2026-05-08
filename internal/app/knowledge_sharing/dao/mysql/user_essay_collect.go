@@ -15,7 +15,9 @@ func CreateUserEssayCollect(newUserEssayCollect *model.UserEssayCollect) (err er
 // 根据uid,eid获取文章收藏
 func GetUserEssayCollect(uid int, eid int) (userEssayCollect *model.UserEssayCollect, err error) {
 	userEssayCollect = new(model.UserEssayCollect)
-	err = DB.Model(&model.UserEssayCollect{}).Where("user_id=? and essay_id=?", uid, eid).First(&userEssayCollect).Error
+	err = DB.Model(&model.UserEssayCollect{}).
+		Where("user_id=? and essay_id=? and collect_status=?", uid, eid, model.COLLECT_STATUS_NORMAL).
+		First(&userEssayCollect).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

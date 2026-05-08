@@ -38,7 +38,6 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO collect_status 直查询有效的
 	collect, err := service.GetUserEssayCollect(uid, eid)
 	if err != nil {
 		service.Logger.Error("GetUserEssayCollect", zap.Error(err))
@@ -47,34 +46,25 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 	}
 
 	createTime := time.Now()
-	if collect == nil {
+	if collect != nil {
+		MakeApiResponseError(c, CODE_COLLECT_EXIST)
+		return
+	}
 
-		newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
-			UserId:        uid,
-			EssayId:       eid,
-			FavoriteId:    fid,
-			CreateAt:      &createTime,
-			UpdateAt:      &createTime,
-			CollectStatus: model.COLLECT_STATUS_NORMAL,
-		}
+	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
+		UserId:        uid,
+		EssayId:       eid,
+		FavoriteId:    fid,
+		CreateAt:      &createTime,
+		UpdateAt:      &createTime,
+		CollectStatus: model.COLLECT_STATUS_NORMAL,
+	}
 
-		//TODO 去唯一键，可以重复
-
-		err = service.CreateUserEssayCollect(newUserEssayCollect)
-		if err != nil {
-			service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-	} else {
-		//未收藏转为收藏
-		affectRows, err := service.UpdateUserEssayCollectNotToIs(uid, eid, fid)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateUserEssayCollectNotToIs err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	err = service.CreateUserEssayCollect(newUserEssayCollect)
+	if err != nil {
+		service.Logger.Error("CreateUserEssayCollect err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
 	}
 
 	typei := model.STAT_TYPE_COLLECT
