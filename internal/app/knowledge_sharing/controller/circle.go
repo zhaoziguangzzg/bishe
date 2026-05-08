@@ -135,8 +135,6 @@ func UpdateCircleHandler(c *gin.Context) {
 		return
 	}
 
-	circle := service.GetCidFromContext(c)
-
 	updateMap := map[string]interface{}{
 		"title":        title,
 		"price":        price,
@@ -146,10 +144,9 @@ func UpdateCircleHandler(c *gin.Context) {
 	fileType := service.FILE_TYPE_PAY_IMG
 	timeNow := time.Now()
 
-	//TODO 图片
-	// 处理头像上传
-	avatarPath := ""
-	file, header, err := c.Request.FormFile("avatar")
+	// 处理收费图片上传
+	imgPath := ""
+	file, header, err := c.Request.FormFile("img")
 	//判断错误不等于无文件
 	if err != nil && err != http.ErrMissingFile {
 		service.Logger.Error("FormFile err", zap.Error(err))
@@ -159,23 +156,24 @@ func UpdateCircleHandler(c *gin.Context) {
 
 	//判断size不是空
 	if err == nil && header.Size != 0 {
-		avatarPath, err = service.FileSave(file, header, fileType, timeNow)
+		imgPath, err = service.FileSave(file, header, fileType, timeNow)
 		if err != nil {
 			MakeApiResponseErrorDefault(c)
 			return
 		}
-		updateMap["avatar"] = avatarPath
+		updateMap["pay_img"] = imgPath
 	}
 
 	//更新圈子信息
 	affectRows, err := service.UpdateCircleByCid(cid, updateMap)
-	if err != nil || affectRows == 0 {
+	if err != nil {
 		service.Logger.Error("UpdateCircleByCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
+	service.Logger.Info("UpdateCircleByCid success", zap.Int64("affectRows", affectRows))
 	data := map[string]interface{}{
-		"circle": circle,
+		"cid": cid,
 	}
 
 	MakeApiResponseSuccess(c, data)
