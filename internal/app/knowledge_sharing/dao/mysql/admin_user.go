@@ -37,7 +37,8 @@ func GetAdminUserByName(name string) (adminUser *model.AdminUser, err error) {
 // 根据uid获取管理员用户
 func GetAdminUserByUserId(uid int) (adminUser *model.AdminUser, err error) {
 	adminUser = new(model.AdminUser)
-	err = DB.Model(&model.AdminUser{}).Where("id=? and is_deleted=?", uid, model.IS_DELETED_NO).First(&adminUser).Error
+	err = DB.Model(&model.AdminUser{}).
+		Where("id=?", uid).First(&adminUser).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

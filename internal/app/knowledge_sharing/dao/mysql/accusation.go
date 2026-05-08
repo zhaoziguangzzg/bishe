@@ -16,7 +16,7 @@ func CreateUserAccusation(newAccusation *model.Accusation) (err error) {
 func GetUserAccusationEssay(uid int, eid int) (accusation *model.Accusation, err error) {
 	accusation = new(model.Accusation)
 	err = DB.Model(&model.Accusation{}).
-		Where("user_id=? and essay_id=? and is_deleted=?", uid, eid, model.ACCUSATION_NOT_DELETED).
+		Where("user_id=? and essay_id=? and and is_deleted=?", uid, eid, model.ACCUSATION_NOT_DELETED).
 		First(&accusation).Error
 
 	if err != nil {
@@ -43,7 +43,7 @@ func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusati
 // 获取文章举报内容
 func GetAccusationByAid(aid int) (accusation *model.Accusation, err error) {
 	accusation = new(model.Accusation)
-	err = DB.Model(&model.Accusation{}).Where("id=?", aid).First(&accusation).Error
+	err = DB.Model(&model.Accusation{}).Where("id=? and is_deleted=?", aid, model.ACCUSATION_NOT_DELETED).First(&accusation).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

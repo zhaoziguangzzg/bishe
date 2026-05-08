@@ -74,7 +74,9 @@ func AddOrdersHandler(c *gin.Context) {
 		return
 	}
 
-	MakeApiResponseSuccessDefault(c)
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"orders_id": orders.Id,
+	})
 }
 
 // 获取用户全部支付列表

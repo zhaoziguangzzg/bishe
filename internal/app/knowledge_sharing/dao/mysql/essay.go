@@ -41,7 +41,8 @@ func GetAllEssayByCid(cid int, page int, pagesize int) (essays []model.Essay, er
 // 根据eid获取文章
 func GetEssayByEid(eid int) (essay *model.Essay, err error) {
 	essay = new(model.Essay)
-	err = DB.Model(&model.Essay{}).Where("id=? and is_deleted=?", eid, model.ESSAY_NOT_DELETED).First(&essay).Error
+	err = DB.Model(&model.Essay{}).Where("id=?", eid).
+		First(&essay).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil

@@ -458,10 +458,10 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	// 获取用户购买记录
+	// 获取用户购买未支付记录
 	purchases, err := service.GetPurchaseByUidCid(uid, cid)
 	if err != nil {
-		service.Logger.Error("GetPurchaseByUidCid", zap.Error(err))
+		service.Logger.Error("GetPurchaseByUidCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

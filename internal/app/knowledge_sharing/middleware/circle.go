@@ -16,8 +16,14 @@ func PageIsJoinCircle() gin.HandlerFunc {
 		var cidStr string
 		if c.Request.Method == http.MethodGet {
 			cidStr = c.Query("circle_id")
+			if cidStr == "" {
+				cidStr = c.Query("cid")
+			}
 		} else {
 			cidStr = c.PostForm("circle_id")
+			if cidStr == "" {
+				cidStr = c.PostForm("cid")
+			}
 		}
 
 		if cidStr == "" {
@@ -45,6 +51,12 @@ func PageIsJoinCircle() gin.HandlerFunc {
 		service.SetCircleToContext(c, circle)
 
 		uid := service.GetUidFromContext(c)
+
+		if uid == circle.CircleOwnerId {
+			service.SetIsJoinCircleToContext(c, true)
+			c.Next()
+			return
+		}
 
 		join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 		if err != nil {
@@ -80,8 +92,14 @@ func ApiIsJoinCircle() gin.HandlerFunc {
 		var cidStr string
 		if c.Request.Method == http.MethodGet {
 			cidStr = c.Query("circle_id")
+			if cidStr == "" {
+				cidStr = c.Query("cid")
+			}
 		} else {
 			cidStr = c.PostForm("circle_id")
+			if cidStr == "" {
+				cidStr = c.PostForm("cid")
+			}
 		}
 
 		if cidStr == "" {
@@ -109,6 +127,12 @@ func ApiIsJoinCircle() gin.HandlerFunc {
 		service.SetCircleToContext(c, circle)
 
 		uid := service.GetUidFromContext(c)
+
+		if uid == circle.CircleOwnerId {
+			service.SetIsJoinCircleToContext(c, true)
+			c.Next()
+			return
+		}
 
 		join, err := service.GetUserCircleJoinByUidCid(uid, cid)
 		if err != nil {

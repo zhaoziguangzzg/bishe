@@ -40,11 +40,6 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-
-	pageSize := 10
-
 	uid := service.GetUidFromContext(c)
 	name := service.GetNameFromContext(c)
 
@@ -69,37 +64,26 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	//获取文章作者的粉丝
-	fans, err := service.GetUserFanListByUid(uid, page, pageSize)
-	if err != nil {
-		service.Logger.Error("GetUserFanUidByUid", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
 	typei := model.NOTICE_TYPE_DISPATCH
-
-	for _, fan := range fans {
-		fanUid := fan.Id
-		//TODO循环
-		//TODO 异步处理
-		noticeMsg := &model.NoticeMsg{
-			Type:     typei,
-			Uid:      fanUid,
-			Time:     nowTime.Unix(),
-			UserName: name,
-		}
-
-		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
-		if err != nil {
-			service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
-			err = nil
-		}
+	//TODO 异步处理
+	noticeMsg := &model.NoticeMsg{
+		Type:     typei,
+		Uid:      newEssay.AuthorId,
+		Time:     nowTime.Unix(),
+		UserName: name,
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
+	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
+	if err != nil {
+		service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+		err = nil
+	}
+
+	data := map[string]interface{}{
 		"eid": newEssay.Id,
-	})
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 更新文章信息
