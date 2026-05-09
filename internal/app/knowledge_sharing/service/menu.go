@@ -21,8 +21,8 @@ func UpdateMenuNotDeletedById(id int, isDeleted int) (err error) {
 }
 
 // 获取全部权限菜单
-func GetAllMenu(page int, pagesize int) (menus []model.Menu, err error) {
-	return mysql.GetAllMenu(page, pagesize)
+func GetAllMenu() (menus []model.Menu, err error) {
+	return mysql.GetAllMenu()
 }
 
 // 根据菜单ID查询菜单

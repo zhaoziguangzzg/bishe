@@ -589,64 +589,8 @@
         <div class="submenu show" id="submenu-user">
             <div class="submenu-item active" onclick="showSection('user-info'); setActiveSubmenu(this)">个人信息</div>
         </div>
-        
-        <div class="menu-item" onclick="toggleSubmenu('review')">
-            <span class="icon">✅</span>
-            <span>审核</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-review">
-            <div class="submenu-item" onclick="showSection('essay-review'); setActiveSubmenu(this)">文章审核</div>
-        </div>
-        
-        <div class="menu-item" onclick="toggleSubmenu('feedback')">
-            <span class="icon">💬</span>
-            <span>反馈</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-feedback">
-            <div class="submenu-item" onclick="showSection('feedback-list'); setActiveSubmenu(this)">反馈列表</div>
-        </div>
-        
-        <div class="menu-item" onclick="toggleSubmenu('notice')">
-            <span class="icon">📢</span>
-            <span>公告</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-notice">
-            <div class="submenu-item" onclick="showSection('notice-list'); setActiveSubmenu(this)">公告列表</div>
-            <div class="submenu-item" onclick="showSection('notice-add'); setActiveSubmenu(this)">新增公告</div>
-        </div>
-        
-        <div class="menu-item" onclick="toggleSubmenu('ad')">
-            <span class="icon">📺</span>
-            <span>广告</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-ad">
-            <div class="submenu-item" onclick="showSection('ad-list'); setActiveSubmenu(this)">广告列表</div>
-            <div class="submenu-item" onclick="showSection('ad-add'); setActiveSubmenu(this)">新增广告</div>
-        </div>
 
-        <div class="menu-item" onclick="toggleSubmenu('permission')">
-            <span class="icon">🔐</span>
-            <span>权限管理</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-permission">
-            <div class="submenu-item" onclick="showSection('permission-list'); setActiveSubmenu(this)">权限列表</div>
-            <div class="submenu-item" onclick="showSection('permission-add'); setActiveSubmenu(this)">新增权限</div>
-        </div>
-
-        <div class="menu-item" onclick="toggleSubmenu('role')">
-            <span class="icon">👥</span>
-            <span>角色管理</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu" id="submenu-role">
-            <div class="submenu-item" onclick="showSection('role-list'); setActiveSubmenu(this)">角色列表</div>
-            <div class="submenu-item" onclick="showSection('role-add'); setActiveSubmenu(this)">新增角色</div>
-        </div>
+        <div id="dynamic-menus"></div>
     </div>
     
     <div class="main-content">
@@ -858,6 +802,21 @@
     
     <script>
         let currentAdmin = null;
+        let userMenuIds = [];
+        let allMenus = [];
+
+        const menuConfig = {
+            '文章审核': { section: 'essay-review', icon: '✅', group: 'review' },
+            '反馈列表': { section: 'feedback-list', icon: '💬', group: 'feedback' },
+            '公告列表': { section: 'notice-list', icon: '📢', group: 'notice' },
+            '新增公告': { section: 'notice-add', icon: '📢', group: 'notice' },
+            '广告列表': { section: 'ad-list', icon: '📺', group: 'ad' },
+            '新增广告': { section: 'ad-add', icon: '📺', group: 'ad' },
+            '权限列表': { section: 'permission-list', icon: '🔐', group: 'permission' },
+            '新增权限': { section: 'permission-add', icon: '🔐', group: 'permission' },
+            '角色列表': { section: 'role-list', icon: '👥', group: 'role' },
+            '新增角色': { section: 'role-add', icon: '👥', group: 'role' }
+        };
 
         function setActiveSubmenu(element) {
             document.querySelectorAll('.submenu-item').forEach(item => {
@@ -871,15 +830,87 @@
                 const response = await axios.get('/api/adminuser/get');
                 if (response.data.code === 0 && response.data.data) {
                     currentAdmin = response.data.data.user;
+                    userMenuIds = response.data.data.menuIds || [];
                     document.getElementById('adminName').textContent = currentAdmin.name;
                     renderAdminInfo();
                     loadRolesForSelect();
+                    loadDynamicMenus();
                 } else {
                     window.location.href = '/page/user/login';
                 }
             } catch (error) {
                 window.location.href = '/page/user/login';
             }
+        }
+
+        async function loadDynamicMenus() {
+            try {
+                const response = await axios.get('/api/adminmenu/all');
+                if (response.data.code === 0) {
+                    allMenus = response.data.data.menus || [];
+                    renderDynamicMenus();
+                }
+            } catch (error) {
+                console.error('加载菜单失败', error);
+            }
+        }
+
+        function renderDynamicMenus() {
+            const container = document.getElementById('dynamic-menus');
+            const groups = {};
+            
+            allMenus.forEach(function(menu) {
+                if (menu.isDeleted === 1) return;
+                const config = menuConfig[menu.menuName];
+                if (!config) return;
+                
+                if (!groups[config.group]) {
+                    groups[config.group] = {
+                        icon: config.icon,
+                        name: config.group === 'review' ? '审核' :
+                              config.group === 'feedback' ? '反馈' :
+                              config.group === 'notice' ? '公告' :
+                              config.group === 'ad' ? '广告' :
+                              config.group === 'permission' ? '权限管理' :
+                              config.group === 'role' ? '角色管理' : config.group,
+                        items: []
+                    };
+                }
+                groups[config.group].items.push({
+                    id: menu.id,
+                    name: menu.menuName,
+                    section: config.section
+                });
+            });
+
+            let html = '';
+            for (const groupKey in groups) {
+                const group = groups[groupKey];
+                const hasPermission = group.items.some(item => userMenuIds.length === 0 || userMenuIds.includes(item.id));
+                if (!hasPermission && userMenuIds.length > 0) continue;
+                
+                html += `
+                    <div class="menu-item" onclick="toggleSubmenu('${groupKey}')">
+                        <span class="icon">${group.icon}</span>
+                        <span>${group.name}</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="submenu" id="submenu-${groupKey}">
+                `;
+                
+                group.items.forEach(function(item) {
+                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
+                    if (!hasItemPermission && userMenuIds.length > 0) return;
+                    
+                    html += `
+                        <div class="submenu-item" data-menu-id="${item.id}" onclick="showSection('${item.section}'); setActiveSubmenu(this)">${item.name}</div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
         }
 
         async function loadRolesForSelect() {
@@ -932,6 +963,7 @@
                     if (currentAdmin) {
                         currentAdmin.roleId = parseInt(roleId);
                     }
+                    await loadAdminInfo();
                 } else {
                     alert(response.data.message || '角色更新失败');
                     loadRolesForSelect();

@@ -198,7 +198,7 @@
 
         async function loadMenu() {
             try {
-                const response = await axios.get('/api/adminmenu/all?page=1&pagesize=1000');
+                const response = await axios.get('/api/adminmenu/all');
                 if (response.data.code === 0) {
                     const menus = response.data.data.menus;
                     const menu = menus.find(m => m.id == menuId);

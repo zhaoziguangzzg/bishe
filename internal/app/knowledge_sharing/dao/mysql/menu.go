@@ -35,12 +35,11 @@ func UpdateMenuNotDeletedById(id int, isDeleted int) (err error) {
 }
 
 // 获取全部权限菜单
-func GetAllMenu(page int, pagesize int) (menus []model.Menu, err error) {
-	offset := (page - 1) * pagesize
+func GetAllMenu() (menus []model.Menu, err error) {
 
 	err = DB.Model(&model.Menu{}).
 		Where("is_deleted=?", model.IS_DELETED_NO).
-		Order("id DESC").Offset(offset).Limit(pagesize).Find(&menus).Error
+		Order("id DESC").Find(&menus).Error
 	return
 }
 

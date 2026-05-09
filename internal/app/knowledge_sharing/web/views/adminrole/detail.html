@@ -160,7 +160,7 @@
 
         async function loadMenus() {
             try {
-                const response = await axios.get('/api/adminmenu/all?page=1&pagesize=1000');
+                const response = await axios.get('/api/adminmenu/all');
                 if (response.data.code === 0) {
                     allMenus = response.data.data.menus || [];
                 }

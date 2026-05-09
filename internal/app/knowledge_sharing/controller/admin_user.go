@@ -6,6 +6,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/utils"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -168,12 +169,37 @@ func GetAdminUserHandler(c *gin.Context) {
 		return
 	}
 
+	var menuIds []int
+	if adminUser.RoleId > 0 {
+		role, err := service.GetRoleNotDeletedById(adminUser.RoleId)
+		if err == nil && role != nil {
+			menuIds = parseMids(role.Mids)
+		}
+	}
+
 	data := map[string]interface{}{
-		"user": adminUser,
+		"user":    adminUser,
+		"menuIds": menuIds,
 	}
 
 	MakeApiResponseSuccess(c, data)
 
+}
+
+func parseMids(mids string) []int {
+	if mids == "" {
+		return []int{}
+	}
+	var result []int
+	for _, s := range strings.Split(mids, ",") {
+		if s == "" {
+			continue
+		}
+		if id, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+			result = append(result, id)
+		}
+	}
+	return result
 }
 
 // 获取所有管理员用户

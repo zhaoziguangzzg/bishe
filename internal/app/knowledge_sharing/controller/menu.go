@@ -127,12 +127,8 @@ func UpdateMenuHandler(c *gin.Context) {
 
 // 获取全部权限菜单
 func GetAllMenuHandler(c *gin.Context) {
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
 
-	pagesize := 10
-
-	menus, err := service.GetAllMenu(page, pagesize)
+	menus, err := service.GetAllMenu()
 	if err != nil {
 		service.Logger.Error("GetAllMenu err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

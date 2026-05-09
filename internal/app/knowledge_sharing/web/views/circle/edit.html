@@ -343,7 +343,7 @@
 
                 const avatarInput = document.getElementById('avatarInput');
                 if (avatarInput.files.length > 0) {
-                    formData.append('avatar', avatarInput.files[0]);
+                    formData.append('img', avatarInput.files[0]);
                 }
 
                 const response = await axios.post('/api/circle/update', formData);
