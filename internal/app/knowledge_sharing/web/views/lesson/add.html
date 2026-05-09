@@ -215,7 +215,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             editor = new Quill('#editor', {
                 theme: 'snow',
-                placeholder: '请输入文章内容...',
+                placeholder: '请输入课时内容...',
                 modules: {
                     toolbar: [
                         ['bold', 'italic', 'underline', 'strike'],
@@ -255,14 +255,14 @@
 
         async function submitLesson() {
             const title = document.getElementById('title').value.trim();
-            const content = editor.root.innerHTML.trim();
+            const content = stripHtmlTags(editor.root.innerHTML).trim();
 
             if (!title) {
                 showError('请输入课时标题');
                 return;
             }
 
-            if (!content || content === '<p><br></p>') {
+            if (!content) {
                 showError('请输入课时内容');
                 return;
             }
@@ -298,6 +298,13 @@
 
         function goBack() {
             window.location.href = '/page/course/detail?course_id=' + cid;
+        }
+
+        // 去除 HTML 标签
+        function stripHtmlTags(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
         }
     </script>
 </body>

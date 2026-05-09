@@ -236,24 +236,24 @@
             
             editor = new Quill('#editor', {
                 theme: 'snow',
-                placeholder: '请输入文章内容...',
+                placeholder: '请输入课时内容...',
                 modules: {                                                                                   
 
                     toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                        ['bold', 'italic', 'underline', 'strike'],       
                         ['blockquote', 'code-block'],
                         ['link', 'image', 'video'],
 
-                        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                        [{ 'header': 1 }, { 'header': 2 }],              
                         [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                        [{ 'script': 'sub'}, { 'script': 'super' }],      // 角标
-                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-                        [{ 'direction': 'rtl' }],                         // text direction
+                        [{ 'script': 'sub'}, { 'script': 'super' }],      
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],          
+                        [{ 'direction': 'rtl' }],                      
 
-                        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+                        [{ 'size': ['small', false, 'large', 'huge'] }],  
                         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
 
-                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                        [{ 'color': [] }, { 'background': [] }],         
                         [{ 'font': [] }], //
                         [{ 'align': [] }],
 
@@ -270,7 +270,7 @@
 
         async function submitLesson() {
             const title = document.getElementById('title').value.trim();
-            const content = editor.root.innerHTML.trim();
+            const content = stripHtmlTags(editor.root.innerHTML).trim();
             const errorTip = document.getElementById('errorTip');
             const successTip = document.getElementById('successTip');
 
@@ -282,7 +282,7 @@
                 return;
             }
 
-            if (!content || content === '<p><br></p>') {
+            if (!content) {
                 errorTip.textContent = '请输入课时内容';
                 return;
             }
@@ -325,6 +325,13 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // 去除 HTML 标签
+        function stripHtmlTags(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
         }
     </script>
 </body>

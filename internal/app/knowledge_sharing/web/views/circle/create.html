@@ -1093,7 +1093,7 @@
                                     <span class="icon">${item.isCollect ? '⭐' : '☆'}</span>
                                     <span>${essay.collectNum || 0}</span>
                                 </button>
-                                <button class="action-btn" onclick="openCommentModal(${essay.id})">
+                                <button class="action-btn" onclick="goToEssayComment(${essay.id})">
                                     <span class="icon">💬</span>
                                     <span>${essay.commentNum || 0}</span>
                                 </button>
@@ -1122,6 +1122,10 @@
             window.location.href = `/page/essay/detail?eid=${eid}`;
         }
 
+        function goToEssayComment(eid) {
+            window.location.href = `/page/essay/detail?eid=${eid}#comments`;
+        }
+
         function formatTime(timeStr) {
             if (!timeStr) return '';
             const date = new Date(timeStr);
@@ -1138,19 +1142,53 @@
             return date.toLocaleDateString();
         }
 
-        async function toggleLike(eid, isLike) {
+        async function toggleLike(eid, isLiked) {
             try {
                 const formData = new FormData();
-                formData.append('essay_id', eid);
-                const url = isLike ? '/api/essay/unlike' : '/api/essay/like';
-                const response = await axios.post(url, formData);
+                formData.append('eid', eid);
+                
+                let response;
+                if (isLiked) {
+                    // 取消点赞
+                    response = await axios.post('/api/like/cancel', formData);
+                } else {
+                    // 添加点赞
+                    response = await axios.post('/api/like/add', formData);
+                }
+                
                 if (response.data.code === 0) {
-                    loadEssays(currentCircleId);
+                    // 直接更新 UI
+                    updateLikeUI(eid, !isLiked);
                 } else if (response.data.code === 2003) {
                     window.location.href = '/page/user/login';
                 }
             } catch (error) {
                 console.error('操作失败', error);
+            }
+        }
+
+        function updateLikeUI(eid, isLiked) {
+            const essayCard = document.querySelector(`.essay-card .action-btn[onclick*="toggleLike(${eid}"]`);
+            if (!essayCard) return;
+            
+            const likeBtn = essayCard.closest('.essay-card').querySelector(`.action-btn[onclick*="toggleLike(${eid}"]`);
+            const likeNumSpan = likeBtn.querySelector('span:last-child');
+            const likeIcon = likeBtn.querySelector('.icon');
+            
+            let currentNum = parseInt(likeNumSpan.textContent) || 0;
+            
+            if (isLiked) {
+                // 点赞
+                likeBtn.classList.add('liked');
+                likeIcon.textContent = '❤️';
+                likeNumSpan.textContent = currentNum + 1;
+                likeBtn.setAttribute('onclick', `toggleLike(${eid}, true)`);
+            } else {
+                // 取消点赞
+                likeBtn.classList.remove('liked');
+                likeIcon.textContent = '🤍';
+                likeNumSpan.textContent = currentNum - 1;
+                likeBtn.setAttribute('onclick', `toggleLike(${eid}, false)`);
             }
         }
 
@@ -1305,7 +1343,7 @@
 
         async function loadComments(eid) {
             try {
-                const response = await axios.get(`/api/comment/esssay?eid=${eid}`);
+                const response = await axios.get(`/api/comment/essay?eid=${eid}`);
                 if (response.data.code === 0 && response.data.data) {
                     const comments = response.data.data.comments || [];
                     renderComments(comments);

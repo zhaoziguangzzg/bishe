@@ -391,9 +391,7 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 
 		vLevelScore, ok := levelScoreMap[vUid]
 		if !ok {
-			service.Logger.Error("get levelScore err")
-			MakeApiResponseErrorDefault(c)
-			return
+			vLevelScore = model.LevelScore{Score: 0}
 		}
 
 		userEssayLike, ok := essayLikeMap[v.Id]

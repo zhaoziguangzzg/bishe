@@ -54,8 +54,29 @@ func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.Le
 
 // 更新等级分数
 func UpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
+	now := time.Now()
+	
+	// 先尝试更新
 	result := DB.Model(&model.LevelScore{}).
 		Where("uid=? and cid=?", uid, cid).
 		UpdateColumn("score", gorm.Expr("score + ?", score))
+	
+	// 如果没有更新任何记录，说明记录不存在，需要创建
+	if result.RowsAffected == 0 {
+		levelScore := &model.LevelScore{
+			Uid:       uid,
+			Cid:       cid,
+			Score:     score,
+			CreateAt:  &now,
+			UpdateAt:  &now,
+			IsDeleted: model.IS_DELETED_NO,
+		}
+		err := DB.Model(&model.LevelScore{}).Create(levelScore).Error
+		if err != nil {
+			return 0, err
+		}
+		return 1, nil
+	}
+	
 	return result.RowsAffected, result.Error
 }
