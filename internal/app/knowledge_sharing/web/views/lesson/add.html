@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>添加课时 - 知识分享平台</title>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -93,6 +95,21 @@
             min-height: 120px;
             resize: vertical;
         }
+        #editor {
+            height: 400px;
+        }
+        .ql-toolbar {
+            border: 1px solid #dcdfe6 !important;
+            border-radius: 6px 6px 0 0 !important;
+        }
+        .ql-container {
+            border: 1px solid #dcdfe6 !important;
+            border-radius: 0 0 6px 6px !important;
+            font-size: 14px;
+        }
+        .ql-editor {
+            min-height: 300px;
+        }
         .form-group .hint {
             color: #909399;
             font-size: 12px;
@@ -175,7 +192,7 @@
 
                 <div class="form-group">
                     <label>课时内容</label>
-                    <textarea id="content" name="content" placeholder="请输入课时内容" required></textarea>
+                    <div id="editor"></div>
                 </div>
 
                 <button type="button" class="btn" onclick="submitLesson()">提交</button>
@@ -187,11 +204,38 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const cid = urlParams.get('course_id');
+        let editor;
 
         if (!cid) {
-            alert('缺少课程ID参数');
+            alert('缺少课程 ID 参数');
             window.location.href = '/page/course/index';
         }
+
+        // 初始化编辑器
+        document.addEventListener('DOMContentLoaded', function() {
+            editor = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: '请输入文章内容...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image', 'video'],
+                        [{ 'header': 1 }, { 'header': 2 }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                        [{ 'script': 'sub'}, { 'script': 'super' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        [{ 'direction': 'rtl' }],
+                        [{ 'size': ['small', false, 'large', 'huge'] }],
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'font': [] }],
+                        [{ 'align': [] }],
+                        ['clean']
+                    ]
+                }
+            });
+        });
 
         function showError(message) {
             const errorTip = document.getElementById('errorTip');
@@ -211,14 +255,14 @@
 
         async function submitLesson() {
             const title = document.getElementById('title').value.trim();
-            const content = document.getElementById('content').value.trim();
+            const content = editor.root.innerHTML.trim();
 
             if (!title) {
                 showError('请输入课时标题');
                 return;
             }
 
-            if (!content) {
+            if (!content || content === '<p><br></p>') {
                 showError('请输入课时内容');
                 return;
             }
