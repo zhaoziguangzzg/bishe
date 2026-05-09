@@ -276,8 +276,6 @@ func main() {
 
 	//课程
 	page.GET("/course/index", controller.CourseIndexPageHandler)
-	//添加课程
-	api.POST("/course/add", controller.AddCourseHandler)
 	//获取用户发布的课程
 	api.GET("/course/user-all", controller.GetUserAllCourseByUidHandler)
 	//获取全部课程
@@ -286,6 +284,11 @@ func main() {
 	api.GET("/course/search", controller.GetCourseByTitleHandler)
 	//获取用户购买记录
 	api.GET("/purchase/all", controller.GetUserPurchaseListHandler)
+
+	//添加课程页面
+	page.GET("/course/add", controller.AddCoursePageHandler)
+	//添加课程
+	api.POST("/course/add", controller.AddCourseHandler)
 
 	//课程详情页面
 	page.GET("/course/detail", controller.CourseDetailPageHandler)
