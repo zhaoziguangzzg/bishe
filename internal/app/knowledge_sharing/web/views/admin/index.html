@@ -47,6 +47,7 @@
             transition: all 0.3s;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
             font-size: 14px;
         }
@@ -59,28 +60,21 @@
             color: white;
             border-left: 3px solid white;
         }
-        .menu-item .icon {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-        .menu-item .arrow {
-            margin-left: auto;
-            font-size: 12px;
-        }
         .submenu {
             display: none;
-            background: rgba(0,0,0,0.15);
+            background: rgba(0,0,0,0.1);
         }
         .submenu.show {
             display: block;
         }
         .submenu-item {
-            padding: 12px 24px 12px 60px;
+            padding: 12px 24px 12px 48px;
             color: rgba(255,255,255,0.75);
             cursor: pointer;
             transition: all 0.3s;
+            display: block;
             font-size: 13px;
+            text-decoration: none;
         }
         .submenu-item:hover {
             background: rgba(255,255,255,0.1);
@@ -89,6 +83,14 @@
         .submenu-item.active {
             background: rgba(255,255,255,0.15);
             color: white;
+            border-left: 3px solid white;
+        }
+        .arrow {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        .menu-item:hover .arrow, .menu-item.active .arrow {
+            transform: rotate(180deg);
         }
         .main-content {
             flex: 1;
@@ -580,16 +582,6 @@
             <h2>后台管理</h2>
             <p>知识分享平台</p>
         </div>
-        
-        <div class="menu-item" onclick="toggleSubmenu('user')">
-            <span class="icon">👤</span>
-            <span>用户信息</span>
-            <span class="arrow">▼</span>
-        </div>
-        <div class="submenu show" id="submenu-user">
-            <div class="submenu-item active" onclick="showSection('user-info'); setActiveSubmenu(this)">个人信息</div>
-        </div>
-
         <div id="dynamic-menus"></div>
     </div>
     
@@ -627,11 +619,7 @@
                         </div>
                         <div class="detail-item">
                             <div class="label">角色</div>
-                            <div class="value">
-                                <select id="adminRoleSelect" style="padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; width: 100%;" onchange="handleRoleChange(this.value)">
-                                    <option value="">加载中...</option>
-                                </select>
-                            </div>
+                            <div class="value" id="adminRoleName">--</div>
                         </div>
                     </div>
                     <button class="edit-btn" onclick="editAdminInfo()">编辑信息</button>
@@ -806,16 +794,19 @@
         let allMenus = [];
 
         const menuConfig = {
-            '文章审核': { section: 'essay-review', icon: '✅', group: 'review' },
-            '反馈列表': { section: 'feedback-list', icon: '💬', group: 'feedback' },
-            '公告列表': { section: 'notice-list', icon: '📢', group: 'notice' },
-            '新增公告': { section: 'notice-add', icon: '📢', group: 'notice' },
-            '广告列表': { section: 'ad-list', icon: '📺', group: 'ad' },
-            '新增广告': { section: 'ad-add', icon: '📺', group: 'ad' },
-            '权限列表': { section: 'permission-list', icon: '🔐', group: 'permission' },
-            '新增权限': { section: 'permission-add', icon: '🔐', group: 'permission' },
-            '角色列表': { section: 'role-list', icon: '👥', group: 'role' },
-            '新增角色': { section: 'role-add', icon: '👥', group: 'role' }
+            '个人信息': { section: 'user-info', icon: '👤', group: 'user', url: '' },
+            '文章审核': { section: 'essay-review', icon: '✅', group: 'review', url: '' },
+            '反馈列表': { section: 'feedback-list', icon: '💬', group: 'feedback', url: '/page/adminfeedback/list' },
+            '公告列表': { section: 'notice-list', icon: '📢', group: 'notice', url: '/page/adminannounce/list' },
+            '新增公告': { section: 'notice-add', icon: '📢', group: 'notice', url: '/page/adminannounce/add' },
+            '广告列表': { section: 'ad-list', icon: '📺', group: 'ad', url: '/page/adminadvert/list' },
+            '新增广告': { section: 'ad-add', icon: '📺', group: 'ad', url: '/page/adminadvert/add' },
+            '权限列表': { section: 'permission-list', icon: '🔐', group: 'permission', url: '/page/adminmenu/list' },
+            '新增权限': { section: 'permission-add', icon: '🔐', group: 'permission', url: '/page/adminmenu/add' },
+            '角色列表': { section: 'role-list', icon: '👥', group: 'role', url: '/page/adminrole/list' },
+            '新增角色': { section: 'role-add', icon: '👥', group: 'role', url: '/page/adminrole/add' },
+            '管理员列表': { section: 'adminuser-list', icon: '👤', group: 'adminuser', url: '/page/adminuser/list' },
+            '新增管理员': { section: 'adminuser-add', icon: '👤', group: 'adminuser', url: '/page/adminuser/add' }
         };
 
         function setActiveSubmenu(element) {
@@ -833,7 +824,6 @@
                     userMenuIds = response.data.data.menuIds || [];
                     document.getElementById('adminName').textContent = currentAdmin.name;
                     renderAdminInfo();
-                    loadRolesForSelect();
                     loadDynamicMenus();
                 } else {
                     window.location.href = '/page/user/login';
@@ -867,19 +857,22 @@
                 if (!groups[config.group]) {
                     groups[config.group] = {
                         icon: config.icon,
-                        name: config.group === 'review' ? '审核' :
+                        name: config.group === 'user' ? '用户信息' :
+                              config.group === 'review' ? '审核' :
                               config.group === 'feedback' ? '反馈' :
                               config.group === 'notice' ? '公告' :
                               config.group === 'ad' ? '广告' :
                               config.group === 'permission' ? '权限管理' :
-                              config.group === 'role' ? '角色管理' : config.group,
+                              config.group === 'role' ? '角色管理' :
+                              config.group === 'adminuser' ? '管理员管理' : config.group,
                         items: []
                     };
                 }
                 groups[config.group].items.push({
                     id: menu.id,
                     name: menu.menuName,
-                    section: config.section
+                    section: config.section,
+                    url: config.url
                 });
             });
 
@@ -902,8 +895,11 @@
                     const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
                     if (!hasItemPermission && userMenuIds.length > 0) return;
                     
+                    const itemConfig = menuConfig[item.name];
+                    const onclick = itemConfig && itemConfig.url ? `window.location.href='${itemConfig.url}';` : `showSection('${item.section}'); setActiveSubmenu(this)`;
+                    
                     html += `
-                        <div class="submenu-item" data-menu-id="${item.id}" onclick="showSection('${item.section}'); setActiveSubmenu(this)">${item.name}</div>
+                        <div class="submenu-item" data-menu-id="${item.id}" onclick="${onclick}">${item.name}</div>
                     `;
                 });
                 
@@ -911,67 +907,6 @@
             }
             
             container.innerHTML = html;
-        }
-
-        async function loadRolesForSelect() {
-            try {
-                const response = await axios.get('/api/adminrole/all');
-                if (response.data.code === 0) {
-                    const roles = response.data.data.roles || [];
-                    renderRolesSelect(roles);
-                }
-            } catch (error) {
-                console.error('加载角色列表失败', error);
-            }
-        }
-
-        function renderRolesSelect(roles) {
-            const select = document.getElementById('adminRoleSelect');
-            if (!roles || roles.length === 0) {
-                select.innerHTML = '<option value="">暂无角色</option>';
-                return;
-            }
-
-            const activeRoles = roles.filter(r => r.isDeleted === 0);
-            if (activeRoles.length === 0) {
-                select.innerHTML = '<option value="">暂无角色</option>';
-                return;
-            }
-
-            let html = '<option value="">请选择角色</option>';
-            activeRoles.forEach(role => {
-                const selected = currentAdmin && currentAdmin.roleId === role.id ? 'selected' : '';
-                html += `<option value="${role.id}" ${selected}>${escapeHtml(role.roleName || '--')}</option>`;
-            });
-            select.innerHTML = html;
-        }
-
-        async function handleRoleChange(roleId) {
-            if (!roleId) return;
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('role_id', roleId);
-                const response = await axios.post('/api/adminuser/update-role', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    alert('角色更新成功');
-                    if (currentAdmin) {
-                        currentAdmin.roleId = parseInt(roleId);
-                    }
-                    await loadAdminInfo();
-                } else {
-                    alert(response.data.message || '角色更新失败');
-                    loadRolesForSelect();
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-                loadRolesForSelect();
-            }
         }
 
         function renderAdminInfo() {
@@ -986,10 +921,35 @@
             } else {
                 document.getElementById('adminAvatar').style.display = 'none';
             }
+            if (currentAdmin.roleId > 0) {
+                loadRoleName(currentAdmin.roleId);
+            } else {
+                document.getElementById('adminRoleName').textContent = '无角色';
+            }
+        }
+
+        async function loadRoleName(roleId) {
+            try {
+                const response = await axios.get('/api/adminrole/all');
+                if (response.data.code === 0) {
+                    const roles = response.data.data.roles || [];
+                    const role = roles.find(r => r.id === roleId && r.isDeleted === 0);
+                    if (role) {
+                        document.getElementById('adminRoleName').textContent = role.roleName || '--';
+                    } else {
+                        document.getElementById('adminRoleName').textContent = '无角色';
+                    }
+                } else {
+                    document.getElementById('adminRoleName').textContent = '--';
+                }
+            } catch (error) {
+                console.error('加载角色失败', error);
+                document.getElementById('adminRoleName').textContent = '--';
+            }
         }
 
         function editAdminInfo() {
-            window.location.href = '/page/admin/edit';
+            window.location.href = '/page/adminuser/edit';
         }
         
         function toggleSubmenu(menu) {
@@ -1028,7 +988,9 @@
                 'permission-list': '权限列表',
                 'permission-add': '新增权限',
                 'role-list': '角色列表',
-                'role-add': '新增角色'
+                'role-add': '新增角色',
+                'adminuser-list': '管理员列表',
+                'adminuser-add': '新增管理员'
             };
             document.getElementById('pageTitle').textContent = sectionTitles[section] || '后台管理';
 
@@ -1046,6 +1008,8 @@
                 loadRoleList();
             } else if (section === 'role-add') {
                 loadPermissionsForCheckboxes();
+            } else if (section === 'user-info') {
+                renderAdminInfo();
             }
         }
 

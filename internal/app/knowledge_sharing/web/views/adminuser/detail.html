@@ -138,8 +138,6 @@
             <div id="content">
                 <div class="loading-tip">加载中...</div>
             </div>
-            <a id="editBtn" href="" class="btn" style="display: none;">编辑</a>
-            <a id="roleBtn" href="" class="btn" style="display: none;">修改角色</a>
             <a href="javascript:history.back()" class="btn">返回</a>
         </div>
     </div>
@@ -156,7 +154,7 @@
 
         async function loadRoles() {
             try {
-                const response = await axios.get('/api/adminrole/all?page=1&pagesize=1000');
+                const response = await axios.get('/api/adminrole/all');
                 if (response.data.code === 0) {
                     allRoles = response.data.data.roles || [];
                 }
@@ -173,7 +171,7 @@
 
         async function loadUserDetail() {
             try {
-                const response = await axios.get('/api/adminuser/all?page=1&pagesize=1000');
+                const response = await axios.get('/api/adminuser/all');
 
                 if (response.data.code === 0) {
                     const users = response.data.data.users || [];
@@ -216,11 +214,6 @@
                             <div class="info-value">${user.createAt || '-'}</div>
                         </div>
                     `;
-                    
-                    document.getElementById('editBtn').href = `/page/adminuser/edit?id=${user.id}`;
-                    document.getElementById('editBtn').style.display = 'inline-block';
-                    document.getElementById('roleBtn').href = `/page/adminuser/role?id=${user.id}`;
-                    document.getElementById('roleBtn').style.display = 'inline-block';
                 } else {
                     document.getElementById('content').innerHTML = 
                         '<div class="error-tip">' + (response.data.msg || '获取失败') + '</div>';

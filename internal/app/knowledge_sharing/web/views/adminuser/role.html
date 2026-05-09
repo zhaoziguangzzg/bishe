@@ -217,7 +217,7 @@
 
         async function loadRoles() {
             try {
-                const response = await axios.get('/api/adminrole/all?page=1&pagesize=1000');
+                const response = await axios.get('/api/adminrole/all');
                 if (response.data.code === 0) {
                     allRoles = response.data.data.roles || [];
                     const select = document.getElementById('role_id');
@@ -243,8 +243,7 @@
 
         async function loadUserInfo() {
             try {
-                const response = await axios.get('/api/adminuser/all?page=1&pagesize=1000');
-
+                const response = await axios.get('/api/adminuser/all');
                 if (response.data.code === 0) {
                     const users = response.data.data.users || [];
                     currentUser = users.find(u => u.id == userId);
@@ -314,7 +313,7 @@
                     successMsg.textContent = '角色更新成功';
                     successMsg.classList.add('show');
                     setTimeout(function() {
-                        window.location.href = `/page/adminuser/detail?id=${userId}`;
+                        window.location.href = '/page/adminuser/list';
                     }, 1500);
                 } else {
                     errorMsg.textContent = response.data.msg || '更新失败';
@@ -331,7 +330,7 @@
         }
 
         function goBack() {
-            window.location.href = `/page/adminuser/detail?id=${userId}`;
+            window.location.href = '/page/adminuser/list';
         }
 
         async function init() {
