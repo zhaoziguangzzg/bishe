@@ -276,8 +276,8 @@ func UpdateAdvertHandler(c *gin.Context) {
 		"position":    position,
 		"advert_addr": advertAddr,
 		"content":     content,
-		"start_time":  &startTime,
-		"end_time":    &endTime,
+		"start_time":  startTime,
+		"end_time":    endTime,
 	}
 
 	fileType := service.FILE_TYPE_ADVERT_IMG

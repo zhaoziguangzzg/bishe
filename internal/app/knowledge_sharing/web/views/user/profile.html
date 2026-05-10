@@ -393,17 +393,32 @@
 
         async function loadAds() {
             try {
-                const response = await axios.get('/api/advert/all-time?page=1&pagesize=1');
+                const response = await axios.get('/api/advert/all-time?position=3&page=1&pagesize=10');
                 if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
-                    const advert = response.data.data.adverts[0];
+                    const adverts = response.data.data.adverts;
+                    const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
                     const adSlot = document.getElementById('adSlot4');
-                    if (advert.img) {
-                        adSlot.innerHTML = `<a href="${advert.advertAddr || '#'}" target="_blank"><img src="${advert.img}" style="max-width:100%;border-radius:12px;"></a>`;
-                    } else {
-                        adSlot.innerHTML = `<a href="${advert.advertAddr || '#'}" target="_blank" style="color:#333;text-decoration:none;padding:10px;display:block;">
-                            <div style="font-weight:bold;margin-bottom:8px;">${advert.position || ''}</div>
-                            <div style="font-size:12px;">${advert.content || ''}</div>
-                        </a>`;
+                    
+                    let adHtml = '';
+                    
+                    if (randomAd.advertAddr) {
+                        adHtml = `<a href="${randomAd.advertAddr}" target="_blank" style="text-decoration:none;color:inherit;display:block;">`;
+                    }
+                    
+                    if (randomAd.img) {
+                        adHtml += `<img src="${randomAd.img}" style="max-width:100%;border-radius:12px;display:block;">`;
+                    }
+                    
+                    if (randomAd.content) {
+                        adHtml += `<div style="padding:10px;font-size:14px;color:#333;text-align:center;">${randomAd.content}</div>`;
+                    }
+                    
+                    if (randomAd.advertAddr) {
+                        adHtml += `</a>`;
+                    }
+                    
+                    if (adHtml) {
+                        adSlot.innerHTML = adHtml;
                     }
                 }
             } catch (error) {
