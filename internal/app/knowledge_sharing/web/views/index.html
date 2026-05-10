@@ -321,14 +321,28 @@
                     const adverts = response.data.data.adverts;
                     const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
                     
+                    let adHtml = '';
+                    
+                    if (randomAd.advertAddr) {
+                        adHtml = '<a href="' + escapeHtml(randomAd.advertAddr) + '" class="ad-banner-item" target="_blank">';
+                    }
+                    
                     if (randomAd.img) {
-                        if (randomAd.addvert_addr) {
-                            adBanner.innerHTML = '<a href="' + escapeHtml(randomAd.addvert_addr) + '" class="ad-banner-item" target="_blank"><img src="' + escapeHtml(randomAd.img) + '" alt="广告"/></a>';
-                        } else {
-                            adBanner.innerHTML = '<div class="ad-banner-item"><img src="' + escapeHtml(randomAd.img) + '" alt="广告"/></div>';
-                        }
-                    } else if (randomAd.content) {
-                        adBanner.innerHTML = '<div class="ad-banner-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; text-align: center;">' + escapeHtml(randomAd.content) + '</div>';
+                        adHtml += '<img src="' + escapeHtml(randomAd.img) + '" alt="广告"/>';
+                    }
+                    
+                    if (randomAd.content) {
+                        adHtml += '<div style="padding:10px;color:#333;text-align:center;">' + escapeHtml(randomAd.content) + '</div>';
+                    }
+                    
+                    if (randomAd.advertAddr) {
+                        adHtml += '</a>';
+                    } else {
+                        adHtml = '<div class="ad-banner-item">' + adHtml + '</div>';
+                    }
+                    
+                    if (adHtml) {
+                        adBanner.innerHTML = adHtml;
                     }
                 }
             } catch (error) {

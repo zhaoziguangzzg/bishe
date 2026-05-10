@@ -213,13 +213,13 @@ func GetUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	if like == nil {
-		MakeApiResponseError(c, CODE_LIKE_NOT_EXIST)
-		return
+	isLike := false
+	if like != nil && like.LikeStatus == model.LIKE_STATUS_NORMAL {
+		isLike = true
 	}
 
 	data := map[string]interface{}{
-		"like": like,
+		"isLike": isLike,
 	}
 
 	MakeApiResponseSuccess(c, data)

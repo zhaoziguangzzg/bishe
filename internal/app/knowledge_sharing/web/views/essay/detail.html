@@ -151,14 +151,14 @@
             background: #f5f7fa;
         }
         .action-btn.liked {
-            color: #f56c6c;
-            border-color: #f56c6c;
-            background: #fef0f0;
+            color: #ff0000;
+            border-color: #ff0000;
+            background: #ffe6e6;
         }
         .action-btn.collected {
-            color: #e6a23c;
-            border-color: #e6a23c;
-            background: #fdf6ec;
+            color: #ffd700;
+            border-color: #ffd700;
+            background: #fffbe6;
         }
         .action-btn .icon {
             font-size: 16px;
@@ -283,12 +283,31 @@
             background: white;
             border-radius: 12px;
             padding: 24px;
-            width: 360px;
+            width: 400px;
+            max-height: 60vh;
+            overflow: hidden;
         }
-        .favorite-title {
-            font-size: 16px;
-            color: #333;
+        .favorite-modal-header {
+            padding: 0 0 16px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 16px;
+        }
+        .favorite-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .favorite-modal-close {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .favorite-modal-close:hover {
+            color: #333;
         }
         .favorite-list {
             max-height: 300px;
@@ -310,6 +329,88 @@
             font-size: 14px;
             color: #333;
         }
+        .btn-add-favorite {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-add-favorite:hover {
+            opacity: 0.9;
+        }
+        .btn-back-favorite {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-back-favorite:hover {
+            text-decoration: underline;
+        }
+        .add-favorite-form {
+            padding: 16px 0 0 0;
+            border-top: 1px solid #eee;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .favorite-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .favorite-input:focus {
+            border-color: #667eea;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-cancel {
+            padding: 8px 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-cancel:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .btn-submit {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #909399;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -326,8 +427,24 @@
 
     <div class="favorite-modal" id="favoriteModal">
         <div class="favorite-content">
-            <div class="favorite-title">选择收藏夹</div>
+            <div class="favorite-modal-header">
+                <span class="favorite-modal-title" id="favoriteModalTitle">收藏到收藏夹</span>
+                <div>
+                    <button class="btn-back-favorite" id="btnBackFavorite" onclick="showFavoriteList()" style="display:none;">返回列表</button>
+                    <span class="favorite-modal-close" onclick="closeFavoriteModal()">&times;</span>
+                </div>
+            </div>
             <div class="favorite-list" id="favoriteList"></div>
+            <button class="btn-add-favorite" id="btnAddFavorite" onclick="showAddFavoriteForm()">+ 添加收藏夹</button>
+            <div class="add-favorite-form" id="addFavoriteForm" style="display:none;">
+                <div class="form-group">
+                    <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="50"/>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-cancel" onclick="showFavoriteList()">取消</button>
+                    <button class="btn-submit" onclick="submitNewFavorite()">创建</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -370,8 +487,9 @@
 
                 if (response.data.code === 0) {
                     renderEssayDetail(response.data.data);
-                    loadLikeStatus();
-                    loadCollectStatus();
+                    // 等待状态加载完成
+                    await loadLikeStatus();
+                    await loadCollectStatus();
                     loadComments();
                 } else {
                     document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '文章不存在') + '</h2><a href="/page/index">返回首页</a></div>';
@@ -488,17 +606,49 @@
             }
 
             try {
+                const formData = new FormData();
+                formData.append('eid', essayId);
+                
+                let response;
                 if (currentLikeStatus) {
-                    await axios.post('/api/like/cancel', `eid=${essayId}`);
+                    // 取消点赞
+                    response = await axios.post('/api/like/cancel', formData);
                 } else {
-                    await axios.post('/api/like/add', `eid=${essayId}`);
+                    // 添加点赞
+                    response = await axios.post('/api/like/add', formData);
                 }
-                currentLikeStatus = !currentLikeStatus;
-                updateLikeButton();
-                loadEssayDetail();
+                
+                if (response.data.code === 0) {
+                    // 直接更新 UI
+                    updateLikeUI(!currentLikeStatus);
+                } else if (response.data.code === 2003) {
+                    window.location.href = '/page/user/login';
+                }
             } catch (error) {
-                alert(currentLikeStatus ? '取消喜欢失败' : '喜欢失败');
+                alert('操作失败');
             }
+        }
+
+        function updateLikeUI(isLiked) {
+            const likeBtn = document.getElementById('likeBtn');
+            const likeNumSpan = likeBtn.querySelector('span:last-child');
+            const likeIcon = likeBtn.querySelector('.icon');
+            
+            let currentNum = parseInt(likeNumSpan.textContent.replace(/\D/g, '')) || 0;
+            
+            if (isLiked) {
+                // 点赞
+                likeBtn.classList.add('liked');
+                likeIcon.textContent = '❤️';
+                likeNumSpan.textContent = '喜欢 ' + (currentNum + 1);
+            } else {
+                // 取消点赞
+                likeBtn.classList.remove('liked');
+                likeIcon.textContent = '🤍';
+                likeNumSpan.textContent = '喜欢 ' + (currentNum - 1);
+            }
+            
+            currentLikeStatus = isLiked;
         }
 
         async function toggleCollect() {
@@ -508,29 +658,122 @@
                 return;
             }
 
-            try {
-                const favResponse = await axios.get('/api/favorite/all');
-                if (favResponse.data.code !== 0 || !favResponse.data.data || favResponse.data.data.length === 0) {
-                    alert('您还没有收藏夹，请先创建收藏夹');
-                    return;
+            if (currentCollectStatus) {
+                // 已收藏，取消收藏
+                try {
+                    const formData = new FormData();
+                    formData.append('eid', essayId);
+                    const response = await axios.post('/api/collect/cancel', formData);
+                    if (response.data.code === 0) {
+                        // 直接更新 UI
+                        updateCollectUI(false);
+                    } else if (response.data.code === 2003) {
+                        window.location.href = '/page/user/login';
+                    }
+                } catch (error) {
+                    alert('操作失败');
                 }
-                renderFavoriteModal(favResponse.data.data);
-            } catch (error) {
-                alert('加载收藏夹失败');
+            } else {
+                // 未收藏，显示收藏夹选择弹窗
+                try {
+                    const favResponse = await axios.get('/api/favorite/all');
+                    if (favResponse.data.code !== 0 || !favResponse.data.data || !favResponse.data.data.favorites || favResponse.data.data.favorites.length === 0) {
+                        alert('您还没有收藏夹，请先创建收藏夹');
+                        return;
+                    }
+                    renderFavoriteModal(favResponse.data.data.favorites);
+                } catch (error) {
+                    alert('加载收藏夹失败');
+                }
             }
+        }
+
+        function updateCollectUI(isCollected) {
+            const collectBtn = document.getElementById('collectBtn');
+            const collectNumSpan = collectBtn.querySelector('span:last-child');
+            const collectIcon = collectBtn.querySelector('.icon');
+            
+            let currentNum = parseInt(collectNumSpan.textContent.replace(/\D/g, '')) || 0;
+            
+            if (isCollected) {
+                // 收藏
+                collectBtn.classList.add('collected');
+                collectIcon.textContent = '⭐';
+                collectNumSpan.textContent = '收藏 ' + (currentNum + 1);
+            } else {
+                // 取消收藏
+                collectBtn.classList.remove('collected');
+                collectIcon.textContent = '☆';
+                collectNumSpan.textContent = '收藏 ' + (currentNum - 1);
+            }
+            
+            currentCollectStatus = isCollected;
         }
 
         function renderFavoriteModal(favorites) {
             const modal = document.getElementById('favoriteModal');
             const list = document.getElementById('favoriteList');
 
-            list.innerHTML = favorites.map(fav => `
-                <div class="favorite-item" onclick="doCollect(${fav.id})">
-                    <div class="favorite-item-name">${escapeHtml(fav.title)}</div>
-                </div>
-            `).join('');
+            if (favorites.length === 0) {
+                list.innerHTML = '<div class="no-data">暂无收藏夹</div>';
+            } else {
+                list.innerHTML = favorites.map(fav => `
+                    <div class="favorite-item" onclick="doCollect(${fav.id})">
+                        <div class="favorite-item-name">${escapeHtml(fav.title)}</div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
+            document.getElementById('addFavoriteForm').style.display = 'none';
+            document.getElementById('btnBackFavorite').style.display = 'none';
+            document.getElementById('favoriteList').style.display = 'block';
+            document.getElementById('btnAddFavorite').style.display = 'block';
 
             modal.classList.add('show');
+        }
+
+        function showFavoriteList() {
+            document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
+            document.getElementById('addFavoriteForm').style.display = 'none';
+            document.getElementById('btnBackFavorite').style.display = 'none';
+            document.getElementById('favoriteList').style.display = 'block';
+            document.getElementById('btnAddFavorite').style.display = 'block';
+        }
+
+        function showAddFavoriteForm() {
+            document.getElementById('btnAddFavorite').style.display = 'none';
+            document.getElementById('favoriteList').style.display = 'none';
+            document.getElementById('addFavoriteForm').style.display = 'block';
+            document.getElementById('favoriteModalTitle').textContent = '添加收藏夹';
+            document.getElementById('btnBackFavorite').style.display = 'block';
+        }
+
+        async function submitNewFavorite() {
+            const title = document.getElementById('favoriteTitleInput').value.trim();
+            if (!title) {
+                alert('请输入收藏夹名称');
+                return;
+            }
+            try {
+                const formData = new FormData();
+                formData.append('title', title);
+                const response = await axios.post('/api/favorite/add', formData);
+                if (response.data.code === 0) {
+                    // 重新加载收藏夹列表
+                    const favResponse = await axios.get('/api/favorite/all');
+                    if (favResponse.data.code === 0 && favResponse.data.data) {
+                        const favorites = favResponse.data.data.favorites || [];
+                        document.getElementById('favoriteTitleInput').value = '';
+                        // 重新渲染弹窗
+                        renderFavoriteModal(favorites);
+                    }
+                } else {
+                    alert(response.data.message || '创建失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
         }
 
         function closeFavoriteModal() {
@@ -540,17 +783,18 @@
         async function doCollect(fid) {
             closeFavoriteModal();
             try {
-                if (currentCollectStatus) {
-                    await axios.post('/api/collect/cancel', `eid=${essayId}`);
-                    currentCollectStatus = false;
-                } else {
-                    await axios.post('/api/collect/add', `eid=${essayId}&fid=${fid}`);
-                    currentCollectStatus = true;
+                const formData = new FormData();
+                formData.append('eid', essayId);
+                formData.append('fid', fid);
+                const response = await axios.post('/api/collect/add', formData);
+                if (response.data.code === 0) {
+                    // 直接更新 UI
+                    updateCollectUI(true);
+                } else if (response.data.code === 2003) {
+                    window.location.href = '/page/user/login';
                 }
-                updateCollectButton();
-                loadEssayDetail();
             } catch (error) {
-                alert(currentCollectStatus ? '取消收藏失败' : '收藏失败');
+                alert('操作失败');
             }
         }
 

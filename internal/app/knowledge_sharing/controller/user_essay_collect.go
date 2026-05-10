@@ -208,13 +208,13 @@ func GetEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	if collect == nil {
-		MakeApiResponseError(c, CODE_COLLECT_NOT_EXIST)
-		return
+	isCollect := false
+	if collect != nil && collect.CollectStatus == model.COLLECT_STATUS_NORMAL {
+		isCollect = true
 	}
 
 	data := map[string]interface{}{
-		"collect": collect,
+		"isCollect": isCollect,
 	}
 
 	MakeApiResponseSuccess(c, data)
