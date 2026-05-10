@@ -338,11 +338,20 @@
     <div class="header">
         <div class="nav">
             <a href="/">首页</a>
-            <a href="/page/circle/index">圈子首页</a>
-            <a href="/page/course/index">课程首页</a>
+            <a href="/page/circle/index">圈子</a>
+            <a href="/page/course/index">课程</a>
+            <a href="/page/announce/list">公告</a>
         </div>
-        <div style="flex: 1;"></div>
-        <div class="nav">
+        <div class="header-search">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索..." onkeypress="handleSearchKeyPress(event)"/>
+                <button class="search-btn" onclick="performSearch()">🔍</button>
+            </div>
+        </div>
+        <div class="user-nav">
+            <a href="/page/chat/index">私信</a>
+            <a href="/page/notice/index">通知</a>
+            <a href="/page/feedback/index">反馈</a>
             <a href="/page/user/profile">我的</a>
         </div>
     </div>

@@ -123,6 +123,7 @@ func main() {
 	page.GET("/circle/index", controller.CircleIndexPageHandler)
 	//获取用户加入的圈子
 	api.GET("/circle/join", controller.GetUserJoinCircleHandler)
+
 	//获取用户创建的圈子
 	api.GET("/circle/create", controller.GetUserCreateCircleHandler)
 

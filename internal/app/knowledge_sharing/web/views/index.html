@@ -24,22 +24,82 @@
             justify-content: space-between;
             align-items: center;
         }
-        .header h1 {
-            font-size: 24px;
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
         }
-        .user-info {
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            gap: 24px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .user-nav {
+            display: flex;
+            gap: 16px;
+        }
+        .user-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .user-nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .header-search {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+        .search-box {
             display: flex;
             align-items: center;
-            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 6px 14px;
+            width: 320px;
         }
-        .user-info img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
+        .search-box:focus-within {
+            background: rgba(255,255,255,0.3);
         }
-        .user-info span {
+        .search-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: white;
             font-size: 14px;
+        }
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .search-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+        .search-btn:hover {
+            opacity: 0.8;
         }
         .container {
             max-width: 1200px;
@@ -257,14 +317,13 @@
     <div class="header">
         <div class="nav">
             <a href="/">首页</a>
-            <a href="/page/circle/index">加入的圈子</a>
-            <a href="/page/circle/create">创建的圈子</a>
+            <a href="/page/circle/index">圈子</a>
             <a href="/page/course/index">课程</a>
-            <a href="/page/announce/list" id="headerAnnounce">公告</a>
+            <a href="/page/announce/list">公告</a>
         </div>
         <div class="header-search">
             <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索圈子..." onkeypress="handleSearchKeyPress(event)"/>
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索..." onkeypress="handleSearchKeyPress(event)"/>
                 <button class="search-btn" onclick="performSearch()">🔍</button>
             </div>
         </div>

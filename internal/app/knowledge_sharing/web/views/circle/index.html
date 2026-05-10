@@ -828,6 +828,7 @@
             <a href="/">首页</a>
             <a href="/page/circle/index">圈子</a>
             <a href="/page/course/index">课程</a>
+            <a href="/page/announce/list">公告</a>
         </div>
         <div class="header-search">
             <div class="search-box">
@@ -1459,10 +1460,11 @@
 
         async function toggleEssence(eid, currentStatus) {
             try {
+                const status = currentStatus === 1 ? 1 : 0;
                 const formData = new FormData();
-                formData.append('essay_id', eid);
-                formData.append('status', currentStatus === 1 ? '0' : '1');
-                const response = await axios.post('/api/essay/essence', formData);
+                formData.append('eid', eid);
+                formData.append('is_essence', status.toString());
+                const response = await axios.post('/api/essay/update-essence', formData);
                 if (response.data.code === 0) {
                     loadEssays(currentCircleId);
                 }
@@ -1473,10 +1475,11 @@
 
         async function toggleWeekly(eid, currentStatus) {
             try {
+                const status = currentStatus === 1 ? 1 : 0;
                 const formData = new FormData();
-                formData.append('essay_id', eid);
-                formData.append('status', currentStatus === 1 ? '0' : '1');
-                const response = await axios.post('/api/essay/weekly', formData);
+                formData.append('eid', eid);
+                formData.append('is_weekly', status.toString());
+                const response = await axios.post('/api/essay/update-weekly', formData);
                 if (response.data.code === 0) {
                     loadEssays(currentCircleId);
                 }

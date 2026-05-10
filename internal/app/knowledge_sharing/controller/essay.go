@@ -423,11 +423,12 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// update essay weekly
+// 更新文章周刊
 func UpdateEssayWeeklyHandler(c *gin.Context) {
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
 		MakeApiResponseErrorParams(c)
+		service.Logger.Error("eidStr == nil ")
 		return
 	}
 
