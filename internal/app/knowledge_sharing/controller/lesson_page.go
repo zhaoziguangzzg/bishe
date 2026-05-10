@@ -20,5 +20,3 @@ func LessonDetailPageHandler(c *gin.Context) {
 func EditLessonPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "lesson/edit.html", nil)
 }
-
-//TODO 图片富文本编辑器

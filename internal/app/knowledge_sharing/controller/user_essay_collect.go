@@ -47,11 +47,45 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 
 	createTime := time.Now()
 	if collect != nil {
-		MakeApiResponseError(c, CODE_COLLECT_EXIST)
+		// 已收藏，取消收藏
+		affectRows, err := service.UpdateUserEssayCollectIsToNot(uid, eid)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateUserEssayCollectIsToNot err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		// 更新文章收藏数
+		affectRows, err = service.UpdateEssayCollectNum(eid, -1)
+		if err != nil || affectRows == 0 {
+			service.Logger.Error("UpdateEssayCollectNum err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		typei := model.STAT_TYPE_COLLECT
+
+		// 添加或更新用户统计数
+		err = service.StatInsertUpdate(uid, -1, typei, createTime)
+		if err != nil {
+			service.Logger.Error("StatInsertUpdate err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		// 更新用户统计数
+		err = service.UpdateStatAndStatDetail(uid, typei, model.STAT_DETAILS_STATUS_DECR, createTime)
+		if err != nil {
+			service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+
+		MakeApiResponseSuccessDefault(c)
 		return
 	}
 
-	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的id
+	newUserEssayCollect := &model.UserEssayCollect{ //其中包含自动生成的 id
 		UserId:        uid,
 		EssayId:       eid,
 		FavoriteId:    fid,
@@ -69,7 +103,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 
 	typei := model.STAT_TYPE_COLLECT
 
-	//添加或更新用户统计数
+	// 添加或更新用户统计数
 	err = service.StatInsertUpdate(uid, 1, typei, createTime)
 	if err != nil {
 		service.Logger.Error("StatInsertUpdate err", zap.Error(err))
@@ -77,7 +111,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	//添加文章收藏数据详情
+	// 添加文章收藏数据详情
 	err = service.StatDetailsInsert(uid, typei, model.STAT_DETAILS_STATUS_INCR, createTime)
 	if err != nil {
 		service.Logger.Error("StatDetailsInsert err", zap.Error(err))
@@ -85,7 +119,7 @@ func AddUserEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	//更新文章收藏数
+	// 更新文章收藏数
 	affectRows, err := service.UpdateEssayCollectNum(eid, 1)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateEssayCollectNum err", zap.Error(err))
@@ -167,7 +201,6 @@ func GetEssayCollectHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO 仅查询有效的
 	collect, err := service.GetUserEssayCollect(uid, eid)
 	if err != nil {
 		service.Logger.Error("GetUserEssayCollect", zap.Error(err))

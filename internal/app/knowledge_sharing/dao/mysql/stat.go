@@ -10,9 +10,15 @@ import (
 
 // 添加或更新各类型用户数据
 func StatInsertUpdate(statUid int, num int, typei int, createTime time.Time) (err error) {
+	// 确保初始值不为负数
+	initialSum := num
+	if initialSum < 0 {
+		initialSum = 0
+	}
+
 	stat := &model.Stat{
 		StatUid:   statUid,
-		Sum:       num,
+		Sum:       initialSum,
 		Type:      typei,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
@@ -25,7 +31,7 @@ func StatInsertUpdate(statUid int, num int, typei int, createTime time.Time) (er
 			{Name: "type"},
 		}, // 冲突检测列
 		DoUpdates: clause.Assignments(map[string]interface{}{
-			"sum": gorm.Expr("sum + ?", num),
+			"sum": gorm.Expr("GREATEST(0, sum + ?)", num),
 		}),
 	}).Create(&stat).Error
 

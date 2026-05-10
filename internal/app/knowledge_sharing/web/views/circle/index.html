@@ -149,6 +149,69 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
+        .circle-menu {
+            margin-bottom: 10px;
+        }
+        .circle-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .circle-menu-item:hover {
+            background: #f0f4ff;
+            color: #667eea;
+        }
+        .circle-menu-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        .circle-menu-text {
+            flex: 1;
+            font-weight: 500;
+        }
+        .circle-menu-arrow {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        .circle-menu-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+        .circle-menu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            margin-left: 36px;
+        }
+        .circle-menu-content.show {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .add-circle-btn-menu {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        .add-circle-btn-menu:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
         .circle-list {
             list-style: none;
         }
@@ -763,8 +826,7 @@
     <div class="header">
         <div class="nav">
             <a href="/">首页</a>
-            <a href="/page/circle/index">加入的圈子</a>
-            <a href="/page/circle/create">创建的圈子</a>
+            <a href="/page/circle/index">圈子</a>
             <a href="/page/course/index">课程</a>
         </div>
         <div class="header-search">
@@ -784,8 +846,26 @@
     <div class="main-container">
         <div class="left-sidebar">
             <div class="card">
-                <div class="card-title">加入的圈子</div>
-                <ul class="circle-list" id="circleList"></ul>
+                <div class="card-title">圈子</div>
+                <div class="circle-menu">
+                    <div class="circle-menu-item" onclick="toggleCircleMenu('join')">
+                        <span class="circle-menu-icon">📂</span>
+                        <span class="circle-menu-text">加入的圈子</span>
+                        <span class="circle-menu-arrow" id="arrowJoin">▼</span>
+                    </div>
+                    <div class="circle-menu-content" id="menuJoin">
+                        <ul class="circle-list" id="circleListJoin"></ul>
+                    </div>
+                    <div class="circle-menu-item" onclick="toggleCircleMenu('create')">
+                        <span class="circle-menu-icon">📂</span>
+                        <span class="circle-menu-text">创建的圈子</span>
+                        <span class="circle-menu-arrow" id="arrowCreate">▼</span>
+                    </div>
+                    <div class="circle-menu-content" id="menuCreate">
+                        <ul class="circle-list" id="circleListCreate"></ul>
+                        <a href="/page/circle/add" class="add-circle-btn-menu">+ 添加圈子</a>
+                    </div>
+                </div>
             </div>
             <div class="ad-slot-container">
                 <div id="adSlot2" class="ad-slot"></div>
@@ -837,9 +917,10 @@
                 </div>
             </div>
             <div class="favorite-list" id="favoriteList"></div>
+            <button class="btn-add-favorite" id="btnAddFavorite" onclick="showAddFavoriteForm()">+ 添加收藏夹</button>
             <div class="add-favorite-form" id="addFavoriteForm" style="display:none;">
                 <div class="form-group">
-                    <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="100"/>
+                    <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="50"/>
                 </div>
                 <div class="form-actions">
                     <button class="btn-cancel" onclick="showFavoriteList()">取消</button>
@@ -877,6 +958,22 @@
         let currentReportAuthorId = null;
         let favorites = [];
         let selectedFavoriteId = null;
+        let currentCircleType = 'join'; // 'join' or 'create'
+
+        function toggleCircleMenu(type) {
+            const menuContent = document.getElementById('menu' + type.charAt(0).toUpperCase() + type.slice(1));
+            const arrow = document.getElementById('arrow' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            // 切换展开/折叠状态
+            menuContent.classList.toggle('show');
+            arrow.classList.toggle('collapsed');
+            
+            // 加载对应的圈子列表
+            if (menuContent.classList.contains('show')) {
+                currentCircleType = type;
+                loadMyCircles(type);
+            }
+        }
 
         async function loadAds() {
             try {
@@ -909,20 +1006,28 @@
             }
         }
 
-        async function loadMyCircles(cidFromUrl) {
-            const container = document.getElementById('circleList');
+        async function loadMyCircles(type, cidFromUrl) {
+            const containerId = type === 'join' ? 'circleListJoin' : 'circleListCreate';
+            const container = document.getElementById(containerId);
             container.innerHTML = '<div class="no-data">加载中...</div>';
 
             try {
-                const response = await axios.get('/api/circle/join?page=1&pagesize=100');
+                let response;
+                if (type === 'join') {
+                    response = await axios.get('/api/circle/join?page=1&pagesize=100');
+                } else {
+                    response = await axios.get('/api/circle/create?page=1&pagesize=100');
+                }
+                
                 if (response.data.code === 0 && response.data.data) {
                     const data = response.data.data;
                     const circles = data.circles || [];
                     if (circles.length === 0) {
-                        container.innerHTML = '<div class="no-data">暂无加入的圈子</div>';
+                        const msg = type === 'join' ? '暂无加入的圈子' : '暂无创建的圈子';
+                        container.innerHTML = `<div class="no-data">${msg}</div>`;
                     } else {
                         container.innerHTML = circles.map(circle =>
-                            `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId})">${circle.title}</li>`
+                            `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId || circle.CircleOwnerId}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId || circle.CircleOwnerId}, '${type}')">${circle.title}</li>`
                         ).join('');
                         let targetCircle = null;
                         if (cidFromUrl) {
@@ -933,11 +1038,12 @@
                         }
                         if (targetCircle) {
                             updateEssayBtnHref(targetCircle.id);
-                            selectCircle(targetCircle.id, targetCircle.circleOwnerId);
+                            selectCircle(targetCircle.id, targetCircle.circleOwnerId || targetCircle.CircleOwnerId, type);
                         }
                     }
                 } else {
-                    container.innerHTML = '<div class="no-data">暂无加入的圈子</div>';
+                    const msg = type === 'join' ? '暂无加入的圈子' : '暂无创建的圈子';
+                    container.innerHTML = `<div class="no-data">${msg}</div>`;
                 }
             } catch (error) {
                 container.innerHTML = '<div class="no-data">加载失败</div>';
@@ -951,10 +1057,12 @@
             }
         }
 
-        function selectCircle(circleId, circleOwnerId) {
+        function selectCircle(circleId, circleOwnerId, type = 'join') {
             currentCircleId = circleId;
             currentUserCircleOwnerId = circleOwnerId;
+            currentCircleType = type;
 
+            // 更新所有圈子列表的选中状态
             document.querySelectorAll('.circle-item').forEach(item => {
                 item.classList.toggle('active', parseInt(item.dataset.id) === circleId);
             });
@@ -1186,19 +1294,49 @@
         async function toggleCollect(eid, isCollect) {
             currentFavoriteEssayId = eid;
             if (isCollect) {
+                // 已收藏，再次点击取消收藏
                 try {
                     const formData = new FormData();
-                    formData.append('essay_id', eid);
-                    const response = await axios.post('/api/favorite/remove', formData);
+                    formData.append('eid', eid);
+                    const response = await axios.post('/api/collect/cancel', formData);
                     if (response.data.code === 0) {
-                        loadEssays(currentCircleId);
+                        // 直接更新 UI
+                        updateCollectUI(eid, false);
+                    } else if (response.data.code === 2003) {
+                        window.location.href = '/page/user/login';
+                    } else {
+                        alert(response.data.message || '取消收藏失败');
                     }
                 } catch (error) {
                     console.error('取消收藏失败', error);
+                    alert('网络错误，请稍后重试');
                 }
             } else {
+                // 未收藏，添加收藏
                 await loadUserFavorites();
                 document.getElementById('favoriteModal').classList.add('show');
+            }
+        }
+
+        function updateCollectUI(eid, isCollect) {
+            const collectBtn = document.querySelector(`.action-btn[onclick*="toggleCollect(${eid},"]`);
+            if (!collectBtn) return;
+            
+            const collectIcon = collectBtn.querySelector('.icon');
+            const collectNumSpan = collectBtn.querySelector('span:last-child');
+            
+            let currentNum = parseInt(collectNumSpan.textContent) || 0;
+            
+            if (isCollect) {
+                // 收藏
+                collectBtn.classList.add('collected');
+                collectIcon.textContent = '⭐';
+                collectNumSpan.textContent = currentNum + 1;
+            } else {
+                // 取消收藏
+                collectBtn.classList.remove('collected');
+                collectIcon.textContent = '☆';
+                collectNumSpan.textContent = currentNum - 1;
             }
         }
 
@@ -1227,11 +1365,20 @@
             document.getElementById('addFavoriteForm').style.display = 'none';
             document.getElementById('btnBackFavorite').style.display = 'none';
             document.getElementById('favoriteList').style.display = 'block';
+            document.getElementById('btnAddFavorite').style.display = 'block';
         }
 
         function showFavoriteList() {
             selectedFavoriteId = null;
             renderFavoriteList();
+        }
+
+        function showAddFavoriteForm() {
+            document.getElementById('btnAddFavorite').style.display = 'none';
+            document.getElementById('favoriteList').style.display = 'none';
+            document.getElementById('addFavoriteForm').style.display = 'block';
+            document.getElementById('favoriteModalTitle').textContent = '添加收藏夹';
+            document.getElementById('btnBackFavorite').style.display = 'block';
         }
 
         function selectFavorite(favid) {
@@ -1246,12 +1393,15 @@
             }
             try {
                 const formData = new FormData();
-                formData.append('favorite_id', selectedFavoriteId);
-                formData.append('essay_id', currentFavoriteEssayId);
-                const response = await axios.post('/api/favorite/add', formData);
+                formData.append('eid', currentFavoriteEssayId);
+                formData.append('fid', selectedFavoriteId);
+                const response = await axios.post('/api/collect/add', formData);
                 if (response.data.code === 0) {
                     closeFavoriteModal();
-                    loadEssays(currentCircleId);
+                    // 直接更新 UI
+                    updateCollectUI(currentFavoriteEssayId, true);
+                } else if (response.data.code === 2003) {
+                    window.location.href = '/page/user/login';
                 } else {
                     alert(response.data.message || '收藏失败');
                 }
@@ -1273,6 +1423,7 @@
                 if (response.data.code === 0) {
                     await loadUserFavorites();
                     document.getElementById('favoriteTitleInput').value = '';
+                    showFavoriteList();
                 } else {
                     alert(response.data.message || '创建失败');
                 }
@@ -1449,7 +1600,11 @@
             await loadCurrentUser();
             const urlParams = new URLSearchParams(window.location.search);
             const cidFromUrl = urlParams.get('cid');
-            await loadMyCircles(cidFromUrl);
+            
+            // 默认展开"加入的圈子"菜单并加载列表
+            document.getElementById('menuJoin').classList.add('show');
+            await loadMyCircles('join', cidFromUrl);
+            
             await loadAds();
         };
     </script>

@@ -153,7 +153,7 @@ func GetEssayEssenceList(cid int, page int, pagesize int) (essays []model.Essay,
 func UpdateEssayLikeNum(eid int, num int) (int64, error) {
 	result := DB.Model(&model.Essay{}).
 		Where("id=?", eid).
-		UpdateColumn("like_num", gorm.Expr("like_num + ?", num))
+		UpdateColumn("like_num", gorm.Expr("GREATEST(0, like_num + ?)", num))
 	return result.RowsAffected, result.Error
 }
 
@@ -161,7 +161,7 @@ func UpdateEssayLikeNum(eid int, num int) (int64, error) {
 func UpdateEssayCommentNum(eid int, num int) (int64, error) {
 	result := DB.Model(&model.Essay{}).
 		Where("id=?", eid).
-		UpdateColumn("comment_num", gorm.Expr("comment_num + ?", num))
+		UpdateColumn("comment_num", gorm.Expr("GREATEST(0, comment_num + ?)", num))
 	return result.RowsAffected, result.Error
 }
 
@@ -169,6 +169,6 @@ func UpdateEssayCommentNum(eid int, num int) (int64, error) {
 func UpdateEssayCollectNum(eid int, num int) (int64, error) {
 	result := DB.Model(&model.Essay{}).
 		Where("id=?", eid).
-		UpdateColumn("collect_num", gorm.Expr("collect_num + ?", num))
+		UpdateColumn("collect_num", gorm.Expr("GREATEST(0, collect_num + ?)", num))
 	return result.RowsAffected, result.Error
 }
