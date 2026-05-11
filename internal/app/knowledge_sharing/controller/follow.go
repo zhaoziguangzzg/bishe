@@ -26,9 +26,6 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	//从context获取用户名
-	userName := service.GetNameFromContext(c)
-
 	//查询用户的关注
 	follow, err := service.GetUserFollow(uid, followerId)
 	if err != nil {
@@ -59,13 +56,12 @@ func AddUserFollowHandler(c *gin.Context) {
 		}
 
 		typei := model.NOTICE_TYPE_FOLLOW
-		//TODO 异步处理
 
 		noticeMsg := &model.NoticeMsg{
-			Type:     typei,
-			Uid:      followerId,
-			Time:     nowTime.Unix(),
-			UserName: userName,
+			Type:      typei,
+			Time:      nowTime.Unix(),
+			FanUid:    uid,
+			FollowUid: followerId,
 		}
 
 		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)
@@ -121,10 +117,28 @@ func CancelUserFollowHandler(c *gin.Context) {
 		return
 	}
 
+	nowTime := time.Now()
+
 	//取关
 	affectRows, err := service.UpdateUserFollowIsToNot(uid, followerId)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("UpdateUserFollowIsToNot err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新关注数据总数和详情
+	err = service.UpdateStatAndStatDetail(uid, model.STAT_TYPE_FOLLOW, model.STAT_DETAILS_STATUS_DECR, nowTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	//更新被关注数据总数和详情
+	err = service.UpdateStatAndStatDetail(followerId, model.STAT_TYPE_FAN, model.STAT_DETAILS_STATUS_DECR, nowTime)
+	if err != nil {
+		service.Logger.Error("UpdateStatAndStatDetail err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

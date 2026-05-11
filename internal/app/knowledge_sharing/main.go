@@ -165,7 +165,7 @@ func main() {
 		controller.UpdateEssayEssenceHandler)
 
 	//查看文章详情页面
-	page.GET("/essay/detail", controller.EssayDetailPageHandler)
+	page.GET("/essay/detail", middleware.PageIsJoinCircle(), controller.EssayDetailPageHandler)
 	//查看文章
 	api.GET("/essay/get", controller.GetEssayHandler)
 	//获取文章全部评论

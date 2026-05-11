@@ -41,7 +41,6 @@ func AddEssayHandler(c *gin.Context) {
 	}
 
 	uid := service.GetUidFromContext(c)
-	name := service.GetNameFromContext(c)
 
 	nowTime := time.Now()
 
@@ -64,13 +63,12 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
-	typei := model.NOTICE_TYPE_DISPATCH
-	//TODO 异步处理
+	typei := model.NOTICE_TYPE_ESSAY_ADD
 	noticeMsg := &model.NoticeMsg{
-		Type:     typei,
-		Uid:      newEssay.AuthorId,
-		Time:     nowTime.Unix(),
-		UserName: name,
+		Type:      typei,
+		Time:      nowTime.Unix(),
+		AuthorUid: newEssay.AuthorId,
+		EssayId:   newEssay.Id,
 	}
 
 	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)

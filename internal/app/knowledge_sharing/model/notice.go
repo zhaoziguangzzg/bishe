@@ -23,11 +23,19 @@ type Notice struct {
 
 type NoticeMsg struct {
 	Type int `json:"type,omitempty"`
-	Uid  int `json:"uid,omitempty"`
 	//产生时间
 	Time int64 `json:"time,omitempty"`
-	//谁关注了uid
-	UserName string `json:"userName,omitempty"`
+	//作者id
+	AuthorUid int `json:"authorUid,omitempty"`
+	//文章id
+	EssayId int `json:"essayId,omitempty"`
+	//A关注了B中的A
+	FanUid int `json:"fanUid,omitempty"`
+	//A关注了B中的A
+	FollowUid int `json:"followUid,omitempty"`
+
+	Uid      int
+	UserName string
 }
 
 const (
@@ -39,7 +47,7 @@ const (
 	NOTICE_TYPE_COMMENT      int = 3 //评论
 	NOTICE_TYPE_ACCUSATION   int = 4 //举报
 	NOTICE_TYPE_FEEDBACK     int = 5 //反馈
-	NOTICE_TYPE_DISPATCH     int = 6 //关注发文
+	NOTICE_TYPE_ESSAY_ADD    int = 6 //发布文章通知关注者
 	NOTICE_TYPE_ESSENCE      int = 7 //加精
 	NOTICE_TYPE_JOIN         int = 8 //加入圈子
 	NOTICE_TYPE_ACCUSATIONED int = 9 //被举报

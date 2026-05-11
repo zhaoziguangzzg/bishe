@@ -4,12 +4,9 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"context"
-	"encoding/json"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/IBM/sarama"
 	"go.uber.org/zap"
@@ -50,8 +47,9 @@ func Notice() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkaHandler := &consumerGroupHandler{
-		ready: make(chan bool),
+	kafkaHandler := &service.ConsumerGroupHandler{
+		Ready:       make(chan bool),
+		ProcessFunc: service.ProcessKafkaNotice,
 	}
 
 	go func() {
@@ -63,85 +61,13 @@ func Notice() {
 			if ctx.Err() != nil {
 				return
 			}
-			kafkaHandler.ready = make(chan bool)
+			kafkaHandler.Ready = make(chan bool)
 		}
 	}()
 
-	<-kafkaHandler.ready
+	<-kafkaHandler.Ready
 
 	sig := <-sigChan
 	service.Logger.Info("KafkaNotice get sig", zap.Any("sig", sig))
 	cancel()
-}
-
-func processOneNoticeStr(msg []byte) (err error) {
-	var noticeMsg model.NoticeMsg
-	err = json.Unmarshal(msg, &noticeMsg)
-	if err != nil {
-		service.Logger.Error("Unmarshal noticeMsg err", zap.Error(err))
-		return
-	}
-
-	userName := noticeMsg.UserName
-	var noticeContent string
-	switch noticeMsg.Type {
-	case model.NOTICE_TYPE_FOLLOW:
-		noticeContent = "又有用户" + userName + "关注啦"
-	case model.NOTICE_TYPE_LIKE:
-		noticeContent = "又有用户" + userName + "点赞啦"
-	case model.NOTICE_TYPE_COMMENT:
-		noticeContent = "又有用户" + userName + "评论啦"
-	case model.NOTICE_TYPE_DISPATCH:
-		noticeContent = "又有用户" + userName + "关注发文啦"
-	case model.NOTICE_TYPE_JOIN:
-		noticeContent = "又有用户" + userName + "加入圈子啦"
-	case model.NOTICE_TYPE_ACCUSATION:
-		noticeContent = "用户" + userName + "举报没有违规"
-	case model.NOTICE_TYPE_ACCUSATIONED:
-		noticeContent = "用户" + userName + "举报有违规"
-	case model.NOTICE_TYPE_FEEDBACK:
-		noticeContent = "用户" + userName + "反馈了"
-	default:
-		noticeContent = "又有通知了"
-	}
-
-	fmt.Println(noticeContent)
-	nowTime := time.Now()
-
-	err = service.UserAddNotice(noticeMsg.Uid, noticeContent, noticeMsg.Type, nowTime)
-	if err != nil {
-		service.Logger.Error("UserAddNotice err", zap.Error(err))
-		return
-	}
-
-	service.Logger.Info("notice msg", zap.Any("noticeMsg", noticeMsg))
-	return
-}
-
-type consumerGroupHandler struct {
-	ready chan bool
-}
-
-func (h *consumerGroupHandler) Setup(session sarama.ConsumerGroupSession) error {
-	close(h.ready)
-	return nil
-}
-
-func (h *consumerGroupHandler) Cleanup(session sarama.ConsumerGroupSession) error {
-	return nil
-}
-
-func (h *consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	for {
-		select {
-		case message, ok := <-claim.Messages():
-			if !ok {
-				return nil
-			}
-			processOneNoticeStr(message.Value)
-			session.MarkMessage(message, "")
-		case <-session.Context().Done():
-			return nil
-		}
-	}
 }

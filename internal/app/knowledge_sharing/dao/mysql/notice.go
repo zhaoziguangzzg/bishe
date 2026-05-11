@@ -20,6 +20,24 @@ func UserAddNotice(noticeUid int, content string, typei int, createTime time.Tim
 	return
 }
 
+func UserAddNotices(noticeUids []int, content string, typei int, createTime time.Time) (err error) {
+	var notices []*model.Notice
+	for _, v := range noticeUids {
+		noticeUid := v
+		notice := &model.Notice{
+			NoticeUid: noticeUid,
+			Content:   content,
+			Type:      typei,
+			CreateAt:  &createTime,
+			UpdateAt:  &createTime,
+			IsDeleted: model.IS_DELETED_NO,
+		}
+		notices = append(notices, notice)
+	}
+	err = DB.Model(&model.Notice{}).Create(notices).Error
+	return
+}
+
 // 获取通知列表
 func GetNoticeList(uid int, page int, pageSize int) (notices []model.Notice, err error) {
 	offset := (page - 1) * pageSize
