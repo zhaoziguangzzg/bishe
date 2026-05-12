@@ -575,6 +575,8 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
+	nowTime := time.Now()
+
 	// Update essay essence
 	affectRows, err := service.UpdateEssayEssence(eid, isEssence)
 	if err != nil || affectRows == 0 {
@@ -653,15 +655,18 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 	}
 
 	// 给用户发通知
-	content := "恭喜您的文章：" + essay.Title + " 已被加精"
 	typei = model.NOTICE_TYPE_ESSENCE
 
-	//添加通知
-	err = service.UserAddNotice(essay.AuthorId, content, typei, time.Now())
+	noticeMsg := &model.NoticeMsg{
+		Type:    typei,
+		Time:    nowTime.Unix(),
+		EssayId: eid,
+	}
+
+	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 	if err != nil {
-		service.Logger.Error("UserAddNotice err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
+		service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))
+		err = nil
 	}
 
 	MakeApiResponseSuccessDefault(c)

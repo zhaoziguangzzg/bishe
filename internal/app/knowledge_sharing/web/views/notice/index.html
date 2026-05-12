@@ -256,7 +256,7 @@
                                 <span class="notice-type">${typeInfo.name}</span>
                                 <span class="notice-time">${updateAt}</span>
                             </div>
-                            <div class="notice-content">${escapeHtml(notice.content || '')}</div>
+                            <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
                         </div>
                     </div>
                 `;
@@ -285,7 +285,7 @@
                                 <span class="notice-type">${notice.name || ''} ${typeInfo.name}</span>
                                 <span class="notice-time">${updateAt}</span>
                             </div>
-                            <div class="notice-content">${escapeHtml(notice.content || '')}</div>
+                            <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
                         </div>
                     </div>
                 `;
@@ -295,6 +295,10 @@
         }
 
         function goToNoticeDetail(notice) {
+            if (notice.url && notice.url.trim() !== '') {
+                window.location.href = notice.url;
+                return;
+            }
             const params = new URLSearchParams({
                 content: notice.content || '',
                 type: notice.type || 0,
@@ -321,6 +325,12 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function convertUrlToLink(text) {
+            if (!text) return '';
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, '<a href="$1" style="color: #409eff; text-decoration: underline;" target="_blank">$1</a>');
         }
 
         function formatTime(timestamp) {

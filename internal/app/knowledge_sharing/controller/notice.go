@@ -30,6 +30,31 @@ func GetNoticeListHandler(c *gin.Context) {
 
 	}
 
+	// var noticesUrls []model.NoticeUrl
+
+	// for _, v := range notices {
+	// 	var noticeUrl model.NoticeUrl
+	// 	switch v.Type {
+	// 	case model.NOTICE_TYPE_FOLLOW:
+	// 		noticeUrl.Url = v.Content
+	// 	case model.NOTICE_TYPE_ESSAY_ADD:
+	// 		AddNoticeEssayAdd(noticeMsg)
+	// 	case model.NOTICE_TYPE_LIKE:
+	// 		AddNoticeLike(noticeMsg)
+	// 	case model.NOTICE_TYPE_COMMENT:
+	// 		AddNoticeComment(noticeMsg)
+	// 	case model.NOTICE_TYPE_JOIN:
+	// 		AddNoticeJoin(noticeMsg)
+	// 	case model.NOTICE_TYPE_ACCUSATION:
+	// 		AddNoticeAccusation(noticeMsg)
+	// 	case model.NOTICE_TYPE_ACCUSATIONED:
+	// 		AddNoticeAccusationed(noticeMsg)
+	// 	case model.NOTICE_TYPE_FEEDBACK:
+	// 		AddNoticeFeedback(noticeMsg)
+	// 	default:
+	// 	}
+	// }
+
 	data := map[string]interface{}{
 		"notices": notices,
 	}

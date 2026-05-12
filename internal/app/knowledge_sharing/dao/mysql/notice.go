@@ -6,11 +6,12 @@ import (
 )
 
 // 添加通知
-func UserAddNotice(noticeUid int, content string, typei int, createTime time.Time) (err error) {
+func UserAddNotice(noticeUid int, content string, typei int, url string, createTime time.Time) (err error) {
 	notice := &model.Notice{
 		NoticeUid: noticeUid,
 		Content:   content,
 		Type:      typei,
+		Url:       url,
 		CreateAt:  &createTime,
 		UpdateAt:  &createTime,
 		IsDeleted: model.IS_DELETED_NO,

@@ -58,3 +58,9 @@ type UserComment struct {
 	User    User             `json:"user"`
 	Comment UserEssayComment `json:"comment"`
 }
+
+type NoticeUrl struct {
+	UserUrl string `json:"userUrl"`
+	Url     string `json:"circleUrl"`
+	Notice  Notice `json:"notice"`
+}

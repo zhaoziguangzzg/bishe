@@ -13,6 +13,8 @@ type Notice struct {
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
 	//类型
 	Type int `json:"type" gorm:"column:type" mapstructture:"type"`
+	//跳转地址
+	Url string `json:"url" gorm:"column:url" mapstructture:"url"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
@@ -49,9 +51,6 @@ type NoticeMsg struct {
 	FeedbackUid int `json:"feedbackUid,omitempty"`
 	//反馈的id
 	FeedbackId int `json:"feedbackId,omitempty"`
-
-	Uid      int
-	UserName string
 }
 
 const (

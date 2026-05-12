@@ -11,8 +11,8 @@ import (
 )
 
 // 添加通知
-func UserAddNotice(noticeUid int, content string, typei int, createTime time.Time) (err error) {
-	return mysql.UserAddNotice(noticeUid, content, typei, createTime)
+func UserAddNotice(noticeUid int, content string, typei int, url string, createTime time.Time) (err error) {
+	return mysql.UserAddNotice(noticeUid, content, typei, url, createTime)
 }
 
 // 添加通知
@@ -91,10 +91,10 @@ func AddNoticeFollowAdd(msg model.NoticeMsg) {
 		return
 	}
 
-	userUrl := GetUrlUserProfile(fanUid)
-	content := fanUser.Name + "关注了你" + userUrl
+	url := GetUrlUserProfile(fanUid)
+	content := fanUser.Name + "关注了你"
 
-	err = UserAddNotice(msg.FollowUid, content, noticeType, noticeTime)
+	err = UserAddNotice(msg.FollowUid, content, noticeType, url, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("msg.FollowUid", msg.FollowUid), zap.String("content", content), zap.Error(err))
 		return
@@ -126,7 +126,7 @@ func AddNoticeEssayAdd(msg model.NoticeMsg) {
 
 	essayUrl := GetUrlEssayDetail(essay.Id)
 
-	content := "你关注的" + authorUser.Name + "发布了新文章" + essay.Title + "，快去看看吧，地址：" + essayUrl
+	content := "你关注的" + authorUser.Name + "发布了新文章" + essay.Title + "，快去看看吧"
 
 	//分页获取文章作者的所有粉丝
 	for page := 1; ; page++ {
@@ -143,7 +143,7 @@ func AddNoticeEssayAdd(msg model.NoticeMsg) {
 
 		//给每个粉丝发新文章的消息
 		for _, fanUser := range fanUsers {
-			err = UserAddNotice(fanUser.Id, content, noticeType, noticeTime)
+			err = UserAddNotice(fanUser.Id, content, noticeType, essayUrl, noticeTime)
 			if err != nil {
 				Logger.Error("UserAddNotice err", zap.Int("fanUser.Id", fanUser.Id), zap.String("content", content), zap.Error(err))
 				continue
@@ -189,11 +189,10 @@ func AddNoticeLike(msg model.NoticeMsg) {
 		return
 	}
 
-	userUrl := GetUrlUserProfile(likeUid)
-	essayUrl := GetUrlEssayDetail(essay.Id)
-	content := likeUser.Name + userUrl + "点赞了你的文章" + essay.Title + essayUrl
+	userUrl := GetUrlUserProfile(likeUser.Id)
+	content := likeUser.Name + "点赞了你的文章" + essay.Title
 
-	err = UserAddNotice(essay.AuthorId, content, noticeType, noticeTime)
+	err = UserAddNotice(essay.AuthorId, content, noticeType, userUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
 		return
@@ -238,11 +237,10 @@ func AddNoticeComment(msg model.NoticeMsg) {
 		return
 	}
 
-	userUrl := GetUrlUserProfile(commentUid)
 	essayUrl := GetUrlEssayDetail(essay.Id)
-	content := commentUser.Name + userUrl + "评论了你的文章" + essay.Title + essayUrl
+	content := commentUser.Name + "评论了你的文章" + essay.Title
 
-	err = UserAddNotice(essay.AuthorId, content, noticeType, noticeTime)
+	err = UserAddNotice(essay.AuthorId, content, noticeType, essayUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
 		return
@@ -288,10 +286,9 @@ func AddNoticeJoin(msg model.NoticeMsg) {
 	}
 
 	userUrl := GetUrlUserProfile(joinUid)
-	circleUrl := GetUrlCircleIndex(circle.Id)
-	content := joinUser.Name + userUrl + "加入了你的圈子" + circle.Title + circleUrl
+	content := joinUser.Name + "加入了你的圈子" + circle.Title
 
-	err = UserAddNotice(circle.CircleOwnerId, content, noticeType, noticeTime)
+	err = UserAddNotice(circle.CircleOwnerId, content, noticeType, userUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("circle.CircleOwnerId", circle.CircleOwnerId), zap.String("content", content), zap.Error(err))
 		return
@@ -353,12 +350,11 @@ func AddNoticeAccusation(msg model.NoticeMsg) {
 		return
 	}
 
-	essayUrl := GetUrlEssayDetail(essay.Id)
 	accusationUrl := GetUrlAccusationDetail(accusationId)
 
-	content := "举报的文章" + essay.Title + essayUrl + "无违规" + accusation.Content + accusationUrl
+	content := "举报的文章" + essay.Title + "无违规" + accusation.Content
 
-	err = UserAddNotice(accusationUid, content, noticeType, noticeTime)
+	err = UserAddNotice(accusationUid, content, noticeType, accusationUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("accusationUid", accusationUid), zap.String("content", content), zap.Error(err))
 		return
@@ -402,12 +398,11 @@ func AddNoticeAccusationed(msg model.NoticeMsg) {
 		return
 	}
 
-	essayUrl := GetUrlEssayDetail(essay.Id)
 	accusationUrl := GetUrlAccusationDetail(accusationId)
 
-	content := "您的文章" + essay.Title + essayUrl + "存在违规" + accusation.Content + accusationUrl
+	content := "您的文章" + essay.Title + "存在违规" + accusation.Content
 
-	err = UserAddNotice(essay.AuthorId, content, noticeType, noticeTime)
+	err = UserAddNotice(essay.AuthorId, content, noticeType, accusationUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
 		return
@@ -437,11 +432,43 @@ func AddNoticeFeedback(msg model.NoticeMsg) {
 	}
 
 	feedbackUrl := GetUrlFeedbackDetail(feedback.Id)
-	content := feedback.Reply + feedback.Content + feedbackUrl
+	content := feedback.Reply + feedback.Content
 
-	err = UserAddNotice(feedback.UserId, content, noticeType, noticeTime)
+	err = UserAddNotice(feedback.UserId, content, noticeType, feedbackUrl, noticeTime)
 	if err != nil {
 		Logger.Error("UserAddNotice err", zap.Int("feedback.UserId", feedback.UserId), zap.String("content", content), zap.Error(err))
+		return
+	}
+}
+
+// 加精
+func AddNoticeEssence(msg model.NoticeMsg) {
+	noticeType := model.NOTICE_TYPE_ESSENCE
+	noticeTime := time.Unix(msg.Time, 0)
+
+	eid := msg.EssayId
+
+	if eid == 0 {
+		return
+	}
+
+	essay, err := GetEssayByEid(eid)
+	if err != nil {
+		Logger.Error("GetEssayByEid err", zap.Int("eid", eid), zap.Error(err))
+		return
+	}
+
+	if essay == nil {
+		Logger.Error("essay == nil", zap.Int("eid", eid))
+		return
+	}
+
+	url := GetUrlEssayDetail(eid)
+	content := "你的文章" + essay.Title + "被加精"
+
+	err = UserAddNotice(essay.AuthorId, content, noticeType, url, noticeTime)
+	if err != nil {
+		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
 		return
 	}
 }
