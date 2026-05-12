@@ -26,7 +26,6 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 	}
 
 	uid := service.GetUidFromContext(c)
-	name := service.GetNameFromContext(c)
 
 	circle, err := service.GetCircleByCid(cid)
 	if err != nil {
@@ -95,9 +94,9 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		typei := model.NOTICE_TYPE_JOIN
 		noticeMsg := &model.NoticeMsg{
 			Type:     typei,
-			Uid:      circle.CircleOwnerId,
 			Time:     nowTime.Unix(),
-			UserName: name,
+			JoinUid:  uid,
+			CircleId: cid,
 		}
 
 		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)

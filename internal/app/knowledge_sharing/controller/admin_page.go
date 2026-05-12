@@ -81,5 +81,3 @@ func AdminAdvertAddPageHandler(c *gin.Context) {
 func AdminAdvertListPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "adminadvert/list.html", nil)
 }
-
-//TODO 后台首页

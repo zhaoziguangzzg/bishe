@@ -44,6 +44,10 @@ func GetStatDetailsByDateType(uid int, stime time.Time) (results []model.StatDet
 // 更新数据总数和详情
 func UpdateStatAndStatDetail(uid int, typei int, statStatus int, createTime time.Time) (err error) {
 	num := 1
+	if statStatus == model.STAT_DETAILS_STATUS_DECR {
+		num = -1
+	}
+
 	//更新数据统计
 	err = StatInsertUpdate(uid, num, typei, createTime)
 	if err != nil {

@@ -28,3 +28,8 @@ func GetUrlEssayDetail(eid int) string {
 func GetUrlCourseDetail(cid int) string {
 	return "/page/course/detail?course_id=" + strconv.Itoa(cid)
 }
+
+//用户主页
+func GetUrlUserProfile(uid int) string {
+	return "/page/user/profile?uid=" + strconv.Itoa(uid)
+}

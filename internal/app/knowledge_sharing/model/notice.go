@@ -29,10 +29,18 @@ type NoticeMsg struct {
 	AuthorUid int `json:"authorUid,omitempty"`
 	//文章id
 	EssayId int `json:"essayId,omitempty"`
+	//圈子id
+	CircleId int `json:"circleId,omitempty"`
 	//A关注了B中的A
 	FanUid int `json:"fanUid,omitempty"`
 	//A关注了B中的A
 	FollowUid int `json:"followUid,omitempty"`
+	//点赞的用户id
+	LikeUid int `json:"likeUid,omitempty"`
+	//评论的用户id
+	CommentUid int `json:"commentUid,omitempty"`
+	//加入圈子的用户id
+	JoinUid int `json:"joinUid,omitempty"`
 
 	Uid      int
 	UserName string

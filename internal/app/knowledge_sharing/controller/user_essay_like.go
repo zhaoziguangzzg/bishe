@@ -13,7 +13,6 @@ import (
 // 用户在文章的喜欢
 func AddUserEssayLikeHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
-	name := service.GetNameFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -75,12 +74,11 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 		typei := model.NOTICE_TYPE_LIKE
 
-		//TODO 异步处理
 		noticeMsg := &model.NoticeMsg{
-			Type:     typei,
-			Uid:      authorId,
-			Time:     nowTime.Unix(),
-			UserName: name,
+			Type:    typei,
+			Time:    nowTime.Unix(),
+			EssayId: eid,
+			LikeUid: uid,
 		}
 
 		_, _, err := service.ProduceKafkaNoticeMessage(noticeMsg)

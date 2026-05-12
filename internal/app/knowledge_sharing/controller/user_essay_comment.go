@@ -13,7 +13,6 @@ import (
 // 用户在文章的评论
 func AddUserEssayCommentHandle(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
-	name := service.GetNameFromContext(c)
 
 	eidStr := c.PostForm("eid")
 	if eidStr == "" {
@@ -89,13 +88,12 @@ func AddUserEssayCommentHandle(c *gin.Context) {
 
 	//通知
 	typei = model.NOTICE_TYPE_COMMENT
-	//TODO 异步处理
 
 	noticeMsg := &model.NoticeMsg{
-		Type:     typei,
-		Uid:      essay.AuthorId,
-		Time:     nowTime.Unix(),
-		UserName: name,
+		Type:       typei,
+		Time:       nowTime.Unix(),
+		CommentUid: uid,
+		EssayId:    essay.Id,
 	}
 
 	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
