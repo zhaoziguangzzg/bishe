@@ -33,3 +33,13 @@ func GetUrlCourseDetail(cid int) string {
 func GetUrlUserProfile(uid int) string {
 	return "/page/user/profile?uid=" + strconv.Itoa(uid)
 }
+
+//举报详情
+func GetUrlAccusationDetail(aid int) string {
+	return "/page/accusation/detail?aid=" + strconv.Itoa(aid)
+}
+
+//反馈详情
+func GetUrlFeedbackDetail(fid int) string {
+	return "/page/feedback/detail?fid=" + strconv.Itoa(fid)
+}

@@ -164,11 +164,10 @@ func UpdateFeedbackStatusHandler(c *gin.Context) {
 
 	// 给用户发通知
 	typei := model.NOTICE_TYPE_FEEDBACK
-	//TODO 异步处理
 	noticeMsg := &model.NoticeMsg{
-		Type: typei,
-		Uid:  feedback.UserId,
-		Time: nowTime.Unix(),
+		Type:       typei,
+		Time:       nowTime.Unix(),
+		FeedbackId: id,
 	}
 
 	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)

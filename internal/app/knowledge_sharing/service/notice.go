@@ -57,17 +57,12 @@ func ProcessKafkaNotice(msg []byte) (err error) {
 		AddNoticeComment(noticeMsg)
 	case model.NOTICE_TYPE_JOIN:
 		AddNoticeJoin(noticeMsg)
-	/*
-
-
-
-		case model.NOTICE_TYPE_ACCUSATION:
-			noticeContent = "用户" + userName + "举报没有违规"
-		case model.NOTICE_TYPE_ACCUSATIONED:
-			noticeContent = "用户" + userName + "举报有违规"
-		case model.NOTICE_TYPE_FEEDBACK:
-			noticeContent = "用户" + userName + "反馈了"
-	*/
+	case model.NOTICE_TYPE_ACCUSATION:
+		AddNoticeAccusation(noticeMsg)
+	case model.NOTICE_TYPE_ACCUSATIONED:
+		AddNoticeAccusationed(noticeMsg)
+	case model.NOTICE_TYPE_FEEDBACK:
+		AddNoticeFeedback(noticeMsg)
 	default:
 	}
 
@@ -302,4 +297,151 @@ func AddNoticeJoin(msg model.NoticeMsg) {
 		return
 	}
 
+}
+
+// 添加举报通知
+func AddNoticeAccusation(msg model.NoticeMsg) {
+	noticeType := model.NOTICE_TYPE_ACCUSATION
+	noticeTime := time.Unix(msg.Time, 0)
+
+	accusationUid := msg.AccusationUid
+	//获取accusationUid的信息
+	if accusationUid == 0 {
+		return
+	}
+
+	accusationUser, err := GetUserByUserId(accusationUid)
+	if err != nil {
+		Logger.Error("GetUserByUserId err", zap.Int("accusationUid", accusationUid), zap.Error(err))
+		return
+	}
+
+	if accusationUser == nil {
+		Logger.Error("accusationUser == nil", zap.Int("accusationUid", accusationUid))
+		return
+	}
+
+	accusationId := msg.AccusationId
+	//获取accusationId的信息
+	if accusationId == 0 {
+		return
+	}
+
+	accusation, err := GetAccusationByAid(accusationId)
+	if err != nil {
+		Logger.Error("GetAccusationByAid err", zap.Int("accusationId", accusationId), zap.Error(err))
+		return
+	}
+
+	if accusation == nil {
+		Logger.Error("accusation == nil", zap.Int("accusationId", accusationId))
+		return
+	}
+
+	if accusation.EssayId == 0 {
+		return
+	}
+
+	essay, err := GetEssayByEid(accusation.EssayId)
+	if err != nil {
+		Logger.Error("GetEssayByEid err", zap.Int("accusation.EssayId", accusation.EssayId), zap.Error(err))
+		return
+	}
+
+	if essay == nil {
+		Logger.Error("essay == nil", zap.Int("msg.EssayId", msg.EssayId))
+		return
+	}
+
+	essayUrl := GetUrlEssayDetail(essay.Id)
+	accusationUrl := GetUrlAccusationDetail(accusationId)
+
+	content := "举报的文章" + essay.Title + essayUrl + "无违规" + accusation.Content + accusationUrl
+
+	err = UserAddNotice(accusationUid, content, noticeType, noticeTime)
+	if err != nil {
+		Logger.Error("UserAddNotice err", zap.Int("accusationUid", accusationUid), zap.String("content", content), zap.Error(err))
+		return
+	}
+}
+
+// 添加被举报通知
+func AddNoticeAccusationed(msg model.NoticeMsg) {
+	noticeType := model.NOTICE_TYPE_ACCUSATIONED
+	noticeTime := time.Unix(msg.Time, 0)
+
+	accusationId := msg.AccusationId
+	//获取accusationId的信息
+	if accusationId == 0 {
+		return
+	}
+
+	accusation, err := GetAccusationByAid(accusationId)
+	if err != nil {
+		Logger.Error("GetAccusationByAid err", zap.Int("accusationId", accusationId), zap.Error(err))
+		return
+	}
+
+	if accusation == nil {
+		Logger.Error("accusation == nil", zap.Int("accusationId", accusationId))
+		return
+	}
+
+	if accusation.EssayId == 0 {
+		return
+	}
+
+	essay, err := GetEssayByEid(accusation.EssayId)
+	if err != nil {
+		Logger.Error("GetEssayByEid err", zap.Int("accusation.EssayId", accusation.EssayId), zap.Error(err))
+		return
+	}
+
+	if essay == nil {
+		Logger.Error("essay == nil", zap.Int("msg.EssayId", msg.EssayId))
+		return
+	}
+
+	essayUrl := GetUrlEssayDetail(essay.Id)
+	accusationUrl := GetUrlAccusationDetail(accusationId)
+
+	content := "您的文章" + essay.Title + essayUrl + "存在违规" + accusation.Content + accusationUrl
+
+	err = UserAddNotice(essay.AuthorId, content, noticeType, noticeTime)
+	if err != nil {
+		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
+		return
+	}
+}
+
+// 添加反馈通知
+func AddNoticeFeedback(msg model.NoticeMsg) {
+	noticeType := model.NOTICE_TYPE_FEEDBACK
+	noticeTime := time.Unix(msg.Time, 0)
+
+	feedbackId := msg.FeedbackId
+	//获取feedbackId的信息
+	if feedbackId == 0 {
+		return
+	}
+
+	feedback, err := GetFeedbackById(feedbackId)
+	if err != nil {
+		Logger.Error("GetFeedbackByDid err", zap.Int("feedbackId", feedbackId), zap.Error(err))
+		return
+	}
+
+	if feedback == nil {
+		Logger.Error("feedback == nil", zap.Int("feedbackId", feedbackId))
+		return
+	}
+
+	feedbackUrl := GetUrlFeedbackDetail(feedback.Id)
+	content := feedback.Reply + feedback.Content + feedbackUrl
+
+	err = UserAddNotice(feedback.UserId, content, noticeType, noticeTime)
+	if err != nil {
+		Logger.Error("UserAddNotice err", zap.Int("feedback.UserId", feedback.UserId), zap.String("content", content), zap.Error(err))
+		return
+	}
 }

@@ -41,6 +41,14 @@ type NoticeMsg struct {
 	CommentUid int `json:"commentUid,omitempty"`
 	//加入圈子的用户id
 	JoinUid int `json:"joinUid,omitempty"`
+	//举报的用户id
+	AccusationUid int `json:"accusationUid,omitempty"`
+	//举报的id
+	AccusationId int `json:"accusationId,omitempty"`
+	//反馈的用户id
+	FeedbackUid int `json:"feedbackUid,omitempty"`
+	//反馈的id
+	FeedbackId int `json:"feedbackId,omitempty"`
 
 	Uid      int
 	UserName string

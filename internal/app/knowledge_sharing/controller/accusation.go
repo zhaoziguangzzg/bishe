@@ -188,12 +188,6 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		return
 	}
 
-	authorId, err := strconv.Atoi(authorIdStr)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	nowTime := time.Now()
 
 	if status == model.ACCUSATION_STATUS_NORMAL {
@@ -206,12 +200,12 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		}
 
 		typei := model.NOTICE_TYPE_ACCUSATION
-		//TODO 异步处理
 
 		noticeMsg := &model.NoticeMsg{
-			Type: typei,
-			Uid:  userId,
-			Time: nowTime.Unix(),
+			Type:          typei,
+			Time:          nowTime.Unix(),
+			AccusationUid: userId,
+			AccusationId:  aid,
 		}
 
 		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
@@ -233,11 +227,10 @@ func UpdateAccusationStatusHandler(c *gin.Context) {
 		}
 
 		typei := model.NOTICE_TYPE_ACCUSATIONED
-		//TODO 异步处理
 		noticeMsg := &model.NoticeMsg{
-			Type: typei,
-			Uid:  authorId,
-			Time: nowTime.Unix(),
+			Type:         typei,
+			Time:         nowTime.Unix(),
+			AccusationId: aid,
 		}
 
 		_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
