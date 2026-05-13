@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
+	"context"
 	"strconv"
 	"time"
 
@@ -12,6 +13,22 @@ import (
 
 // 文章
 func AddEssayHandler(c *gin.Context) {
+	ctx := context.Background()
+
+	lockKey := "essay-add-title"
+	lockValue := time.Now().UnixNano()
+
+	locked, err := service.AcquireLock(ctx, lockKey, lockValue, 10*time.Second)
+	if err != nil {
+		service.Logger.Error("AcquireLock err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+	if !locked {
+		MakeApiResponseError(c, 5001)
+		return
+	}
+	defer service.ReleaseLock(ctx, lockKey)
 	// 从表单中获取用户信息
 	title := c.PostForm("title")
 	content := c.PostForm("content")

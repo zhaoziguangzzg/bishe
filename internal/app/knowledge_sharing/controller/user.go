@@ -4,6 +4,7 @@ import (
 	"bishe/internal/app/knowledge_sharing/model"
 	"bishe/internal/app/knowledge_sharing/service"
 	"bishe/internal/app/knowledge_sharing/utils"
+	"context"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,6 +15,22 @@ import (
 
 // 通过post查询参数添加用户的处理函数
 func AddUserHandler(c *gin.Context) {
+	ctx := context.Background()
+
+	lockKey := "user-add-name"
+	lockValue := time.Now().UnixNano()
+
+	locked, err := service.AcquireLock(ctx, lockKey, lockValue, 10*time.Second)
+	if err != nil {
+		service.Logger.Error("AcquireLock err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+	if !locked {
+		MakeApiResponseError(c, 5001)
+		return
+	}
+	defer service.ReleaseLock(ctx, lockKey)
 	// 从表单中获取用户信息
 	name := c.PostForm("name")
 	password := c.PostForm("password")
