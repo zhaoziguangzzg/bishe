@@ -100,6 +100,8 @@ const (
 
 	CODE_ORDERS_NOT_EXIST int = 9011
 	CODE_USER_PURCHASED   int = 9012
+
+	CODE_LOCKED int = 9021
 )
 
 var CodeMsgMap map[int]string = map[int]string{
@@ -194,6 +196,8 @@ var CodeMsgMap map[int]string = map[int]string{
 
 	CODE_ORDERS_NOT_EXIST: "有未支付订单",
 	CODE_USER_PURCHASED:   "用户已购买",
+
+	CODE_LOCKED: "已锁定，请稍后再试",
 }
 
 func GetMsgByCode(code int) (msg string) {

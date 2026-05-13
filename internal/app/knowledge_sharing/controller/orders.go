@@ -50,6 +50,21 @@ func AddOrdersHandler(c *gin.Context) {
 		return
 	}
 
+	lockKey := "user-add-order" + strconv.Itoa(uid) + "-" + strconv.Itoa(cid)
+	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	if err != nil {
+		service.Logger.Error("Lock err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if !locked {
+		MakeApiResponseError(c, CODE_LOCKED)
+		return
+	}
+
+	defer service.Unlock(lockKey, lockValue)
+
 	var discount float64
 	discount = 0.01 * float64(level*price)
 

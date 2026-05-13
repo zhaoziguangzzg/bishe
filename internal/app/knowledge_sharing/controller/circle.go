@@ -45,6 +45,21 @@ func AddCircleHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
+	lockKey := "circle-add-" + title
+	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	if err != nil {
+		service.Logger.Error("Lock err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if !locked {
+		MakeApiResponseError(c, CODE_LOCKED)
+		return
+	}
+
+	defer service.Unlock(lockKey, lockValue)
+
 	// 用户创建圈子之前，判断isdelete
 
 	// 删除唯一键，通过获取判断只有一个

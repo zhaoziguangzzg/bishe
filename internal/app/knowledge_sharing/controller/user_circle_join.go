@@ -27,6 +27,21 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
+	lockKey := "user-circle-join-" + strconv.Itoa(uid) + "-" + strconv.Itoa(cid)
+	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	if err != nil {
+		service.Logger.Error("Lock err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if !locked {
+		MakeApiResponseError(c, CODE_LOCKED)
+		return
+	}
+
+	defer service.Unlock(lockKey, lockValue)
+
 	circle, err := service.GetCircleByCid(cid)
 	if err != nil {
 		service.Logger.Error("GetCircleByCid err", zap.Error(err))
