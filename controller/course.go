@@ -43,7 +43,7 @@ func AddCourseHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
 	lockKey := "course-add-" + title
-	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
 		service.Logger.Error("Lock err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -55,7 +55,7 @@ func AddCourseHandler(c *gin.Context) {
 		return
 	}
 
-	defer service.Unlock(lockKey, lockValue)
+	defer service.Unlock(c, lockKey, lockValue)
 
 	createTime := time.Now()
 

@@ -27,7 +27,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 	}
 
 	lockKey := "user-add-like" + strconv.Itoa(uid) + "-" + strconv.Itoa(eid)
-	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
 		service.Logger.Error("Lock err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -39,7 +39,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		return
 	}
 
-	defer service.Unlock(lockKey, lockValue)
+	defer service.Unlock(c, lockKey, lockValue)
 
 	//根据eid获取文章
 	essay, err := service.GetEssayByEid(eid)

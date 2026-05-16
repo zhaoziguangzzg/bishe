@@ -27,7 +27,7 @@ func AddUserFollowHandler(c *gin.Context) {
 	}
 
 	lockKey := "user-follow-" + strconv.Itoa(uid) + "-" + strconv.Itoa(followerId)
-	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
 		service.Logger.Error("Lock err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -39,7 +39,7 @@ func AddUserFollowHandler(c *gin.Context) {
 		return
 	}
 
-	defer service.Unlock(lockKey, lockValue)
+	defer service.Unlock(c, lockKey, lockValue)
 
 	//查询用户的关注
 	follow, err := service.GetUserFollow(uid, followerId)
