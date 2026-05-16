@@ -1,0 +1,32 @@
+package service
+
+import (
+	"bishe/dao/mysql"
+	"bishe/model"
+	"time"
+)
+
+// create 用户反馈
+func CreateUserFeedback(newFeedback *model.Feedback) (err error) {
+	return mysql.CreateUserFeedback(newFeedback)
+}
+
+// 获取全部反馈
+func GetAllFeedback(page int, pagesize int, status int) (feedbacks []model.Feedback, err error) {
+	return mysql.GetAllFeedback(page, pagesize, status)
+}
+
+// 获取反馈内容
+func GetFeedbackById(id int) (feedback *model.Feedback, err error) {
+	return mysql.GetFeedbackById(id)
+}
+
+// 更新反馈状态回复
+func UpdateFeedbackStatusReplyById(id int, reply string, replyTime time.Time) (int64, error) {
+	return mysql.UpdateFeedbackStatusReplyById(id, reply, replyTime)
+}
+
+// 根据用户ID获取反馈列表
+func GetFeedbackByUid(uid int, page int, pagesize int) ([]model.Feedback, error) {
+	return mysql.GetFeedbackByUid(uid, page, pagesize)
+}
