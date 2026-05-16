@@ -6,6 +6,16 @@ type APIResponse struct {
 	Message string      `json:"message"`
 }
 
+// 榜单中的圈子
+type RankCircle struct {
+	Id            int    `json:"id"`
+	Title         string `json:"title"`
+	Price         int    `json:"price"`
+	CircleOwnerId int    `json:"circleOwnerId"`
+	OwnerName     string `json:"ownerName"`
+	JoinNum       int    `json:"joinNum"`
+}
+
 type CommentEssay struct {
 	Comment UserEssayComment `json:"comment"`
 	Essay   Essay            `json:"essay"`

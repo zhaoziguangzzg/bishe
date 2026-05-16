@@ -28,7 +28,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
 	lockKey := "user-circle-join-" + strconv.Itoa(uid) + "-" + strconv.Itoa(cid)
-	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
 		service.Logger.Error("Lock err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -40,7 +40,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		return
 	}
 
-	defer service.Unlock(lockKey, lockValue)
+	defer service.Unlock(c, lockKey, lockValue)
 
 	circle, err := service.GetCircleByCid(cid)
 	if err != nil {
@@ -53,6 +53,8 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		MakeApiResponseError(c, CODE_CIRCLE_NOT_EXIST)
 		return
 	}
+
+	isFree := circle.Price == 0
 
 	// 用户加入圈子之前，判断join_status 是否=1
 	join, err := service.GetUserCircleJoinByUidCid(uid, cid)
@@ -80,7 +82,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		}
 
 		//更新circle join_num+1
-		affectRows, err = service.IncrUpdateCircleJoinNumByCid(cid)
+		affectRows, _, err = service.IncrUpdateCircleJoinNumByCid(c, cid, isFree)
 		if affectRows == 0 || err != nil {
 			service.Logger.Error("IncrUpdateCircleJoinNumByCid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -93,7 +95,7 @@ func AddUserCircleJoinHandle(c *gin.Context) {
 		//空，未加入过
 		nowTime := time.Now()
 		endTime := nowTime.AddDate(1, 0, 0)
-		joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, cid, nowTime, endTime)
+		joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(c, uid, cid, nowTime, endTime, isFree)
 		if err != nil {
 			service.Logger.Error("CreateUserJoinCircleAndUpdateJoinNum err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)

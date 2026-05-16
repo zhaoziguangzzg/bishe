@@ -37,6 +37,8 @@ const (
 	CIRCLE_MAX_TITLE        int = 100   //圈子标题最长100字
 	CIRCLE_MAX_INTRODUCTION int = 100   //圈子简介最长100字
 	CIRCLE_MAX_PRICE        int = 10000 //圈子价格最大1w
+
+	CIRCLE_RANK_LEN = 10 //榜单只取前十名
 )
 
 // 指定Circle对应的表名

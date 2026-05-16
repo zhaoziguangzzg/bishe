@@ -2,7 +2,9 @@ package service
 
 import (
 	"bishe/dao/mysql"
+	"bishe/dao/redis"
 	"bishe/model"
+	"context"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,6 +46,10 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 	return mysql.GetCircleByCid(cid)
 }
 
+func GetCircleByCidList(cidList []int) (circleMap map[int]model.Circle, err error) {
+	return mysql.GetCircleByCidList(cidList)
+}
+
 // 根据title获取圈子
 func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 	return mysql.GetCircleByTitle(title)
@@ -65,8 +71,16 @@ func GetCricleAllFreeOrderByJoinNum(page int, pagesize int) (circles []model.Cir
 }
 
 // get all圈子
-func GetCircleAllByJoinNum(page int, pagesize int) (circles []model.Circle, err error) {
-	return mysql.GetCircleAllByJoinNum(page, pagesize)
+func GetCircleRank(ctx context.Context) (circles []model.Circle, err error) {
+	return redis.ZrevrangeCircleJoinNum(ctx)
+}
+
+func GetCircleRankFree(ctx context.Context) (circles []model.Circle, err error) {
+	return redis.ZrevrangeCircleJoinNumFree(ctx)
+}
+
+func GetCircleRankCharge(ctx context.Context) (circles []model.Circle, err error) {
+	return redis.ZrevrangeCircleJoinNumCharge(ctx)
 }
 
 // get 用户创建的圈子
@@ -80,8 +94,16 @@ func GetUserJoinCircleListByUid(uid int, page int, pagesize int) (circles []mode
 }
 
 // 更新圈子join num 增加
-func IncrUpdateCircleJoinNumByCid(cid int) (int64, error) {
-	return mysql.IncrUpdateCircleJoinNumByCid(cid)
+func IncrUpdateCircleJoinNumByCid(ctx context.Context, cid int, isFree bool) (affectRows int64, score float64, err error) {
+	affectRows, err = mysql.IncrUpdateCircleJoinNumByCid(cid)
+	if err != nil {
+		return
+	}
+
+	//key "circle_join_num",score join_num,member cid
+	score, err = redis.ZincrCircleJoinNum(ctx, cid, isFree)
+
+	return
 }
 
 // 更新圈子join num 减少
@@ -97,4 +119,73 @@ func UpdateCircleByCid(cid int, updateMap map[string]interface{}) (int64, error)
 // 更新圈子状态
 func UpdateCircleByTitle(title string) (int64, error) {
 	return mysql.UpdateCircleByTitle(title)
+
+}
+
+func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList []model.RankCircle, err error) {
+	var circleRank []model.Circle
+	if isFree {
+		circleRank, err = GetCircleRankFree(ctx)
+	} else if isCharge {
+		circleRank, err = GetCircleRankCharge(ctx)
+	} else {
+		circleRank, err = GetCircleRank(ctx)
+	}
+	if err != nil {
+		return
+	}
+
+	circleList = make([]model.RankCircle, 0)
+	if len(circleRank) == 0 {
+		return
+	}
+
+	//根据cids获取圈子信息
+	cidList := make([]int, 0)
+	for _, v := range circleRank {
+		cidList = append(cidList, v.Id)
+	}
+	circleMap, err := GetCircleByCidList(cidList)
+	if err != nil {
+		return
+	}
+
+	uidList := make([]int, 0)
+	for _, v := range circleMap {
+		uidList = append(uidList, v.CircleOwnerId)
+	}
+
+	userMap, err := GetUserByUidList(uidList)
+	if err != nil {
+		return
+	}
+
+	for _, v := range circleRank {
+		cid := v.Id
+		joinNum := v.JoinNum
+
+		circle, ok := circleMap[cid]
+		if !ok {
+			continue
+		}
+
+		uid := circle.CircleOwnerId
+		user, ok := userMap[uid]
+		if !ok {
+			continue
+		}
+
+		item := model.RankCircle{
+			Id:            cid,
+			Title:         circle.Title,
+			Price:         circle.Price,
+			CircleOwnerId: uid,
+			OwnerName:     user.Name,
+			JoinNum:       joinNum,
+		}
+
+		circleList = append(circleList, item)
+	}
+
+	return
 }

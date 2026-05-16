@@ -46,7 +46,7 @@ func AddCircleHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
 	lockKey := "circle-add-" + title
-	lockValue, locked, err := service.Lock(lockKey, 5*time.Second)
+	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
 		service.Logger.Error("Lock err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -58,7 +58,7 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
-	defer service.Unlock(lockKey, lockValue)
+	defer service.Unlock(c, lockKey, lockValue)
 
 	// 用户创建圈子之前，判断isdelete
 
@@ -97,9 +97,11 @@ func AddCircleHandler(c *gin.Context) {
 		return
 	}
 
+	isFree := newCircle.Price == 0
+
 	endTime := createTime.AddDate(100, 0, 0)
 	//圈主加入圈子并更新加入人数
-	joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(uid, newCircle.Id, createTime, endTime)
+	joinId, err := service.CreateUserJoinCircleAndUpdateJoinNum(c, uid, newCircle.Id, createTime, endTime, isFree)
 	if err != nil {
 		service.Logger.Error("CreateUserJoinCircleAndUpdateJoinNum err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -195,43 +197,17 @@ func UpdateCircleHandler(c *gin.Context) {
 
 // 获取圈子列表
 func GetAllCircleHandler(c *gin.Context) {
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-	pageSize := 10
-
-	//获取全部circle，按joinnum倒叙
-	circles, err := service.GetCircleAllByJoinNum(page, pageSize)
+	//获取榜单的圈子
+	circleList, err := service.GetCircleRankByType(c, false, false)
 	if err != nil {
-		service.Logger.Error("GetCircleAllByJoinNum", zap.Error(err))
+		service.Logger.Error("GetCircleRankByType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
-	}
-
-	if circles == nil {
-		circles = make([]model.Circle, 0)
-	}
-
-	circleList := make([]map[string]interface{}, 0, len(circles))
-	for _, circle := range circles {
-		ownerName := ""
-		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
-			ownerName = user.Name
-		}
-		item := map[string]interface{}{
-			"id":            circle.Id,
-			"title":         circle.Title,
-			"price":         circle.Price,
-			"circleOwnerId": circle.CircleOwnerId,
-			"ownerName":     ownerName,
-			"joinNum":       circle.JoinNum,
-		}
-		circleList = append(circleList, item)
 	}
 
 	data := map[string]interface{}{
 		"circles": circleList,
 	}
-
 	MakeApiResponseSuccess(c, data)
 }
 
@@ -359,39 +335,12 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 
 // 获取付费圈子排行
 func GetChargeCircleRankHandler(c *gin.Context) {
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-
-	pagesize := 10
-
-	//获取付费circle，按joinnum倒叙
-	circles, err := service.GetCircleAllChargeOrderByJoinNum(page, pagesize)
+	//获取付费circle榜单
+	circleList, err := service.GetCircleRankByType(c, false, true)
 	if err != nil {
-		service.Logger.Error("GetCircleAllChargeOrderByJoinNum", zap.Error(err))
+		service.Logger.Error("GetCircleRankByType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
-	}
-
-	// nil
-	if circles == nil {
-		circles = make([]model.Circle, 0)
-	}
-
-	circleList := make([]map[string]interface{}, 0, len(circles))
-	for _, circle := range circles {
-		ownerName := ""
-		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
-			ownerName = user.Name
-		}
-		item := map[string]interface{}{
-			"id":            circle.Id,
-			"title":         circle.Title,
-			"price":         circle.Price,
-			"circleOwnerId": circle.CircleOwnerId,
-			"ownerName":     ownerName,
-			"joinNum":       circle.JoinNum,
-		}
-		circleList = append(circleList, item)
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{
@@ -401,39 +350,12 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 
 // 获取免费圈子排行
 func GetFreeCircleRankHandler(c *gin.Context) {
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-
-	pagesize := 10
-
-	//获取免费circle，按join num 倒叙
-	circles, err := service.GetCricleAllFreeOrderByJoinNum(page, pagesize)
+	//获取免费circle排行
+	circleList, err := service.GetCircleRankByType(c, true, false)
 	if err != nil {
-		service.Logger.Error("GetCricleAllFreeOrderByJoinNum", zap.Error(err))
+		service.Logger.Error("GetCircleRankByType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
-	}
-
-	// nil
-	if circles == nil {
-		circles = make([]model.Circle, 0)
-	}
-
-	circleList := make([]map[string]interface{}, 0, len(circles))
-	for _, circle := range circles {
-		ownerName := ""
-		if user, err := service.GetUserByUserId(circle.CircleOwnerId); err == nil && user != nil {
-			ownerName = user.Name
-		}
-		item := map[string]interface{}{
-			"id":            circle.Id,
-			"title":         circle.Title,
-			"price":         circle.Price,
-			"circleOwnerId": circle.CircleOwnerId,
-			"ownerName":     ownerName,
-			"joinNum":       circle.JoinNum,
-		}
-		circleList = append(circleList, item)
 	}
 
 	MakeApiResponseSuccess(c, map[string]interface{}{

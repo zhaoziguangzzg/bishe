@@ -3,6 +3,7 @@ package service
 import (
 	"bishe/dao/mysql"
 	"bishe/model"
+	"context"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func CreateUserCircleJoin(newUserCircle *model.UserCircleJoin) (err error) {
 }
 
 // 用户加入圈子并更新参与人数
-func CreateUserJoinCircleAndUpdateJoinNum(uid int, cid int, joinTime time.Time, endTime time.Time) (joinid int, err error) {
+func CreateUserJoinCircleAndUpdateJoinNum(ctx context.Context, uid int, cid int, joinTime time.Time, endTime time.Time, isFree bool) (joinid int, err error) {
 
 	newUserCircle := &model.UserCircleJoin{
 		UserId:        uid,
@@ -29,7 +30,7 @@ func CreateUserJoinCircleAndUpdateJoinNum(uid int, cid int, joinTime time.Time, 
 		return
 	}
 
-	affectRows, err := IncrUpdateCircleJoinNumByCid(cid)
+	affectRows, _, err := IncrUpdateCircleJoinNumByCid(ctx, cid, isFree)
 	if affectRows == 0 || err != nil {
 		return
 	}

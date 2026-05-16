@@ -27,6 +27,21 @@ func GetCircleByCid(cid int) (circle *model.Circle, err error) {
 	return circle, nil
 }
 
+func GetCircleByCidList(cidList []int) (circleMap map[int]model.Circle, err error) {
+	circleList := make([]model.Circle, 0)
+	err = DB.Model(&model.Circle{}).Where("id in (?) and is_deleted=?", cidList, model.CIRCLE_NOT_DELETED).Find(&circleList).Error
+	if err != nil {
+		return
+	}
+
+	circleMap = make(map[int]model.Circle, 0)
+	for _, v := range circleList {
+		circleMap[v.Id] = v
+	}
+
+	return
+}
+
 // 根据title获取圈子
 func GetCircleByTitle(title string) (circle *model.Circle, err error) {
 	circle = new(model.Circle)

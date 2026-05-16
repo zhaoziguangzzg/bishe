@@ -93,6 +93,10 @@ func GetUserByUserId(UserId int) (user *model.User, err error) {
 	return mysql.GetUserByUserId(UserId)
 }
 
+func GetUserByUidList(uidList []int) (userMap map[int]model.User, err error) {
+	return mysql.GetUserMapByUids(uidList)
+}
+
 // 更新
 func UpdateUserByUid(uid int, updateMap map[string]interface{}) (int64, error) {
 	return mysql.UpdateUserByUid(uid, updateMap)
