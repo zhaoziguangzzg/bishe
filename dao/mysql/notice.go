@@ -21,7 +21,7 @@ func UserAddNotice(noticeUid int, content string, typei int, url string, createT
 	return
 }
 
-func UserAddNotices(noticeUids []int, content string, typei int, createTime time.Time) (err error) {
+func UserAddNoticeList(noticeUids []int, content string, typei int, url string, createTime time.Time) (err error) {
 	var notices []*model.Notice
 	for _, v := range noticeUids {
 		noticeUid := v
@@ -29,6 +29,7 @@ func UserAddNotices(noticeUids []int, content string, typei int, createTime time
 			NoticeUid: noticeUid,
 			Content:   content,
 			Type:      typei,
+			Url:       url,
 			CreateAt:  &createTime,
 			UpdateAt:  &createTime,
 			IsDeleted: model.IS_DELETED_NO,

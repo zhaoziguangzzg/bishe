@@ -16,8 +16,8 @@ func UserAddNotice(noticeUid int, content string, typei int, url string, createT
 }
 
 // 添加通知
-func UserAddNotices(noticeUids []int, content string, typei int, createTime time.Time) (err error) {
-	return mysql.UserAddNotices(noticeUids, content, typei, createTime)
+func UserAddNoticeList(noticeUids []int, content string, typei int, url string, createTime time.Time) (err error) {
+	return mysql.UserAddNoticeList(noticeUids, content, typei, url, createTime)
 }
 
 // 获取通知列表
@@ -141,13 +141,16 @@ func AddNoticeEssayAdd(msg model.NoticeMsg) {
 			break
 		}
 
+		var uidList []int
 		//给每个粉丝发新文章的消息
 		for _, fanUser := range fanUsers {
-			err = UserAddNotice(fanUser.Id, content, noticeType, essayUrl, noticeTime)
-			if err != nil {
-				Logger.Error("UserAddNotice err", zap.Int("fanUser.Id", fanUser.Id), zap.String("content", content), zap.Error(err))
-				continue
-			}
+			uidList = append(uidList, fanUser.Id)
+		}
+
+		err = UserAddNoticeList(uidList, content, noticeType, essayUrl, noticeTime)
+		if err != nil {
+			Logger.Error("UserAddNotices err", zap.Any("uidList", uidList), zap.String("content", content), zap.Error(err))
+			continue
 		}
 	}
 }
