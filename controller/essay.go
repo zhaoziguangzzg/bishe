@@ -80,6 +80,11 @@ func AddEssayHandler(c *gin.Context) {
 		return
 	}
 
+	err = service.AddEssayEsDoc(c, *newEssay)
+	if err != nil {
+		service.Logger.Error("AddEssayEsDoc err", zap.Error(err), zap.Any("newEssay", newEssay))
+	}
+
 	typei := model.NOTICE_TYPE_ESSAY_ADD
 	noticeMsg := &model.NoticeMsg{
 		Type:      typei,
@@ -746,27 +751,23 @@ func GetEssayByTitleHandler(c *gin.Context) {
 		return
 	}
 
-	title := c.Query("title")
-	if title == "" {
+	word := c.Query("word")
+	if word == "" {
 		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	titleLen := len(title)
-	if titleLen > model.ESSAY_MAX_TITLE || titleLen == 0 {
-		MakeApiResponseError(c, CODE_ESSAY_TITLE_LEN_INVASLID)
 		return
 	}
 
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
-
 	pagesize := 10
+	offset := (page - 1) * pagesize
 
 	//根据title关键词like获取文章
-	essays, err := service.GetEssayByLikeTitle(title, cid, page, pagesize)
+	//essays, err := service.GetEssayByLikeTitle(title, cid, page, pagesize)
+	//根据title从es取essay列表
+	essays, err := service.GetEssayFromEs(cid, word, offset, pagesize)
 	if err != nil {
-		service.Logger.Error("GetEssayByLikeTitle", zap.Error(err))
+		service.Logger.Error("GetEssayFromEs", zap.Error(err), zap.String("word", word))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

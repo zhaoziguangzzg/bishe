@@ -32,5 +32,11 @@ func ServiceInit() (err error) {
 		return
 	}
 
+	err = ServiceInitEs()
+	if err != nil {
+		Logger.Error("ServiceInitEs err", zap.Error(err))
+		return
+	}
+
 	return
 }

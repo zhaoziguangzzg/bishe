@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bishe/dao/es"
 	"bishe/dao/mysql"
 	"bishe/model"
 
@@ -107,4 +108,14 @@ func UpdateEssayCommentNum(eid int, num int) (int64, error) {
 // 更新文章收藏数
 func UpdateEssayCollectNum(eid int, num int) (int64, error) {
 	return mysql.UpdateEssayCollectNum(eid, num)
+}
+
+// 在es添加文章
+func AddEssayEsDoc(c *gin.Context, essay model.Essay) (err error) {
+	return es.AddEssayEsDoc(c, essay)
+}
+
+// 从es获取文章
+func GetEssayFromEs(cid int, word string, from int, size int) (essayList []model.Essay, err error) {
+	return es.GetEssayFromEs(cid, word, from, size)
 }

@@ -357,7 +357,7 @@
             container.innerHTML = '<div class="loading">搜索中...</div>';
 
             try {
-                const response = await axios.get(`/api/search/essay?cid=${cid}&title=${encodeURIComponent(keyword)}&page=1`);
+                const response = await axios.get(`/api/search/essay?cid=${cid}&word=${encodeURIComponent(keyword)}&page=1`);
 
                 console.log(response.data.code,response.data.data,response.data.data.userEssays)
                 if (response.data.code === 0 && response.data.data && response.data.data.userEssays) {
