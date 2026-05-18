@@ -672,18 +672,29 @@ func UpdatePurchaseStatusHandler(c *gin.Context) {
 		return
 	}
 
-	// 更新用户购买记录状态
-	affectRows, err := service.UpdatePurchaseStatusById(purchaseId, status, statusNew)
-	if affectRows == 0 || err != nil {
-		service.Logger.Error("UpdatePurchaseStatusById err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
+	//TODO加事务
+	//roback撤销，下面两个操作数据库，要么都成功，要么都失败
 
-	//更新course join_num+1
-	affectRows, err = service.IncrCourseJoinNumByCid(purchase.CourseId)
-	if affectRows == 0 || err != nil {
-		service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err))
+	// // 更新用户购买记录状态
+	// affectRows, err := service.UpdatePurchaseStatusById(purchaseId, status, statusNew)
+	// if affectRows == 0 || err != nil {
+	// 	service.Logger.Error("UpdatePurchaseStatusById err", zap.Error(err))
+	// 	MakeApiResponseErrorDefault(c)
+	// 	return
+	// }
+
+	// //更新course join_num+1
+	// affectRows, err = service.IncrCourseJoinNumByCid(purchase.CourseId)
+	// if affectRows == 0 || err != nil {
+	// 	service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err))
+	// 	MakeApiResponseErrorDefault(c)
+	// 	return
+	// }
+
+	// 更新用户购买记录状态
+	err = service.UpdatePurchaseStatusAndJoinNum(purchaseId, status, statusNew, purchase.CourseId)
+	if err != nil {
+		service.Logger.Error("UpdatePurchaseStatusAndJoinNum err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

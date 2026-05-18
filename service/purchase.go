@@ -50,3 +50,8 @@ func UpdatePurchaseStatusById(id int, status int, newStatus int) (int64, error) 
 func IncrCourseJoinNumByCid(cid int) (int64, error) {
 	return mysql.IncrCourseJoinNumByCid(cid)
 }
+
+// 更新订单状态，更新课程购买记录人数
+func UpdatePurchaseStatusAndJoinNum(id int, status int, newStatus int, cid int) (err error) {
+	return mysql.UpdatePurchaseStatusAndJoinNum(id, status, newStatus, cid)
+}

@@ -105,7 +105,30 @@ func UpdatePurchaseStatusById(id int, status int, newStatus int) (int64, error) 
 
 // 增加课程购买人数
 func IncrCourseJoinNumByCid(cid int) (int64, error) {
-	result := DB.Model(&model.Course{}).Where("id=?", cid).
+	result := DB.Model(&model.Course{}).
+		Where("id=?", cid).
 		UpdateColumn("join_num", gorm.Expr("join_num + ?", 1))
 	return result.RowsAffected, result.Error
+}
+
+// 更新订单状态，更新课程购买记录人数
+func UpdatePurchaseStatusAndJoinNum(id int, status int, newStatus int, cid int) (err error) {
+	return DB.Transaction(func(tx *gorm.DB) error {
+		// 更新订单状态
+		err = tx.Model(&model.Purchase{}).
+			Where("id=? and purchase_status=?", id, status).
+			Update("purchase_status", newStatus).Error
+		if err != nil {
+			return err
+		}
+
+		// 更新课程购买人数
+		err = tx.Model(&model.Course{}).
+			Where("id=?", cid).
+			UpdateColumn("join_num", gorm.Expr("join_num + ?", 1)).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
