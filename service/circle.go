@@ -9,6 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	LIST_TYPE_ALL    int = 0
+	LIST_TYPE_FREE   int = 1
+	LIST_TYPE_CHARGE int = 2
+)
+
 func SetCidToContext(c *gin.Context, cid int) {
 	c.Set("cid", cid)
 }
@@ -122,14 +128,17 @@ func UpdateCircleByTitle(title string) (int64, error) {
 
 }
 
-func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList []model.RankCircle, err error) {
+func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList []model.RankCircle, listType int, err error) {
 	var circleRank []model.Circle
 	if isFree {
 		circleRank, err = GetCircleRankFree(ctx)
+		listType = LIST_TYPE_FREE
 	} else if isCharge {
 		circleRank, err = GetCircleRankCharge(ctx)
+		listType = LIST_TYPE_CHARGE
 	} else {
 		circleRank, err = GetCircleRank(ctx)
+		listType = LIST_TYPE_ALL
 	}
 	if err != nil {
 		return

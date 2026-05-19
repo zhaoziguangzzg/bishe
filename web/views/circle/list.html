@@ -117,6 +117,7 @@
             font-size: 14px;
             font-weight: bold;
             margin-right: 16px;
+            flex-shrink: 0;
         }
         .circle-rank.top-1 {
             background: #ffd700;
@@ -175,9 +176,9 @@
             <h2 class="card-title">🏆 圈子排行榜</h2>
 
             <div class="tab-container">
-                <div class="tab-item active" data-type="charge" onclick="switchTab('charge')">付费圈子</div>
-                <div class="tab-item" data-type="free" onclick="switchTab('free')">免费圈子</div>
-                <div class="tab-item" data-type="hot" onclick="switchTab('hot')">人气圈子</div>
+                <div class="tab-item" data-type="2" onclick="switchTab(2)">付费圈子</div>
+                <div class="tab-item" data-type="1" onclick="switchTab(1)">免费圈子</div>
+                <div class="tab-item" data-type="0" onclick="switchTab(0)">人气圈子</div>
             </div>
 
             <div id="circleList" class="circle-list"></div>
@@ -185,8 +186,12 @@
     </div>
 
     <script>
+        // listType: 0=全部(人气), 1=免费, 2=付费
         const urlParams = new URLSearchParams(window.location.search);
-        let currentType = urlParams.get('type') || 'charge';
+        let currentType = parseInt(urlParams.get('type')) || 2;
+
+        // 存储接口返回的所有榜单数据
+        let allTypeLists = [];
 
         function switchTab(type) {
             currentType = type;
@@ -194,7 +199,7 @@
                 item.classList.remove('active');
             });
             document.querySelector(`.tab-item[data-type="${type}"]`).classList.add('active');
-            loadCircleList();
+            renderCircleList();
         }
 
         async function loadCircleList() {
@@ -202,57 +207,55 @@
             container.innerHTML = '<div class="no-data">加载中...</div>';
 
             try {
-                let response;
-                if (currentType === 'charge') {
-                    response = await axios.get('/api/circle/charge');
-                } else if (currentType === 'free') {
-                    response = await axios.get('/api/circle/free');
-                } else {
-                    response = await axios.get('/api/circle/all');
-                }
+                const response = await axios.get('/api/circle/list');
 
                 if (response.data.code === 0 && response.data.data) {
-                    let circles;
-                    if (currentType === 'hot') {
-                        circles = response.data.data.circles || [];
-                        circles = circles.sort((a, b) => (b.joinNum || 0) - (a.joinNum || 0));
-                    } else {
-                        circles = response.data.data.circles || [];
-                    }
-
-                    if (circles.length === 0) {
-                        container.innerHTML = '<div class="no-data">暂无数据</div>';
-                        return;
-                    }
-
-                    container.innerHTML = circles.map((circle, index) => {
-                        const isPaid = circle.price > 0;
-                        return `
-                        <div class="circle-item" onclick="goToCircle(${circle.id})">
-                            <div class="circle-rank top-${index + 1 <= 3 ? index + 1 : ''}">${index + 1}</div>
-                            <div class="circle-info">
-                                <div class="circle-title">${circle.title}</div>
-                                <div class="circle-meta">圈主: ${circle.ownerName || '未知'} | ${circle.joinNum || 0}人加入</div>
-                            </div>
-                            <div class="circle-price ${isPaid ? '' : 'free'}">${isPaid ? (circle.price || 0) + '元' : '免费'}</div>
-                        </div>
-                        `;
-                    }).join('');
+                    allTypeLists = response.data.data.typeLists || [];
+                    // 设置默认激活的tab
+                    document.querySelector(`.tab-item[data-type="${currentType}"]`).classList.add('active');
+                    renderCircleList();
+                } else {
+                    container.innerHTML = '<div class="no-data">暂无数据</div>';
                 }
             } catch (error) {
                 container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
             }
         }
 
+        function renderCircleList() {
+            const container = document.getElementById('circleList');
+
+            // 根据currentType找到对应的榜单
+            const typeList = allTypeLists.find(item => item.listType === currentType);
+            const circles = typeList ? (typeList.rankCircles || []) : [];
+
+            if (circles.length === 0) {
+                container.innerHTML = '<div class="no-data">暂无数据</div>';
+                return;
+            }
+
+            container.innerHTML = circles.map((circle, index) => {
+                const isPaid = circle.price > 0;
+                const rankClass = index + 1 <= 3 ? `top-${index + 1}` : '';
+                return `
+                <div class="circle-item" onclick="goToCircle(${circle.id})">
+                    <div class="circle-rank ${rankClass}">${index + 1}</div>
+                    <div class="circle-info">
+                        <div class="circle-title">${circle.title}</div>
+                        <div class="circle-meta">圈主: ${circle.ownerName || '未知'} | ${circle.joinNum || 0}人加入</div>
+                    </div>
+                    <div class="circle-price ${isPaid ? '' : 'free'}">${isPaid ? circle.price + '元' : '免费'}</div>
+                </div>
+                `;
+            }).join('');
+        }
+
         function goToCircle(circleId) {
             window.location.href = '/page/circle/detail?cid=' + circleId;
         }
 
-        if (currentType) {
-            switchTab(currentType);
-        } else {
-            loadCircleList();
-        }
+        // 页面加载时只调用一次接口
+        loadCircleList();
     </script>
 </body>
 </html>

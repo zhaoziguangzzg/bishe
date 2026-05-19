@@ -131,11 +131,11 @@ func main() {
 	//TODO 展示广告
 	r.GET("/page/circle/list", controller.CircleListPageHandler)
 	//获取全部圈子
-	api.GET("/circle/all", controller.GetAllCircleHandler)
+	api.GET("/circle/list", controller.GetAllCircleHandler)
 	//获取全部付费圈子
-	api.GET("/circle/charge", controller.GetChargeCircleRankHandler)
+	//api.GET("/circle/charge", controller.GetChargeCircleRankHandler)
 	//获取全部免费圈子
-	api.GET("/circle/free", controller.GetFreeCircleRankHandler)
+	//api.GET("/circle/free", controller.GetFreeCircleRankHandler)
 
 	//搜索圈子
 	api.GET("/search/circle", controller.GetCircleByTitleHandler)

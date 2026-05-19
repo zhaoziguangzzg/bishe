@@ -16,6 +16,12 @@ type RankCircle struct {
 	JoinNum       int    `json:"joinNum"`
 }
 
+// 榜单
+type TypeList struct {
+	ListType    int          `json:"listType"`
+	RankCircles []RankCircle `json:"rankCircles"`
+}
+
 type CommentEssay struct {
 	Comment UserEssayComment `json:"comment"`
 	Essay   Essay            `json:"essay"`

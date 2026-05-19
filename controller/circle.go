@@ -5,6 +5,7 @@ import (
 	"bishe/service"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -195,18 +196,87 @@ func UpdateCircleHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
+// TODO 将3个圈子排行接口合并为1个，3个榜单并行处理，waitgroup等并发全部处理，将错误传入channel（有容量），在并发的都处理后判断channel
 // 获取圈子列表
 func GetAllCircleHandler(c *gin.Context) {
-	//获取榜单的圈子
-	circleList, err := service.GetCircleRankByType(c, false, false)
-	if err != nil {
-		service.Logger.Error("GetCircleRankByType", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
+	var wg sync.WaitGroup
+
+	errCh := make(chan error, 3)
+	typeListCh := make(chan model.TypeList, 3)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		//获取榜单的圈子
+		circleList, listType, err := service.GetCircleRankByType(c, false, false)
+		if err != nil {
+			service.Logger.Error("GetCircleRankByType err", zap.Error(err))
+			errCh <- err
+			return
+		}
+
+		typeListCh <- model.TypeList{
+			ListType:    listType,
+			RankCircles: circleList,
+		}
+
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		//获取榜单的圈子
+		circleList, listType, err := service.GetCircleRankByType(c, false, true)
+		if err != nil {
+			service.Logger.Error("GetCircleRankByType err", zap.Error(err))
+			errCh <- err
+			return
+		}
+
+		typeListCh <- model.TypeList{
+			ListType:    listType,
+			RankCircles: circleList,
+		}
+
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		//获取榜单的圈子
+		circleList, listType, err := service.GetCircleRankByType(c, true, false)
+		if err != nil {
+			service.Logger.Error("GetCircleRankByType err", zap.Error(err))
+			errCh <- err
+			return
+		}
+
+		typeListCh <- model.TypeList{
+			ListType:    listType,
+			RankCircles: circleList,
+		}
+
+	}()
+
+	wg.Wait()
+	close(errCh)
+	close(typeListCh)
+
+	for err := range errCh {
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
+	typeLists := make([]model.TypeList, 0)
+
+	for typeList := range typeListCh {
+		typeLists = append(typeLists, typeList)
 	}
 
 	data := map[string]interface{}{
-		"circles": circleList,
+		"typeLists": typeLists,
 	}
 	MakeApiResponseSuccess(c, data)
 }
@@ -336,7 +406,7 @@ func GetUserJoinCircleHandler(c *gin.Context) {
 // 获取付费圈子排行
 func GetChargeCircleRankHandler(c *gin.Context) {
 	//获取付费circle榜单
-	circleList, err := service.GetCircleRankByType(c, false, true)
+	circleList, _, err := service.GetCircleRankByType(c, false, true)
 	if err != nil {
 		service.Logger.Error("GetCircleRankByType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -351,7 +421,7 @@ func GetChargeCircleRankHandler(c *gin.Context) {
 // 获取免费圈子排行
 func GetFreeCircleRankHandler(c *gin.Context) {
 	//获取免费circle排行
-	circleList, err := service.GetCircleRankByType(c, true, false)
+	circleList, _, err := service.GetCircleRankByType(c, true, false)
 	if err != nil {
 		service.Logger.Error("GetCircleRankByType", zap.Error(err))
 		MakeApiResponseErrorDefault(c)

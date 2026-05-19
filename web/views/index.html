@@ -409,37 +409,23 @@
             }
         }
 
-        async function loadChargeRank() {
+        async function loadCircleRanks() {
             try {
-                const response = await axios.get('/api/circle/charge');
+                const response = await axios.get('/api/circle/list');
                 if (response.data.code === 0 && response.data.data) {
-                    renderRankList('chargeRank', response.data.data.circles || [], true);
+                    const typeLists = response.data.data.typeLists || [];
+                    // listType: 0=全部(人气), 1=免费, 2=付费
+                    const chargeList = typeLists.find(t => t.listType === 2);
+                    const freeList = typeLists.find(t => t.listType === 1);
+                    const hotList = typeLists.find(t => t.listType === 0);
+
+                    renderRankList('chargeRank', chargeList ? chargeList.rankCircles : [], true);
+                    renderRankList('freeRank', freeList ? freeList.rankCircles : [], false);
+                    renderRankList('hotRank', hotList ? hotList.rankCircles : [], false);
                 }
             } catch (error) {
                 document.getElementById('chargeRank').innerHTML = '<div class="no-data">暂无数据</div>';
-            }
-        }
-
-        async function loadFreeRank() {
-            try {
-                const response = await axios.get('/api/circle/free');
-                if (response.data.code === 0 && response.data.data) {
-                    renderRankList('freeRank', response.data.data.circles || [], false);
-                }
-            } catch (error) {
                 document.getElementById('freeRank').innerHTML = '<div class="no-data">暂无数据</div>';
-            }
-        }
-
-        async function loadHotRank() {
-            try {
-                const response = await axios.get('/api/circle/all');
-                if (response.data.code === 0 && response.data.data) {
-                    const circles = response.data.data.circles || [];
-                    const sorted = circles.sort((a, b) => (b.joinNum || 0) - (a.joinNum || 0));
-                    renderRankList('hotRank', sorted.slice(0, 6), false);
-                }
-            } catch (error) {
                 document.getElementById('hotRank').innerHTML = '<div class="no-data">暂无数据</div>';
             }
         }
@@ -523,9 +509,7 @@
             window.location.href = '/page/circle/search?keyword=' + encodeURIComponent(keyword);
         }
 
-        loadChargeRank();
-        loadFreeRank();
-        loadHotRank();
+        loadCircleRanks();
         checkLogin();
         loadLatestAnnounce();
     </script>
