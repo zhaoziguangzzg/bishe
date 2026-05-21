@@ -1234,11 +1234,20 @@
         }
 
         function goToEssayDetail(eid) {
-            window.location.href = `/page/essay/detail?eid=${eid}`;
+            let url = `/page/essay/detail?eid=${eid}`;
+            if (currentCircleId) {
+                url += `&cid=${currentCircleId}`;
+            }
+            window.location.href = url;
         }
 
         function goToEssayComment(eid) {
-            window.location.href = `/page/essay/detail?eid=${eid}#comments`;
+            let url = `/page/essay/detail?eid=${eid}`;
+            if (currentCircleId) {
+                url += `&cid=${currentCircleId}`;
+            }
+            url += '#comments';
+            window.location.href = url;
         }
 
         function formatTime(timeStr) {
@@ -1464,6 +1473,7 @@
                 const formData = new FormData();
                 formData.append('eid', eid);
                 formData.append('is_essence', status.toString());
+                formData.append('circle_id', currentCircleId);
                 const response = await axios.post('/api/essay/update-essence', formData);
                 if (response.data.code === 0) {
                     loadEssays(currentCircleId);
@@ -1479,6 +1489,7 @@
                 const formData = new FormData();
                 formData.append('eid', eid);
                 formData.append('is_weekly', status.toString());
+                formData.append('circle_id', currentCircleId);
                 const response = await axios.post('/api/essay/update-weekly', formData);
                 if (response.data.code === 0) {
                     loadEssays(currentCircleId);

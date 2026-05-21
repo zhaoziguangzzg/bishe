@@ -24,7 +24,7 @@ func UserAddLevelScore(uid int, cid int, createAt time.Time) (err error) {
 func GetUserLevelScoreByUidCid(uid int, cid int) (levelScore *model.LevelScore, err error) {
 	levelScore = new(model.LevelScore)
 
-	err = DB.Model(&model.LevelScore{}).Where("user_id=? and circle_id=?", uid, cid).First(&levelScore).Error
+	err = DB.Model(&model.LevelScore{}).Where("uid=? and cid=?", uid, cid).First(&levelScore).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil

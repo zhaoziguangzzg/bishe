@@ -103,6 +103,8 @@ func main() {
 
 	//获取圈子详情页面
 	page.GET("/circle/detail", controller.CircleDetailPageHandler)
+	//搜索圈子页面
+	page.GET("/circle/search", controller.CircleSearchPageHandler)
 	//获取圈子详情
 	api.GET("/circle/get", controller.GetCircleHandler)
 	//获取是否需要续费

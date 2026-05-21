@@ -602,7 +602,7 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 	// Update essay essence
 	affectRows, err := service.UpdateEssayEssence(eid, isEssence)
 	if err != nil || affectRows == 0 {
-		service.Logger.Error("AddEssayEssence err", zap.Error(err))
+		service.Logger.Error("UpdateEssayEssence err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

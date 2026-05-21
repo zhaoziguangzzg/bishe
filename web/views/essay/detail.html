@@ -416,7 +416,7 @@
 <body>
     <div class="header">
         <span>知识分享平台</span>
-        <a href="/page/index">返回首页</a>
+        <a id="backLink" href="/page/index">返回首页</a>
     </div>
 
     <div class="container">
@@ -454,12 +454,18 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         const essayId = urlParams.get('eid');
+        const circleId = urlParams.get('cid');
 
         let currentUser = null;
         let currentLikeStatus = false;
         let currentCollectStatus = false;
 
         (async function init() {
+            if (circleId) {
+                const backLink = document.getElementById('backLink');
+                backLink.href = `/page/circle/index?cid=${circleId}`;
+                backLink.textContent = '返回圈子';
+            }
             if (!essayId) {
                 document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
                 return;
