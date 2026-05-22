@@ -19,11 +19,12 @@
         .sidebar {
             width: 240px;
             background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
             padding: 20px 0;
             position: fixed;
             left: 0;
             top: 0;
+            overflow-y: auto;
         }
         .sidebar-header {
             text-align: center;
@@ -250,7 +251,8 @@
                 '角色列表': { url: '/page/adminrole/list', group: 'role' },
                 '新增角色': { url: '/page/adminrole/add', group: 'role' },
                 '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
-                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' }
+                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
+                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
             };
             
             const groups = {};
@@ -284,7 +286,8 @@
                     'ad': '广告',
                     'permission': '权限管理',
                     'role': '角色管理',
-                    'adminuser': '管理员管理'
+                    'adminuser': '管理员管理',
+                    'accusation': '举报管理'
                 };
                 
                 const groupIcons = {
@@ -293,7 +296,8 @@
                     'ad': '📺',
                     'permission': '🔐',
                     'role': '👥',
-                    'adminuser': '👤'
+                    'adminuser': '👤',
+                    'accusation': '🚨'
                 };
                 
                 html += `

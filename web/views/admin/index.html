@@ -1,1704 +1,1469 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-        }
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-        }
-        .sidebar-header {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-        .sidebar-header h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-        .sidebar-header p {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-        .menu-item {
-            padding: 14px 24px;
-            color: rgba(255,255,255,0.85);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .menu-item:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .menu-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .submenu {
-            display: none;
-            background: rgba(0,0,0,0.1);
-        }
-        .submenu.show {
-            display: block;
-        }
-        .submenu-item {
-            padding: 12px 24px 12px 48px;
-            color: rgba(255,255,255,0.75);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: block;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .submenu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .submenu-item.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .arrow {
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-        .menu-item:hover .arrow, .menu-item.active .arrow {
-            transform: rotate(180deg);
-        }
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .top-bar {
-            background: white;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .top-bar h1 {
-            font-size: 20px;
-            color: #333;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .user-name {
-            color: #333;
-            font-size: 14px;
-        }
-        .logout-btn {
-            padding: 8px 16px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .logout-btn:hover {
-            background: #e64545;
-        }
-        .content-area {
-            padding: 24px 32px;
-        }
-        .welcome-card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .welcome-card h2 {
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .welcome-card p {
-            color: #666;
-            font-size: 14px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-top: 24px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .stat-card .number {
-            font-size: 32px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-        }
-        .stat-card .label {
-            color: #666;
-            font-size: 14px;
-        }
-        .menu-section {
-            display: none;
-        }
-        .menu-section.active {
-            display: block;
-        }
-        .section-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .section-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        .user-info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .user-info-header {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 24px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid #eee;
-        }
-        .user-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .user-basic {
-            flex: 1;
-        }
-        .user-basic h3 {
-            font-size: 22px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .user-basic p {
-            color: #666;
-            font-size: 14px;
-        }
-        .user-detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        .detail-item {
-            padding: 16px;
-            background: #f9fafb;
-            border-radius: 8px;
-        }
-        .detail-item .label {
-            color: #909399;
-            font-size: 13px;
-            margin-bottom: 6px;
-        }
-        .detail-item .value {
-            color: #333;
-            font-size: 15px;
-            font-weight: 500;
-        }
-        .edit-btn {
-            margin-top: 24px;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .edit-btn:hover {
-            opacity: 0.9;
-        }
-        .essay-list {
-            margin-top: 16px;
-        }
-        .essay-item {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #f9fafb;
-        }
-        .essay-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .essay-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .essay-meta {
-            font-size: 13px;
-            color: #909399;
-            margin-bottom: 8px;
-        }
-        .essay-content-preview {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .essay-actions {
-            display: flex;
-            gap: 12px;
-        }
-        .btn-pass {
-            padding: 8px 20px;
-            background: #67c23a;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-pass:hover {
-            background: #5daf34;
-        }
-        .btn-reject {
-            padding: 8px 20px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-reject:hover {
-            background: #e64545;
-        }
-        .btn-detail {
-            padding: 8px 20px;
-            background: #409eff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-detail:hover {
-            background: #66b1ff;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #909399;
-        }
-        .loading-state {
-            text-align: center;
-            padding: 40px;
-            color: #909399;
-        }
-        .feedback-list {
-            margin-top: 16px;
-        }
-        .feedback-item {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #f9fafb;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .feedback-item:hover {
-            border-color: #667eea;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .feedback-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .feedback-id {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-        }
-        .feedback-status {
-            font-size: 12px;
-            padding: 4px 12px;
-            border-radius: 12px;
-        }
-        .feedback-status.pending {
-            background: #fdf6ec;
-            color: #e6a23c;
-        }
-        .feedback-status.processed {
-            background: #f0f9eb;
-            color: #67c23a;
-        }
-        .feedback-meta {
-            font-size: 13px;
-            color: #909399;
-            margin-bottom: 8px;
-        }
-        .feedback-content-preview {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .announce-list {
-            margin-top: 16px;
-        }
-        .announce-item {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #f9fafb;
-        }
-        .announce-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .announce-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .announce-meta {
-            font-size: 13px;
-            color: #909399;
-            margin-bottom: 8px;
-        }
-        .announce-content-preview {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-        .btn-edit {
-            padding: 8px 20px;
-            background: #409eff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-edit:hover {
-            background: #66b1ff;
-        }
-        .advert-list {
-            margin-top: 16px;
-        }
-        .advert-item {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #f9fafb;
-        }
-        .advert-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .advert-position {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .advert-meta {
-            font-size: 13px;
-            color: #909399;
-            margin-bottom: 8px;
-        }
-        .advert-content-preview {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-        .announce-status, .advert-status {
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-active {
-            background: #e6f7e6;
-            color: #52c41a;
-        }
-        .status-deleted {
-            background: #fff1e6;
-            color: #fa8c16;
-        }
-        .advert-img-preview {
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            display: block;
-        }
-        #add-announce-form {
-            margin-top: 16px;
-        }
-        .form-group-inline {
-            margin-bottom: 16px;
-        }
-        .form-group-inline label {
-            display: block;
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-group-inline input,
-        .form-group-inline textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .form-group-inline input:focus,
-        .form-group-inline textarea:focus {
-            border-color: #667eea;
-        }
-        .form-group-inline textarea {
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.6;
-        }
-        .btn-primary {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        .error-tip {
-            color: #ff4d4f;
-            font-size: 13px;
-            margin-top: 8px;
-            display: none;
-        }
-        .error-tip.show {
-            display: block;
-        }
-        .success-tip {
-            color: #52c41a;
-            font-size: 14px;
-            margin-top: 8px;
-            display: none;
-        }
-        .success-tip.show {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>后台管理</h2>
-            <p>知识分享平台</p>
-        </div>
-        <div id="dynamic-menus"></div>
-    </div>
-    
-    <div class="main-content">
-        <div class="top-bar">
-            <h1 id="pageTitle">用户信息</h1>
-            <div class="user-info">
-                <span class="user-name" id="adminName">管理员</span>
-                <button class="logout-btn" onclick="logout()">退出登录</button>
-            </div>
-        </div>
-        
-        <div class="content-area">
-            <div class="menu-section active" id="section-user-info">
-                <div class="user-info-card">
-                    <div class="user-info-header">
-                        <img class="user-avatar" id="adminAvatar" src="" alt="头像"/>
-                        <div class="user-basic">
-                            <h3 id="adminDisplayName">加载中...</h3>
-                            <p id="adminEmail">--</p>
-                        </div>
-                    </div>
-                    <div class="user-detail-grid">
-                        <div class="detail-item">
-                            <div class="label">用户名</div>
-                            <div class="value" id="adminUserName">--</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="label">手机号</div>
-                            <div class="value" id="adminPhone">--</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="label">创建时间</div>
-                            <div class="value" id="adminCreateAt">--</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="label">角色</div>
-                            <div class="value" id="adminRoleName">--</div>
-                        </div>
-                    </div>
-                    <button class="edit-btn" onclick="editAdminInfo()">编辑信息</button>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-essay-review">
-                <div class="section-card">
-                    <h3 class="section-title">文章审核</h3>
-                    <div id="essay-review-list"></div>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-circle-review">
-                <div class="section-card">
-                    <h3 class="section-title">圈子审核</h3>
-                    <p>圈子审核功能开发中...</p>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-feedback-list">
-                <div class="section-card">
-                    <h3 class="section-title">反馈列表</h3>
-                    <div id="feedback-list"></div>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-feedback-reply">
-                <div class="section-card">
-                    <h3 class="section-title">回复反馈</h3>
-                    <p>回复反馈功能开发中...</p>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-notice-list">
-                <div class="section-card">
-                    <h3 class="section-title">公告列表</h3>
-                    <div id="announce-list"></div>
-                </div>
-            </div>
+{{define "admin_layout_extra_head"}}
+<style>
+    .welcome-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+    .welcome-card h2 {
+        color: #333;
+        margin-bottom: 12px;
+    }
+    .welcome-card p {
+        color: #666;
+        font-size: 14px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-top: 24px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .stat-card .number {
+        font-size: 32px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+    .stat-card .label {
+        color: #666;
+        font-size: 14px;
+    }
+    .menu-section {
+        display: none;
+    }
+    .menu-section.active {
+        display: block;
+    }
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    .user-info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .user-info-header {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #eee;
+    }
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .user-basic {
+        flex: 1;
+    }
+    .user-basic h3 {
+        font-size: 22px;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .user-basic p {
+        color: #666;
+        font-size: 14px;
+    }
+    .user-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .detail-item {
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+    .detail-item .label {
+        color: #909399;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+    .detail-item .value {
+        color: #333;
+        font-size: 15px;
+        font-weight: 500;
+    }
+    .edit-btn {
+        margin-top: 24px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: opacity 0.3s;
+    }
+    .edit-btn:hover {
+        opacity: 0.9;
+    }
+    .essay-list {
+        margin-top: 16px;
+    }
+    .essay-item {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9fafb;
+    }
+    .essay-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .essay-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .essay-meta {
+        font-size: 13px;
+        color: #909399;
+        margin-bottom: 8px;
+    }
+    .essay-content-preview {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .essay-actions {
+        display: flex;
+        gap: 12px;
+    }
+    .btn-pass {
+        padding: 8px 20px;
+        background: #67c23a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-pass:hover {
+        background: #5daf34;
+    }
+    .btn-reject {
+        padding: 8px 20px;
+        background: #f56c6c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-reject:hover {
+        background: #e64545;
+    }
+    .btn-detail {
+        padding: 8px 20px;
+        background: #409eff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-detail:hover {
+        background: #66b1ff;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #909399;
+    }
+    .loading-state {
+        text-align: center;
+        padding: 40px;
+        color: #909399;
+    }
+    .feedback-list {
+        margin-top: 16px;
+    }
+    .feedback-item {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9fafb;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .feedback-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .feedback-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .feedback-id {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+    .feedback-status {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 12px;
+    }
+    .feedback-status.pending {
+        background: #fdf6ec;
+        color: #e6a23c;
+    }
+    .feedback-status.processed {
+        background: #f0f9eb;
+        color: #67c23a;
+    }
+    .feedback-meta {
+        font-size: 13px;
+        color: #909399;
+        margin-bottom: 8px;
+    }
+    .feedback-content-preview {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .announce-list {
+        margin-top: 16px;
+    }
+    .announce-item {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9fafb;
+    }
+    .announce-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .announce-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .announce-meta {
+        font-size: 13px;
+        color: #909399;
+        margin-bottom: 8px;
+    }
+    .announce-content-preview {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+    .btn-edit {
+        padding: 8px 20px;
+        background: #409eff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-edit:hover {
+        background: #66b1ff;
+    }
+    .advert-list {
+        margin-top: 16px;
+    }
+    .advert-item {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f9fafb;
+    }
+    .advert-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .advert-position {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .advert-meta {
+        font-size: 13px;
+        color: #909399;
+        margin-bottom: 8px;
+    }
+    .advert-content-preview {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+    .announce-status, .advert-status {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .status-active {
+        background: #e6f7e6;
+        color: #52c41a;
+    }
+    .status-deleted {
+        background: #fff1e6;
+        color: #fa8c16;
+    }
+    .advert-img-preview {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        display: block;
+    }
+    #add-announce-form {
+        margin-top: 16px;
+    }
+    .form-group-inline {
+        margin-bottom: 16px;
+    }
+    .form-group-inline label {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .form-group-inline input,
+    .form-group-inline textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .form-group-inline input:focus,
+    .form-group-inline textarea:focus {
+        border-color: #667eea;
+    }
+    .form-group-inline textarea {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.6;
+    }
+    .btn-primary {
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+    .error-tip {
+        color: #ff4d4f;
+        font-size: 13px;
+        margin-top: 8px;
+        display: none;
+    }
+    .error-tip.show {
+        display: block;
+    }
+    .success-tip {
+        color: #52c41a;
+        font-size: 14px;
+        margin-top: 8px;
+        display: none;
+    }
+    .success-tip.show {
+        display: block;
+    }
+</style>
+{{end}}
 
-            <div class="menu-section" id="section-notice-add">
-                <div class="section-card">
-                    <h3 class="section-title">发布公告</h3>
-                    <div id="add-announce-form">
-                        <div class="form-group-inline">
-                            <label>公告标题</label>
-                            <input id="add-announce-title" type="text" placeholder="请输入公告标题"/>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group-inline">
-                                <label>开始时间</label>
-                                <input id="add-announce-startTime" type="datetime-local"/>
-                            </div>
-                            <div class="form-group-inline">
-                                <label>结束时间</label>
-                                <input id="add-announce-endTime" type="datetime-local"/>
-                            </div>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>公告内容</label>
-                            <textarea id="add-announce-content" placeholder="请输入公告内容"></textarea>
-                        </div>
-                        <p id="add-announce-error" class="error-tip"></p>
-                        <p id="add-announce-success" class="success-tip"></p>
-                        <button type="button" class="btn-primary" onclick="submitAddAnnounce()">发布公告</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="menu-section" id="section-ad-list">
-                <div class="section-card">
-                    <h3 class="section-title">广告列表</h3>
-                    <div id="advert-list"></div>
-                </div>
-            </div>
+{{define "admin_layout_extra_script"}}
+<script>
+    let currentAdmin = null;
+    let userMenus = [];
 
-            <div class="menu-section" id="section-ad-add">
-                <div class="section-card">
-                    <h3 class="section-title">添加广告</h3>
-                    <div id="add-advert-form">
-                        <div class="form-group-inline">
-                            <label>广告位置</label>
-                            <input id="add-advert-position" type="text" placeholder="请输入广告位置"/>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>广告地址</label>
-                            <input id="add-advert-addr" type="text" placeholder="请输入广告地址"/>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>广告内容</label>
-                            <textarea id="add-advert-content" placeholder="请输入广告内容"></textarea>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>广告图片</label>
-                            <input id="add-advert-img" type="file" accept="image/*"/>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group-inline">
-                                <label>开始时间</label>
-                                <input id="add-advert-startTime" type="datetime-local"/>
-                            </div>
-                            <div class="form-group-inline">
-                                <label>结束时间</label>
-                                <input id="add-advert-endTime" type="datetime-local"/>
-                            </div>
-                        </div>
-                        <p id="add-advert-error" class="error-tip"></p>
-                        <p id="add-advert-success" class="success-tip"></p>
-                        <button type="button" class="btn-primary" onclick="submitAddAdvert()">发布广告</button>
-                    </div>
-                </div>
-            </div>
+    const menuConfig = {
+        '个人信息': { section: 'user-info', icon: '👤', group: 'user', url: '' },
+        '文章审核': { section: 'essay-review', icon: '✅', group: 'review', url: '' },
+        '反馈列表': { section: 'feedback-list', icon: '💬', group: 'feedback', url: '/page/adminfeedback/list' },
+        '公告列表': { section: 'notice-list', icon: '📢', group: 'notice', url: '/page/adminannounce/list' },
+        '新增公告': { section: 'notice-add', icon: '📢', group: 'notice', url: '/page/adminannounce/add' },
+        '广告列表': { section: 'ad-list', icon: '📺', group: 'ad', url: '/page/adminadvert/list' },
+        '新增广告': { section: 'ad-add', icon: '📺', group: 'ad', url: '/page/adminadvert/add' },
+        '权限列表': { section: 'permission-list', icon: '🔐', group: 'permission', url: '/page/adminmenu/list' },
+        '新增权限': { section: 'permission-add', icon: '🔐', group: 'permission', url: '/page/adminmenu/add' },
+        '角色列表': { section: 'role-list', icon: '👥', group: 'role', url: '/page/adminrole/list' },
+        '新增角色': { section: 'role-add', icon: '👥', group: 'role', url: '/page/adminrole/add' },
+        '管理员列表': { section: 'adminuser-list', icon: '👤', group: 'adminuser', url: '/page/adminuser/list' },
+        '新增管理员': { section: 'adminuser-add', icon: '👤', group: 'adminuser', url: '/page/adminuser/add' },
+        '举报列表': { section: 'accusation-list', icon: '🚨', group: 'accusation', url: '/page/adminaccusation/list' }
+    };
 
-            <div class="menu-section" id="section-permission-list">
-                <div class="section-card">
-                    <h3 class="section-title">权限列表</h3>
-                    <div id="permission-list"></div>
-                </div>
-            </div>
+    function setActiveSubmenu(element) {
+        document.querySelectorAll('.submenu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
 
-            <div class="menu-section" id="section-permission-add">
-                <div class="section-card">
-                    <h3 class="section-title">新增权限</h3>
-                    <div id="add-permission-form">
-                        <div class="form-group-inline">
-                            <label>权限名称</label>
-                            <input id="add-permission-name" type="text" placeholder="请输入权限名称"/>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>权限路径</label>
-                            <input id="add-permission-path" type="text" placeholder="请输入权限路径"/>
-                        </div>
-                        <p id="add-permission-error" class="error-tip"></p>
-                        <p id="add-permission-success" class="success-tip"></p>
-                        <button type="button" class="btn-primary" onclick="submitAddPermission()">创建权限</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-section" id="section-role-list">
-                <div class="section-card">
-                    <h3 class="section-title">角色列表</h3>
-                    <div id="role-list"></div>
-                </div>
-            </div>
-
-            <div class="menu-section" id="section-role-add">
-                <div class="section-card">
-                    <h3 class="section-title">新增角色</h3>
-                    <div id="add-role-form">
-                        <div class="form-group-inline">
-                            <label>角色名称</label>
-                            <input id="add-role-name" type="text" placeholder="请输入角色名称"/>
-                        </div>
-                        <div class="form-group-inline">
-                            <label>选择权限</label>
-                            <div id="permission-checkboxes" style="max-height: 300px; overflow-y: auto; border: 1px solid #dcdfe6; border-radius: 6px; padding: 12px;"></div>
-                        </div>
-                        <p id="add-role-error" class="error-tip"></p>
-                        <p id="add-role-success" class="success-tip"></p>
-                        <button type="button" class="btn-primary" onclick="submitAddRole()">创建角色</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        let currentAdmin = null;
-        let userMenuIds = [];
-        let allMenus = [];
-
-        const menuConfig = {
-            '个人信息': { section: 'user-info', icon: '👤', group: 'user', url: '' },
-            '文章审核': { section: 'essay-review', icon: '✅', group: 'review', url: '' },
-            '反馈列表': { section: 'feedback-list', icon: '💬', group: 'feedback', url: '/page/adminfeedback/list' },
-            '公告列表': { section: 'notice-list', icon: '📢', group: 'notice', url: '/page/adminannounce/list' },
-            '新增公告': { section: 'notice-add', icon: '📢', group: 'notice', url: '/page/adminannounce/add' },
-            '广告列表': { section: 'ad-list', icon: '📺', group: 'ad', url: '/page/adminadvert/list' },
-            '新增广告': { section: 'ad-add', icon: '📺', group: 'ad', url: '/page/adminadvert/add' },
-            '权限列表': { section: 'permission-list', icon: '🔐', group: 'permission', url: '/page/adminmenu/list' },
-            '新增权限': { section: 'permission-add', icon: '🔐', group: 'permission', url: '/page/adminmenu/add' },
-            '角色列表': { section: 'role-list', icon: '👥', group: 'role', url: '/page/adminrole/list' },
-            '新增角色': { section: 'role-add', icon: '👥', group: 'role', url: '/page/adminrole/add' },
-            '管理员列表': { section: 'adminuser-list', icon: '👤', group: 'adminuser', url: '/page/adminuser/list' },
-            '新增管理员': { section: 'adminuser-add', icon: '👤', group: 'adminuser', url: '/page/adminuser/add' }
-        };
-
-        function setActiveSubmenu(element) {
-            document.querySelectorAll('.submenu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            element.classList.add('active');
-        }
-
-        async function loadAdminInfo() {
-            try {
-                const response = await axios.get('/api/adminuser/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentAdmin = response.data.data.user;
-                    userMenuIds = response.data.data.menuIds || [];
-                    document.getElementById('adminName').textContent = currentAdmin.name;
-                    renderAdminInfo();
-                    loadDynamicMenus();
-                } else {
-                    window.location.href = '/page/user/login';
-                }
-            } catch (error) {
+    async function loadAdminInfo() {
+        try {
+            const response = await axios.get('/api/adminuser/get');
+            if (response.data.code === 0 && response.data.data) {
+                currentAdmin = response.data.data.user;
+                userMenus = response.data.data.menu || [];
+                document.getElementById('adminName').textContent = currentAdmin.name;
+                renderAdminInfo();
+                renderDynamicMenus();
+            } else {
                 window.location.href = '/page/user/login';
             }
-        }
-
-        async function loadDynamicMenus() {
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    allMenus = response.data.data.menus || [];
-                    renderDynamicMenus();
-                }
-            } catch (error) {
-                console.error('加载菜单失败', error);
-            }
-        }
-
-        function renderDynamicMenus() {
-            const container = document.getElementById('dynamic-menus');
-            const groups = {};
-            
-            allMenus.forEach(function(menu) {
-                if (menu.isDeleted === 1) return;
-                const config = menuConfig[menu.menuName];
-                if (!config) return;
-                
-                if (!groups[config.group]) {
-                    groups[config.group] = {
-                        icon: config.icon,
-                        name: config.group === 'user' ? '用户信息' :
-                              config.group === 'review' ? '审核' :
-                              config.group === 'feedback' ? '反馈' :
-                              config.group === 'notice' ? '公告' :
-                              config.group === 'ad' ? '广告' :
-                              config.group === 'permission' ? '权限管理' :
-                              config.group === 'role' ? '角色管理' :
-                              config.group === 'adminuser' ? '管理员管理' : config.group,
-                        items: []
-                    };
-                }
-                groups[config.group].items.push({
-                    id: menu.id,
-                    name: menu.menuName,
-                    section: config.section,
-                    url: config.url
-                });
-            });
-
-            let html = '';
-            for (const groupKey in groups) {
-                const group = groups[groupKey];
-                const hasPermission = group.items.some(item => userMenuIds.length === 0 || userMenuIds.includes(item.id));
-                if (!hasPermission && userMenuIds.length > 0) continue;
-                
-                html += `
-                    <div class="menu-item" onclick="toggleSubmenu('${groupKey}')">
-                        <span class="icon">${group.icon}</span>
-                        <span>${group.name}</span>
-                        <span class="arrow">▼</span>
-                    </div>
-                    <div class="submenu" id="submenu-${groupKey}">
-                `;
-                
-                group.items.forEach(function(item) {
-                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
-                    if (!hasItemPermission && userMenuIds.length > 0) return;
-                    
-                    const itemConfig = menuConfig[item.name];
-                    const onclick = itemConfig && itemConfig.url ? `window.location.href='${itemConfig.url}';` : `showSection('${item.section}'); setActiveSubmenu(this)`;
-                    
-                    html += `
-                        <div class="submenu-item" data-menu-id="${item.id}" onclick="${onclick}">${item.name}</div>
-                    `;
-                });
-                
-                html += '</div>';
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function renderAdminInfo() {
-            if (!currentAdmin) return;
-            document.getElementById('adminDisplayName').textContent = currentAdmin.name || '--';
-            document.getElementById('adminEmail').textContent = currentAdmin.email || '未设置';
-            document.getElementById('adminUserName').textContent = currentAdmin.name || '--';
-            document.getElementById('adminPhone').textContent = currentAdmin.phone || '未设置';
-            document.getElementById('adminCreateAt').textContent = currentAdmin.createAt || '--';
-            if (currentAdmin.avatar) {
-                document.getElementById('adminAvatar').src = currentAdmin.avatar;
-            } else {
-                document.getElementById('adminAvatar').style.display = 'none';
-            }
-            if (currentAdmin.roleId > 0) {
-                loadRoleName(currentAdmin.roleId);
-            } else {
-                document.getElementById('adminRoleName').textContent = '无角色';
-            }
-        }
-
-        async function loadRoleName(roleId) {
-            try {
-                const response = await axios.get('/api/adminrole/all');
-                if (response.data.code === 0) {
-                    const roles = response.data.data.roles || [];
-                    const role = roles.find(r => r.id === roleId && r.isDeleted === 0);
-                    if (role) {
-                        document.getElementById('adminRoleName').textContent = role.roleName || '--';
-                    } else {
-                        document.getElementById('adminRoleName').textContent = '无角色';
-                    }
-                } else {
-                    document.getElementById('adminRoleName').textContent = '--';
-                }
-            } catch (error) {
-                console.error('加载角色失败', error);
-                document.getElementById('adminRoleName').textContent = '--';
-            }
-        }
-
-        function editAdminInfo() {
-            window.location.href = '/page/adminuser/edit';
-        }
-        
-        function toggleSubmenu(menu) {
-            const submenu = document.getElementById('submenu-' + menu);
-            submenu.classList.toggle('show');
-        }
-        
-        function showSection(section) {
-            document.querySelectorAll('.menu-section').forEach(s => {
-                s.classList.remove('active');
-            });
-            document.getElementById('section-' + section).classList.add('active');
-
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelectorAll('.submenu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            const menuItem = document.querySelector(`.menu-item[data-section="${section}"]`);
-            if (menuItem) {
-                menuItem.classList.add('active');
-            }
-
-            const sectionTitles = {
-                'user-info': '用户信息',
-                'essay-review': '文章审核',
-                'circle-review': '圈子审核',
-                'feedback-list': '反馈列表',
-                'feedback-reply': '回复反馈',
-                'notice-list': '公告列表',
-                'notice-add': '发布公告',
-                'ad-list': '广告列表',
-                'ad-add': '添加广告',
-                'permission-list': '权限列表',
-                'permission-add': '新增权限',
-                'role-list': '角色列表',
-                'role-add': '新增角色',
-                'adminuser-list': '管理员列表',
-                'adminuser-add': '新增管理员'
-            };
-            document.getElementById('pageTitle').textContent = sectionTitles[section] || '后台管理';
-
-            if (section === 'essay-review') {
-                loadEssayReviewList();
-            } else if (section === 'feedback-list') {
-                loadFeedbackList();
-            } else if (section === 'notice-list') {
-                loadAnnounceList();
-            } else if (section === 'ad-list') {
-                loadAdvertList();
-            } else if (section === 'permission-list') {
-                loadPermissionList();
-            } else if (section === 'role-list') {
-                loadRoleList();
-            } else if (section === 'role-add') {
-                loadPermissionsForCheckboxes();
-            } else if (section === 'user-info') {
-                renderAdminInfo();
-            }
-        }
-
-        async function loadEssayReviewList() {
-            const listContainer = document.getElementById('essay-review-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/accusation/all');
-                if (response.data.code === 0) {
-                    const accusations = response.data.data.accusations || [];
-                    renderEssayReviewList(accusations);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载待审核文章失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderEssayReviewList(accusations) {
-            const listContainer = document.getElementById('essay-review-list');
-
-            if (!accusations || accusations.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无待审核文章</div>';
-                return;
-            }
-
-            let html = '<div class="essay-list">';
-            accusations.forEach(acc => {
-                const accusationTime = acc.accusationTime ? new Date(acc.accusationTime).toLocaleString() : '--';
-                html += `
-                    <div class="essay-item">
-                        <div class="essay-item-header">
-                            <span class="essay-title">文章ID: ${acc.essayId}</span>
-                        </div>
-                        <div class="essay-meta">举报时间: ${accusationTime}</div>
-                        <div class="essay-content-preview">举报内容: ${acc.content || '无'}</div>
-                        <div class="essay-actions">
-                            <button class="btn-detail" onclick="viewAccusationDetail(${acc.id})">查看详情</button>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        async function viewAccusationDetail(accusationId) {
-            window.location.href = '/page/accusation/edit?id=' + accusationId;
-        }
-
-        async function loadFeedbackList() {
-            const listContainer = document.getElementById('feedback-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/feedback/all');
-                if (response.data.code === 0) {
-                    const feedbacks = response.data.data.feedbacks || [];
-                    renderFeedbackList(feedbacks);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载反馈列表失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderFeedbackList(feedbacks) {
-            const listContainer = document.getElementById('feedback-list');
-
-            if (!feedbacks || feedbacks.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无反馈</div>';
-                return;
-            }
-
-            let html = '<div class="feedback-list">';
-            feedbacks.forEach(fb => {
-                const feedbackTime = fb.feedbackTime ? new Date(fb.feedbackTime).toLocaleString() : '--';
-                const statusClass = fb.feedbackStatus === 0 ? 'pending' : 'processed';
-                const statusText = fb.feedbackStatus === 0 ? '待处理' : '已处理';
-                html += `
-                    <div class="feedback-item" onclick="viewFeedbackDetail(${fb.id})">
-                        <div class="feedback-item-header">
-                            <span class="feedback-id">反馈 #${fb.id}</span>
-                            <span class="feedback-status ${statusClass}">${statusText}</span>
-                        </div>
-                        <div class="feedback-meta">用户ID: ${fb.userId} | 时间: ${feedbackTime}</div>
-                        <div class="feedback-content-preview">${fb.content || '无'}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        function viewFeedbackDetail(feedbackId) {
-            window.location.href = '/page/feedback/edit?id=' + feedbackId;
-        }
-
-        async function loadAnnounceList() {
-            const listContainer = document.getElementById('announce-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/announce/all');
-                if (response.data.code === 0) {
-                    const announces = response.data.data.announces || [];
-                    renderAnnounceList(announces);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载公告列表失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderAnnounceList(announces) {
-            const listContainer = document.getElementById('announce-list');
-
-            if (!announces || announces.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无公告</div>';
-                return;
-            }
-
-            let html = '<div class="announce-list">';
-            announces.forEach(ann => {
-                const createAt = ann.createAt ? new Date(ann.createAt).toLocaleString() : '--';
-                const statusClass = ann.isDeleted === 0 ? 'status-active' : 'status-deleted';
-                const statusText = ann.isDeleted === 0 ? '显示' : '隐藏';
-                html += `
-                    <div class="announce-item">
-                        <div class="announce-item-header">
-                            <span class="announce-title">${escapeHtml(ann.title || '--')}</span>
-                            <span class="announce-status ${statusClass}">${statusText}</span>
-                        </div>
-                        <div class="announce-meta">创建时间: ${createAt}</div>
-                        <div class="announce-content-preview">${escapeHtml(ann.content || '无')}</div>
-                        <button class="btn-edit" onclick="editAnnounce(${ann.id})">修改并查看公告</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        function editAnnounce(announceId) {
-            window.location.href = '/page/announce/edit?id=' + announceId;
-        }
-
-        async function loadAdvertList() {
-            const listContainer = document.getElementById('advert-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/advert/all');
-                if (response.data.code === 0) {
-                    const adverts = response.data.data.adverts || [];
-                    renderAdvertList(adverts);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载广告列表失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderAdvertList(adverts) {
-            const listContainer = document.getElementById('advert-list');
-
-            if (!adverts || adverts.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无广告</div>';
-                return;
-            }
-
-            let html = '<div class="advert-list">';
-            adverts.forEach(ad => {
-                const createAt = ad.createAt ? new Date(ad.createAt).toLocaleString() : '--';
-                const statusClass = ad.isDeleted === 0 ? 'status-active' : 'status-deleted';
-                const statusText = ad.isDeleted === 0 ? '显示' : '隐藏';
-                html += `
-                    <div class="advert-item">
-                        <div class="advert-item-header">
-                            <span class="advert-position">${escapeHtml(ad.position || '--')}</span>
-                            <span class="advert-status ${statusClass}">${statusText}</span>
-                        </div>
-                        ${ad.img ? '<img class="advert-img-preview" src="' + escapeHtml(ad.img) + '" alt="广告图片"/>' : ''}
-                        <div class="advert-meta">创建时间: ${createAt}</div>
-                        <div class="advert-content-preview">${escapeHtml(ad.content || '无')}</div>
-                        <button class="btn-edit" onclick="editAdvert(${ad.id})">修改广告</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        function editAdvert(advertId) {
-            window.location.href = '/page/advert/edit?id=' + advertId;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        async function submitAddAnnounce() {
-            const title = document.getElementById('add-announce-title').value.trim();
-            const content = document.getElementById('add-announce-content').value.trim();
-            const startTimeStr = document.getElementById('add-announce-startTime').value;
-            const endTimeStr = document.getElementById('add-announce-endTime').value;
-            const errorMsg = document.getElementById('add-announce-error');
-            const successMsg = document.getElementById('add-announce-success');
-
-            errorMsg.classList.remove('show');
-            successMsg.classList.remove('show');
-
-            if (!title) {
-                errorMsg.textContent = '公告标题不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!content) {
-                errorMsg.textContent = '公告内容不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!startTimeStr || !endTimeStr) {
-                errorMsg.textContent = '开始时间和结束时间不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const startTime = formatDateTimeForSubmit(startTimeStr);
-            const endTime = formatDateTimeForSubmit(endTimeStr);
-
-            if (new Date(startTime) >= new Date(endTime)) {
-                errorMsg.textContent = '结束时间必须晚于开始时间';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const formData = new URLSearchParams();
-            formData.append('title', title);
-            formData.append('content', content);
-            formData.append('start_time', startTime);
-            formData.append('end_time', endTime);
-
-            try {
-                const response = await axios.post('/api/announce/add', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '发布成功';
-                    successMsg.classList.add('show');
-                    document.getElementById('add-announce-title').value = '';
-                    document.getElementById('add-announce-content').value = '';
-                    document.getElementById('add-announce-startTime').value = '';
-                    document.getElementById('add-announce-endTime').value = '';
-                } else {
-                    errorMsg.textContent = response.data.message || '发布失败';
-                    errorMsg.classList.add('show');
-                }
-            } catch (error) {
-                errorMsg.textContent = '网络错误，请稍后重试';
-                errorMsg.classList.add('show');
-            }
-        }
-
-        function formatDateTimeForSubmit(dateStr) {
-            const date = new Date(dateStr);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        }
-
-        async function submitAddAdvert() {
-            const position = document.getElementById('add-advert-position').value.trim();
-            const advertAddr = document.getElementById('add-advert-addr').value.trim();
-            const content = document.getElementById('add-advert-content').value.trim();
-            const startTimeStr = document.getElementById('add-advert-startTime').value;
-            const endTimeStr = document.getElementById('add-advert-endTime').value;
-            const errorMsg = document.getElementById('add-advert-error');
-            const successMsg = document.getElementById('add-advert-success');
-
-            errorMsg.classList.remove('show');
-            successMsg.classList.remove('show');
-
-            if (!position) {
-                errorMsg.textContent = '广告位置不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!advertAddr) {
-                errorMsg.textContent = '广告地址不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!content) {
-                errorMsg.textContent = '广告内容不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!startTimeStr || !endTimeStr) {
-                errorMsg.textContent = '开始时间和结束时间不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const startTime = formatDateTimeForSubmit(startTimeStr);
-            const endTime = formatDateTimeForSubmit(endTimeStr);
-
-            if (new Date(startTime) >= new Date(endTime)) {
-                errorMsg.textContent = '结束时间必须晚于开始时间';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('position', position);
-            formData.append('addvert_addr', advertAddr);
-            formData.append('content', content);
-            formData.append('start_time', startTime);
-            formData.append('end_time', endTime);
-
-            const imgFile = document.getElementById('add-advert-img').files[0];
-            if (imgFile) {
-                formData.append('avatar', imgFile);
-            }
-
-            try {
-                const response = await axios.post('/api/advert/add', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '发布成功';
-                    successMsg.classList.add('show');
-                    document.getElementById('add-advert-position').value = '';
-                    document.getElementById('add-advert-addr').value = '';
-                    document.getElementById('add-advert-content').value = '';
-                    document.getElementById('add-advert-startTime').value = '';
-                    document.getElementById('add-advert-endTime').value = '';
-                    document.getElementById('add-advert-img').value = '';
-                } else {
-                    errorMsg.textContent = response.data.message || '发布失败';
-                    errorMsg.classList.add('show');
-                }
-            } catch (error) {
-                errorMsg.textContent = '网络错误，请稍后重试';
-                errorMsg.classList.add('show');
-            }
-        }
-
-        async function loadPermissionList() {
-            const listContainer = document.getElementById('permission-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    const menus = response.data.data.menus || [];
-                    renderPermissionList(menus);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载权限列表失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderPermissionList(menus) {
-            const listContainer = document.getElementById('permission-list');
-
-            if (!menus || menus.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无权限</div>';
-                return;
-            }
-
-            let html = '<div class="permission-list">';
-            menus.forEach(menu => {
-                const createAt = menu.createAt ? new Date(menu.createAt).toLocaleString() : '--';
-                html += `
-                    <div class="permission-item" style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 16px; font-weight: 600; color: #333;">${escapeHtml(menu.menuName || '--')}</span>
-                            <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: ${menu.isDeleted === 0 ? '#e6f7e6' : '#fff1e6'}; color: ${menu.isDeleted === 0 ? '#52c41a' : '#fa8c16'};">${menu.isDeleted === 0 ? '启用' : '禁用'}</span>
-                        </div>
-                        <div style="font-size: 13px; color: #909399; margin-bottom: 4px;">路径: ${escapeHtml(menu.path || '--')}</div>
-                        <div style="font-size: 13px; color: #909399; margin-bottom: 8px;">创建时间: ${createAt}</div>
-                        <button class="btn-edit" onclick="deletePermission(${menu.id})">删除</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        async function deletePermission(menuId) {
-            if (!confirm('确定要删除该权限吗？')) {
-                return;
-            }
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('menu_id', menuId);
-                const response = await axios.post('/api/adminmenu/delete', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    alert('删除成功');
-                    loadPermissionList();
-                } else {
-                    alert(response.data.message || '删除失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        async function submitAddPermission() {
-            const name = document.getElementById('add-permission-name').value.trim();
-            const path = document.getElementById('add-permission-path').value.trim();
-            const errorMsg = document.getElementById('add-permission-error');
-            const successMsg = document.getElementById('add-permission-success');
-
-            errorMsg.classList.remove('show');
-            successMsg.classList.remove('show');
-
-            if (!name) {
-                errorMsg.textContent = '权限名称不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            if (!path) {
-                errorMsg.textContent = '权限路径不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('menu_name', name);
-                formData.append('menu_path', path);
-                const response = await axios.post('/api/adminmenu/add', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '创建成功';
-                    successMsg.classList.add('show');
-                    document.getElementById('add-permission-name').value = '';
-                    document.getElementById('add-permission-path').value = '';
-                } else {
-                    errorMsg.textContent = response.data.message || '创建失败';
-                    errorMsg.classList.add('show');
-                }
-            } catch (error) {
-                errorMsg.textContent = '网络错误，请稍后重试';
-                errorMsg.classList.add('show');
-            }
-        }
-
-        async function loadRoleList() {
-            const listContainer = document.getElementById('role-list');
-            listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/adminrole/all');
-                if (response.data.code === 0) {
-                    const roles = response.data.data.roles || [];
-                    renderRoleList(roles);
-                } else {
-                    listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载角色列表失败', error);
-                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderRoleList(roles) {
-            const listContainer = document.getElementById('role-list');
-
-            if (!roles || roles.length === 0) {
-                listContainer.innerHTML = '<div class="empty-state">暂无角色</div>';
-                return;
-            }
-
-            let html = '<div class="role-list">';
-            roles.forEach(role => {
-                const createAt = role.createAt ? new Date(role.createAt).toLocaleString() : '--';
-                const midsDisplay = role.mids ? role.mids.split('_').join(', ') : '--';
-                html += `
-                    <div class="role-item" style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 16px; font-weight: 600; color: #667eea; cursor: pointer;" onclick="viewRoleDetail(${role.id})">${escapeHtml(role.roleName || '--')}</span>
-                            <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: ${role.isDeleted === 0 ? '#e6f7e6' : '#fff1e6'}; color: ${role.isDeleted === 0 ? '#52c41a' : '#fa8c16'};">${role.isDeleted === 0 ? '启用' : '禁用'}</span>
-                        </div>
-                        <div style="font-size: 13px; color: #909399; margin-bottom: 4px;">权限IDs: ${midsDisplay}</div>
-                        <div style="font-size: 13px; color: #909399; margin-bottom: 8px;">创建时间: ${createAt}</div>
-                        <div style="display: flex; gap: 12px;">
-                            <button class="btn-edit" onclick="editRole(${role.id})">更新</button>
-                            <button class="btn-edit" onclick="deleteRole(${role.id})" style="background: #f56c6c;">删除</button>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            listContainer.innerHTML = html;
-        }
-
-        async function viewRoleDetail(roleId) {
-            try {
-                const response = await axios.get('/api/adminrole/get', {
-                    params: { role_id: roleId }
-                });
-
-                if (response.data.code === 0) {
-                    const role = response.data.data.role;
-                    alert('角色详情: ' + role.roleName + '\n权限IDs: ' + (role.mids || '--'));
-                } else {
-                    alert(response.data.message || '获取角色详情失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        function editRole(roleId) {
-            window.location.href = '/page/adminrole/edit?id=' + roleId;
-        }
-
-        async function deleteRole(roleId) {
-            if (!confirm('确定要删除该角色吗？')) {
-                return;
-            }
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('role_id', roleId);
-                const response = await axios.post('/api/adminrole/delete', formData, {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                });
-
-                if (response.data.code === 0) {
-                    alert('删除成功');
-                    loadRoleList();
-                } else {
-                    alert(response.data.message || '删除失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        async function loadPermissionsForCheckboxes() {
-            const container = document.getElementById('permission-checkboxes');
-            container.innerHTML = '<div class="loading-state">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    const menus = response.data.data.menus || [];
-                    renderPermissionCheckboxes(menus);
-                } else {
-                    container.innerHTML = '<div class="empty-state">加载失败</div>';
-                }
-            } catch (error) {
-                console.error('加载权限列表失败', error);
-                container.innerHTML = '<div class="empty-state">加载失败</div>';
-            }
-        }
-
-        function renderPermissionCheckboxes(menus) {
-            const container = document.getElementById('permission-checkboxes');
-
-            if (!menus || menus.length === 0) {
-                container.innerHTML = '<div class="empty-state">暂无权限可选择</div>';
-                return;
-            }
-
-            const activeMenus = menus.filter(m => m.isDeleted === 0);
-
-            if (activeMenus.length === 0) {
-                container.innerHTML = '<div class="empty-state">暂无权限可选择</div>';
-                return;
-            }
-
-            let html = '';
-            activeMenus.forEach(menu => {
-                html += `
-                    <div style="margin-bottom: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" name="permission" value="${menu.id}" style="width: 16px; height: 16px;"/>
-                            <span style="font-size: 14px; color: #333;">${escapeHtml(menu.menuName || '--')}</span>
-                            <span style="font-size: 12px; color: #909399;">(${escapeHtml(menu.path || '--')})</span>
-                        </label>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        async function submitAddRole() {
-            const name = document.getElementById('add-role-name').value.trim();
-            const errorMsg = document.getElementById('add-role-error');
-            const successMsg = document.getElementById('add-role-success');
-
-            errorMsg.classList.remove('show');
-            successMsg.classList.remove('show');
-
-            if (!name) {
-                errorMsg.textContent = '角色名称不能为空';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
-            if (checkboxes.length === 0) {
-                errorMsg.textContent = '请至少选择一个权限';
-                errorMsg.classList.add('show');
-                return;
-            }
-
-            const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
-
-            try {
-                const formData = new FormData();
-                formData.append('role_name', name);
-                mids.forEach(mid => formData.append('mids', mid));
-
-                const response = await axios.post('/api/adminrole/add', formData);
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '创建成功';
-                    successMsg.classList.add('show');
-                    document.getElementById('add-role-name').value = '';
-                    document.querySelectorAll('input[name="permission"]').forEach(cb => cb.checked = false);
-                } else {
-                    errorMsg.textContent = response.data.message || '创建失败';
-                    errorMsg.classList.add('show');
-                }
-            } catch (error) {
-                errorMsg.textContent = '网络错误，请稍后重试';
-                errorMsg.classList.add('show');
-            }
-        }
-
-        async function logout() {
-            try {
-                await axios.get('/api/adminuser/logout');
-            } catch (error) {
-                console.error('退出登录失败', error);
-            }
+        } catch (error) {
             window.location.href = '/page/user/login';
         }
-        
-        loadAdminInfo();
-    </script>
-</body>
-</html>
+    }
+
+    function renderDynamicMenus() {
+        const container = document.getElementById('dynamic-menus');
+
+        let html = '';
+        userMenus.forEach(function(menu) {
+            if (menu.isDeleted === 1) return;
+
+            const onclick = menu.path ? `window.location.href='${menu.path}';` : '';
+
+            html += `
+                <div class="menu-item" data-menu-id="${menu.id}" onclick="${onclick}">
+                    <span>${menu.menuName}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function renderAdminInfo() {
+        if (!currentAdmin) return;
+        document.getElementById('adminDisplayName').textContent = currentAdmin.name || '--';
+        document.getElementById('adminEmail').textContent = currentAdmin.email || '未设置';
+        document.getElementById('adminUserName').textContent = currentAdmin.name || '--';
+        document.getElementById('adminPhone').textContent = currentAdmin.phone || '未设置';
+        document.getElementById('adminCreateAt').textContent = currentAdmin.createAt || '--';
+        if (currentAdmin.avatar) {
+            document.getElementById('adminAvatar').src = currentAdmin.avatar;
+        } else {
+            document.getElementById('adminAvatar').style.display = 'none';
+        }
+        if (currentAdmin.roleId > 0) {
+            loadRoleName(currentAdmin.roleId);
+        } else {
+            document.getElementById('adminRoleName').textContent = '无角色';
+        }
+    }
+
+    async function loadRoleName(roleId) {
+        try {
+            const response = await axios.get('/api/adminrole/all');
+            if (response.data.code === 0) {
+                const roles = response.data.data.roles || [];
+                const role = roles.find(r => r.id === roleId && r.isDeleted === 0);
+                if (role) {
+                    document.getElementById('adminRoleName').textContent = role.roleName || '--';
+                } else {
+                    document.getElementById('adminRoleName').textContent = '无角色';
+                }
+            } else {
+                document.getElementById('adminRoleName').textContent = '--';
+            }
+        } catch (error) {
+            console.error('加载角色失败', error);
+            document.getElementById('adminRoleName').textContent = '--';
+        }
+    }
+
+    function editAdminInfo() {
+        window.location.href = '/page/adminuser/edit';
+    }
+
+    function toggleSubmenu(menu) {
+        const submenu = document.getElementById('submenu-' + menu);
+        submenu.classList.toggle('show');
+    }
+
+    function showSection(section) {
+        document.querySelectorAll('.menu-section').forEach(s => {
+            s.classList.remove('active');
+        });
+        document.getElementById('section-' + section).classList.add('active');
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelectorAll('.submenu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        const menuItem = document.querySelector(`.menu-item[data-section="${section}"]`);
+        if (menuItem) {
+            menuItem.classList.add('active');
+        }
+
+        if (section === 'essay-review') {
+            loadEssayReviewList();
+        } else if (section === 'feedback-list') {
+            loadFeedbackList();
+        } else if (section === 'notice-list') {
+            loadAnnounceList();
+        } else if (section === 'ad-list') {
+            loadAdvertList();
+        } else if (section === 'permission-list') {
+            loadPermissionList();
+        } else if (section === 'role-list') {
+            loadRoleList();
+        } else if (section === 'role-add') {
+            loadPermissionsForCheckboxes();
+        } else if (section === 'user-info') {
+            renderAdminInfo();
+        }
+    }
+
+    async function loadEssayReviewList() {
+        const listContainer = document.getElementById('essay-review-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/accusation/all');
+            if (response.data.code === 0) {
+                const accusations = response.data.data.accusations || [];
+                renderEssayReviewList(accusations);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载待审核文章失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderEssayReviewList(accusations) {
+        const listContainer = document.getElementById('essay-review-list');
+
+        if (!accusations || accusations.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无待审核文章</div>';
+            return;
+        }
+
+        let html = '<div class="essay-list">';
+        accusations.forEach(acc => {
+            const accusationTime = acc.accusationTime ? new Date(acc.accusationTime).toLocaleString() : '--';
+            html += `
+                <div class="essay-item">
+                    <div class="essay-item-header">
+                        <span class="essay-title">文章ID: ${acc.essayId}</span>
+                    </div>
+                    <div class="essay-meta">举报时间: ${accusationTime}</div>
+                    <div class="essay-content-preview">举报内容: ${acc.content || '无'}</div>
+                    <div class="essay-actions">
+                        <button class="btn-detail" onclick="viewAccusationDetail(${acc.id})">查看详情</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    async function viewAccusationDetail(accusationId) {
+        window.location.href = '/page/accusation/edit?id=' + accusationId;
+    }
+
+    async function loadFeedbackList() {
+        const listContainer = document.getElementById('feedback-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/feedback/all');
+            if (response.data.code === 0) {
+                const feedbacks = response.data.data.feedbacks || [];
+                renderFeedbackList(feedbacks);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载反馈列表失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderFeedbackList(feedbacks) {
+        const listContainer = document.getElementById('feedback-list');
+
+        if (!feedbacks || feedbacks.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无反馈</div>';
+            return;
+        }
+
+        let html = '<div class="feedback-list">';
+        feedbacks.forEach(fb => {
+            const feedbackTime = fb.feedbackTime ? new Date(fb.feedbackTime).toLocaleString() : '--';
+            const statusClass = fb.feedbackStatus === 0 ? 'pending' : 'processed';
+            const statusText = fb.feedbackStatus === 0 ? '待处理' : '已处理';
+            html += `
+                <div class="feedback-item" onclick="viewFeedbackDetail(${fb.id})">
+                    <div class="feedback-item-header">
+                        <span class="feedback-id">反馈 #${fb.id}</span>
+                        <span class="feedback-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="feedback-meta">用户ID: ${fb.userId} | 时间: ${feedbackTime}</div>
+                    <div class="feedback-content-preview">${fb.content || '无'}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    function viewFeedbackDetail(feedbackId) {
+        window.location.href = '/page/feedback/edit?id=' + feedbackId;
+    }
+
+    async function loadAnnounceList() {
+        const listContainer = document.getElementById('announce-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/announce/all');
+            if (response.data.code === 0) {
+                const announces = response.data.data.announces || [];
+                renderAnnounceList(announces);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载公告列表失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderAnnounceList(announces) {
+        const listContainer = document.getElementById('announce-list');
+
+        if (!announces || announces.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无公告</div>';
+            return;
+        }
+
+        let html = '<div class="announce-list">';
+        announces.forEach(ann => {
+            const createAt = ann.createAt ? new Date(ann.createAt).toLocaleString() : '--';
+            const statusClass = ann.isDeleted === 0 ? 'status-active' : 'status-deleted';
+            const statusText = ann.isDeleted === 0 ? '显示' : '隐藏';
+            html += `
+                <div class="announce-item">
+                    <div class="announce-item-header">
+                        <span class="announce-title">${escapeHtml(ann.title || '--')}</span>
+                        <span class="announce-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="announce-meta">创建时间: ${createAt}</div>
+                    <div class="announce-content-preview">${escapeHtml(ann.content || '无')}</div>
+                    <button class="btn-edit" onclick="editAnnounce(${ann.id})">修改并查看公告</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    function editAnnounce(announceId) {
+        window.location.href = '/page/announce/edit?id=' + announceId;
+    }
+
+    async function loadAdvertList() {
+        const listContainer = document.getElementById('advert-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/advert/all');
+            if (response.data.code === 0) {
+                const adverts = response.data.data.adverts || [];
+                renderAdvertList(adverts);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载广告列表失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderAdvertList(adverts) {
+        const listContainer = document.getElementById('advert-list');
+
+        if (!adverts || adverts.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无广告</div>';
+            return;
+        }
+
+        let html = '<div class="advert-list">';
+        adverts.forEach(ad => {
+            const createAt = ad.createAt ? new Date(ad.createAt).toLocaleString() : '--';
+            const statusClass = ad.isDeleted === 0 ? 'status-active' : 'status-deleted';
+            const statusText = ad.isDeleted === 0 ? '显示' : '隐藏';
+            html += `
+                <div class="advert-item">
+                    <div class="advert-item-header">
+                        <span class="advert-position">${escapeHtml(ad.position || '--')}</span>
+                        <span class="advert-status ${statusClass}">${statusText}</span>
+                    </div>
+                    ${ad.img ? '<img class="advert-img-preview" src="' + escapeHtml(ad.img) + '" alt="广告图片"/>' : ''}
+                    <div class="advert-meta">创建时间: ${createAt}</div>
+                    <div class="advert-content-preview">${escapeHtml(ad.content || '无')}</div>
+                    <button class="btn-edit" onclick="editAdvert(${ad.id})">修改广告</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    function editAdvert(advertId) {
+        window.location.href = '/page/advert/edit?id=' + advertId;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    async function submitAddAnnounce() {
+        const title = document.getElementById('add-announce-title').value.trim();
+        const content = document.getElementById('add-announce-content').value.trim();
+        const startTimeStr = document.getElementById('add-announce-startTime').value;
+        const endTimeStr = document.getElementById('add-announce-endTime').value;
+        const errorMsg = document.getElementById('add-announce-error');
+        const successMsg = document.getElementById('add-announce-success');
+
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        if (!title) {
+            errorMsg.textContent = '公告标题不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!content) {
+            errorMsg.textContent = '公告内容不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!startTimeStr || !endTimeStr) {
+            errorMsg.textContent = '开始时间和结束时间不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const startTime = formatDateTimeForSubmit(startTimeStr);
+        const endTime = formatDateTimeForSubmit(endTimeStr);
+
+        if (new Date(startTime) >= new Date(endTime)) {
+            errorMsg.textContent = '结束时间必须晚于开始时间';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const formData = new URLSearchParams();
+        formData.append('title', title);
+        formData.append('content', content);
+        formData.append('start_time', startTime);
+        formData.append('end_time', endTime);
+
+        try {
+            const response = await axios.post('/api/announce/add', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.data.code === 0) {
+                successMsg.textContent = '发布成功';
+                successMsg.classList.add('show');
+                document.getElementById('add-announce-title').value = '';
+                document.getElementById('add-announce-content').value = '';
+                document.getElementById('add-announce-startTime').value = '';
+                document.getElementById('add-announce-endTime').value = '';
+            } else {
+                errorMsg.textContent = response.data.message || '发布失败';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            errorMsg.textContent = '网络错误，请稍后重试';
+            errorMsg.classList.add('show');
+        }
+    }
+
+    function formatDateTimeForSubmit(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    async function submitAddAdvert() {
+        const position = document.getElementById('add-advert-position').value.trim();
+        const advertAddr = document.getElementById('add-advert-addr').value.trim();
+        const content = document.getElementById('add-advert-content').value.trim();
+        const startTimeStr = document.getElementById('add-advert-startTime').value;
+        const endTimeStr = document.getElementById('add-advert-endTime').value;
+        const errorMsg = document.getElementById('add-advert-error');
+        const successMsg = document.getElementById('add-advert-success');
+
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        if (!position) {
+            errorMsg.textContent = '广告位置不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!advertAddr) {
+            errorMsg.textContent = '广告地址不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!content) {
+            errorMsg.textContent = '广告内容不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!startTimeStr || !endTimeStr) {
+            errorMsg.textContent = '开始时间和结束时间不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const startTime = formatDateTimeForSubmit(startTimeStr);
+        const endTime = formatDateTimeForSubmit(endTimeStr);
+
+        if (new Date(startTime) >= new Date(endTime)) {
+            errorMsg.textContent = '结束时间必须晚于开始时间';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('position', position);
+        formData.append('addvert_addr', advertAddr);
+        formData.append('content', content);
+        formData.append('start_time', startTime);
+        formData.append('end_time', endTime);
+
+        const imgFile = document.getElementById('add-advert-img').files[0];
+        if (imgFile) {
+            formData.append('avatar', imgFile);
+        }
+
+        try {
+            const response = await axios.post('/api/advert/add', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.data.code === 0) {
+                successMsg.textContent = '发布成功';
+                successMsg.classList.add('show');
+                document.getElementById('add-advert-position').value = '';
+                document.getElementById('add-advert-addr').value = '';
+                document.getElementById('add-advert-content').value = '';
+                document.getElementById('add-advert-startTime').value = '';
+                document.getElementById('add-advert-endTime').value = '';
+                document.getElementById('add-advert-img').value = '';
+            } else {
+                errorMsg.textContent = response.data.message || '发布失败';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            errorMsg.textContent = '网络错误，请稍后重试';
+            errorMsg.classList.add('show');
+        }
+    }
+
+    async function loadPermissionList() {
+        const listContainer = document.getElementById('permission-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/adminmenu/all');
+            if (response.data.code === 0) {
+                const menus = response.data.data.menus || [];
+                renderPermissionList(menus);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载权限列表失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderPermissionList(menus) {
+        const listContainer = document.getElementById('permission-list');
+
+        if (!menus || menus.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无权限</div>';
+            return;
+        }
+
+        let html = '<div class="permission-list">';
+        menus.forEach(menu => {
+            const createAt = menu.createAt ? new Date(menu.createAt).toLocaleString() : '--';
+            html += `
+                <div class="permission-item" style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 16px; font-weight: 600; color: #333;">${escapeHtml(menu.menuName || '--')}</span>
+                        <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: ${menu.isDeleted === 0 ? '#e6f7e6' : '#fff1e6'}; color: ${menu.isDeleted === 0 ? '#52c41a' : '#fa8c16'};">${menu.isDeleted === 0 ? '启用' : '禁用'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #909399; margin-bottom: 4px;">路径: ${escapeHtml(menu.path || '--')}</div>
+                    <div style="font-size: 13px; color: #909399; margin-bottom: 8px;">创建时间: ${createAt}</div>
+                    <button class="btn-edit" onclick="deletePermission(${menu.id})">删除</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    async function deletePermission(menuId) {
+        if (!confirm('确定要删除该权限吗？')) {
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('menu_id', menuId);
+            const response = await axios.post('/api/adminmenu/delete', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.data.code === 0) {
+                alert('删除成功');
+                loadPermissionList();
+            } else {
+                alert(response.data.message || '删除失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+        }
+    }
+
+    async function submitAddPermission() {
+        const name = document.getElementById('add-permission-name').value.trim();
+        const path = document.getElementById('add-permission-path').value.trim();
+        const errorMsg = document.getElementById('add-permission-error');
+        const successMsg = document.getElementById('add-permission-success');
+
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        if (!name) {
+            errorMsg.textContent = '权限名称不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        if (!path) {
+            errorMsg.textContent = '权限路径不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('menu_name', name);
+            formData.append('menu_path', path);
+            const response = await axios.post('/api/adminmenu/add', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.data.code === 0) {
+                successMsg.textContent = '创建成功';
+                successMsg.classList.add('show');
+                document.getElementById('add-permission-name').value = '';
+                document.getElementById('add-permission-path').value = '';
+            } else {
+                errorMsg.textContent = response.data.message || '创建失败';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            errorMsg.textContent = '网络错误，请稍后重试';
+            errorMsg.classList.add('show');
+        }
+    }
+
+    async function loadRoleList() {
+        const listContainer = document.getElementById('role-list');
+        listContainer.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/adminrole/all');
+            if (response.data.code === 0) {
+                const roles = response.data.data.roles || [];
+                renderRoleList(roles);
+            } else {
+                listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载角色列表失败', error);
+            listContainer.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderRoleList(roles) {
+        const listContainer = document.getElementById('role-list');
+
+        if (!roles || roles.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">暂无角色</div>';
+            return;
+        }
+
+        let html = '<div class="role-list">';
+        roles.forEach(role => {
+            const createAt = role.createAt ? new Date(role.createAt).toLocaleString() : '--';
+            const midsDisplay = role.mids ? role.mids.split('_').join(', ') : '--';
+            html += `
+                <div class="role-item" style="border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f9fafb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 16px; font-weight: 600; color: #667eea; cursor: pointer;" onclick="viewRoleDetail(${role.id})">${escapeHtml(role.roleName || '--')}</span>
+                        <span style="font-size: 12px; padding: 4px 12px; border-radius: 12px; background: ${role.isDeleted === 0 ? '#e6f7e6' : '#fff1e6'}; color: ${role.isDeleted === 0 ? '#52c41a' : '#fa8c16'};">${role.isDeleted === 0 ? '启用' : '禁用'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #909399; margin-bottom: 4px;">权限IDs: ${midsDisplay}</div>
+                    <div style="font-size: 13px; color: #909399; margin-bottom: 8px;">创建时间: ${createAt}</div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn-edit" onclick="editRole(${role.id})">更新</button>
+                        <button class="btn-edit" onclick="deleteRole(${role.id})" style="background: #f56c6c;">删除</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listContainer.innerHTML = html;
+    }
+
+    async function viewRoleDetail(roleId) {
+        try {
+            const response = await axios.get('/api/adminrole/get', {
+                params: { role_id: roleId }
+            });
+
+            if (response.data.code === 0) {
+                const role = response.data.data.role;
+                alert('角色详情: ' + role.roleName + '\n权限IDs: ' + (role.mids || '--'));
+            } else {
+                alert(response.data.message || '获取角色详情失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+        }
+    }
+
+    function editRole(roleId) {
+        window.location.href = '/page/adminrole/edit?id=' + roleId;
+    }
+
+    async function deleteRole(roleId) {
+        if (!confirm('确定要删除该角色吗？')) {
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('role_id', roleId);
+            const response = await axios.post('/api/adminrole/delete', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.data.code === 0) {
+                alert('删除成功');
+                loadRoleList();
+            } else {
+                alert(response.data.message || '删除失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+        }
+    }
+
+    async function loadPermissionsForCheckboxes() {
+        const container = document.getElementById('permission-checkboxes');
+        container.innerHTML = '<div class="loading-state">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/adminmenu/all');
+            if (response.data.code === 0) {
+                const menus = response.data.data.menus || [];
+                renderPermissionCheckboxes(menus);
+            } else {
+                container.innerHTML = '<div class="empty-state">加载失败</div>';
+            }
+        } catch (error) {
+            console.error('加载权限列表失败', error);
+            container.innerHTML = '<div class="empty-state">加载失败</div>';
+        }
+    }
+
+    function renderPermissionCheckboxes(menus) {
+        const container = document.getElementById('permission-checkboxes');
+
+        if (!menus || menus.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无权限可选择</div>';
+            return;
+        }
+
+        const activeMenus = menus.filter(m => m.isDeleted === 0);
+
+        if (activeMenus.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无权限可选择</div>';
+            return;
+        }
+
+        let html = '';
+        activeMenus.forEach(menu => {
+            html += `
+                <div style="margin-bottom: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="permission" value="${menu.id}" style="width: 16px; height: 16px;"/>
+                        <span style="font-size: 14px; color: #333;">${escapeHtml(menu.menuName || '--')}</span>
+                        <span style="font-size: 12px; color: #909399;">(${escapeHtml(menu.path || '--')})</span>
+                    </label>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function submitAddRole() {
+        const name = document.getElementById('add-role-name').value.trim();
+        const errorMsg = document.getElementById('add-role-error');
+        const successMsg = document.getElementById('add-role-success');
+
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        if (!name) {
+            errorMsg.textContent = '角色名称不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
+        if (checkboxes.length === 0) {
+            errorMsg.textContent = '请至少选择一个权限';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+        try {
+            const formData = new FormData();
+            formData.append('role_name', name);
+            mids.forEach(mid => formData.append('mids', mid));
+
+            const response = await axios.post('/api/adminrole/add', formData);
+
+            if (response.data.code === 0) {
+                successMsg.textContent = '创建成功';
+                successMsg.classList.add('show');
+                document.getElementById('add-role-name').value = '';
+                document.querySelectorAll('input[name="permission"]').forEach(cb => cb.checked = false);
+            } else {
+                errorMsg.textContent = response.data.message || '创建失败';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            errorMsg.textContent = '网络错误，请稍后重试';
+            errorMsg.classList.add('show');
+        }
+    }
+
+    loadAdminInfo();
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="menu-section" id="section-user-info">
+    <div class="user-info-card">
+        <div class="user-info-header">
+            <img class="user-avatar" id="adminAvatar" src="" alt="头像"/>
+            <div class="user-basic">
+                <h3 id="adminDisplayName">加载中...</h3>
+                <p id="adminEmail">--</p>
+            </div>
+        </div>
+        <div class="user-detail-grid">
+            <div class="detail-item">
+                <div class="label">用户名</div>
+                <div class="value" id="adminUserName">--</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">手机号</div>
+                <div class="value" id="adminPhone">--</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">创建时间</div>
+                <div class="value" id="adminCreateAt">--</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">角色</div>
+                <div class="value" id="adminRoleName">--</div>
+            </div>
+        </div>
+        <button class="edit-btn" onclick="editAdminInfo()">编辑信息</button>
+    </div>
+</div>
+
+<div class="menu-section" id="section-essay-review">
+    <div class="section-card">
+        <h3 class="section-title">文章审核</h3>
+        <div id="essay-review-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-circle-review">
+    <div class="section-card">
+        <h3 class="section-title">圈子审核</h3>
+        <p>圈子审核功能开发中...</p>
+    </div>
+</div>
+
+<div class="menu-section" id="section-feedback-list">
+    <div class="section-card">
+        <h3 class="section-title">反馈列表</h3>
+        <div id="feedback-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-feedback-reply">
+    <div class="section-card">
+        <h3 class="section-title">回复反馈</h3>
+        <p>回复反馈功能开发中...</p>
+    </div>
+</div>
+
+<div class="menu-section" id="section-notice-list">
+    <div class="section-card">
+        <h3 class="section-title">公告列表</h3>
+        <div id="announce-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-notice-add">
+    <div class="section-card">
+        <h3 class="section-title">发布公告</h3>
+        <div id="add-announce-form">
+            <div class="form-group-inline">
+                <label>公告标题</label>
+                <input id="add-announce-title" type="text" placeholder="请输入公告标题"/>
+            </div>
+            <div class="form-row">
+                <div class="form-group-inline">
+                    <label>开始时间</label>
+                    <input id="add-announce-startTime" type="datetime-local"/>
+                </div>
+                <div class="form-group-inline">
+                    <label>结束时间</label>
+                    <input id="add-announce-endTime" type="datetime-local"/>
+                </div>
+            </div>
+            <div class="form-group-inline">
+                <label>公告内容</label>
+                <textarea id="add-announce-content" placeholder="请输入公告内容"></textarea>
+            </div>
+            <p id="add-announce-error" class="error-tip"></p>
+            <p id="add-announce-success" class="success-tip"></p>
+            <button type="button" class="btn-primary" onclick="submitAddAnnounce()">发布公告</button>
+        </div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-ad-list">
+    <div class="section-card">
+        <h3 class="section-title">广告列表</h3>
+        <div id="advert-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-ad-add">
+    <div class="section-card">
+        <h3 class="section-title">添加广告</h3>
+        <div id="add-advert-form">
+            <div class="form-group-inline">
+                <label>广告位置</label>
+                <input id="add-advert-position" type="text" placeholder="请输入广告位置"/>
+            </div>
+            <div class="form-group-inline">
+                <label>广告地址</label>
+                <input id="add-advert-addr" type="text" placeholder="请输入广告地址"/>
+            </div>
+            <div class="form-group-inline">
+                <label>广告内容</label>
+                <textarea id="add-advert-content" placeholder="请输入广告内容"></textarea>
+            </div>
+            <div class="form-group-inline">
+                <label>广告图片</label>
+                <input id="add-advert-img" type="file" accept="image/*"/>
+            </div>
+            <div class="form-row">
+                <div class="form-group-inline">
+                    <label>开始时间</label>
+                    <input id="add-advert-startTime" type="datetime-local"/>
+                </div>
+                <div class="form-group-inline">
+                    <label>结束时间</label>
+                    <input id="add-advert-endTime" type="datetime-local"/>
+                </div>
+            </div>
+            <p id="add-advert-error" class="error-tip"></p>
+            <p id="add-advert-success" class="success-tip"></p>
+            <button type="button" class="btn-primary" onclick="submitAddAdvert()">发布广告</button>
+        </div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-permission-list">
+    <div class="section-card">
+        <h3 class="section-title">权限列表</h3>
+        <div id="permission-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-permission-add">
+    <div class="section-card">
+        <h3 class="section-title">新增权限</h3>
+        <div id="add-permission-form">
+            <div class="form-group-inline">
+                <label>权限名称</label>
+                <input id="add-permission-name" type="text" placeholder="请输入权限名称"/>
+            </div>
+            <div class="form-group-inline">
+                <label>权限路径</label>
+                <input id="add-permission-path" type="text" placeholder="请输入权限路径"/>
+            </div>
+            <p id="add-permission-error" class="error-tip"></p>
+            <p id="add-permission-success" class="success-tip"></p>
+            <button type="button" class="btn-primary" onclick="submitAddPermission()">创建权限</button>
+        </div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-role-list">
+    <div class="section-card">
+        <h3 class="section-title">角色列表</h3>
+        <div id="role-list"></div>
+    </div>
+</div>
+
+<div class="menu-section" id="section-role-add">
+    <div class="section-card">
+        <h3 class="section-title">新增角色</h3>
+        <div id="add-role-form">
+            <div class="form-group-inline">
+                <label>角色名称</label>
+                <input id="add-role-name" type="text" placeholder="请输入角色名称"/>
+            </div>
+            <div class="form-group-inline">
+                <label>选择权限</label>
+                <div id="permission-checkboxes" style="max-height: 300px; overflow-y: auto; border: 1px solid #dcdfe6; border-radius: 6px; padding: 12px;"></div>
+            </div>
+            <p id="add-role-error" class="error-tip"></p>
+            <p id="add-role-success" class="success-tip"></p>
+            <button type="button" class="btn-primary" onclick="submitAddRole()">创建角色</button>
+        </div>
+    </div>
+</div>
+
+{{template "admin_layout_body_end" .}}

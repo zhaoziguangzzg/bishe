@@ -13,35 +13,132 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .menu-item {
+            padding: 14px 24px;
+            color: rgba(255,255,255,0.85);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left: 3px solid white;
+        }
+        .submenu {
+            display: none;
+            background: rgba(0,0,0,0.1);
+        }
+        .submenu.show {
+            display: block;
+        }
+        .submenu-item {
+            padding: 12px 24px 12px 48px;
+            color: rgba(255,255,255,0.75);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .submenu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .submenu-item.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left: 3px solid white;
+        }
+        .arrow {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        .menu-item:hover .arrow, .menu-item.active .arrow {
+            transform: rotate(180deg);
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
             background: #f5f7fa;
             min-height: 100vh;
         }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
+        .top-bar {
+            background: white;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .header a {
+        .top-bar h1 {
+            font-size: 20px;
+            color: #333;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: #f56c6c;
             color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
             text-decoration: none;
-            font-size: 14px;
         }
-        .header a:hover {
-            text-decoration: underline;
+        .logout-btn:hover {
+            background: #e64545;
         }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
+        .content-area {
+            padding: 24px 32px;
         }
         .edit-card {
             background: white;
             border-radius: 12px;
             padding: 32px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            max-width: 600px;
         }
         .edit-card h2 {
             font-size: 20px;
@@ -140,48 +237,136 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="/page/admin/index">← 返回后台管理</a>
-        <span>编辑管理员信息</span>
-        <div></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>管理后台</h2>
+            <p>知识分享平台</p>
+        </div>
+        <div id="dynamic-menus"></div>
     </div>
-
-    <div class="container">
-        <div class="edit-card">
-            <h2>修改管理员信息</h2>
-            <form id="editForm">
-                <div class="avatar-section">
-                    <img id="avatarPreview" class="avatar-preview" src="" alt="头像"/>
-                    <div class="form-group">
-                        <label>更换头像</label>
-                        <input id="avatar" type="file" accept="image/*"/>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <h1>编辑管理员信息</h1>
+            <div class="user-info">
+                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="edit-card">
+                <h2>修改管理员信息</h2>
+                <form id="editForm">
+                    <div class="avatar-section">
+                        <img id="avatarPreview" class="avatar-preview" src="" alt="头像"/>
+                        <div class="form-group">
+                            <label>更换头像</label>
+                            <input id="avatar" type="file" accept="image/*"/>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>用户名</label>
-                    <input id="username" type="text" placeholder="请输入用户名"/>
-                </div>
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input id="username" type="text" placeholder="请输入用户名"/>
+                    </div>
 
-                <div class="form-group">
-                    <label>邮箱</label>
-                    <input id="email" type="email" placeholder="请输入邮箱"/>
-                </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input id="email" type="email" placeholder="请输入邮箱"/>
+                    </div>
 
-                <div class="form-group">
-                    <label>手机号</label>
-                    <input id="phone" type="text" placeholder="请输入手机号"/>
-                </div>
+                    <div class="form-group">
+                        <label>手机号</label>
+                        <input id="phone" type="text" placeholder="请输入手机号"/>
+                    </div>
 
-                <p id="errorMsg" class="error-tip"></p>
-                <p id="successMsg" class="success-tip"></p>
+                    <p id="errorMsg" class="error-tip"></p>
+                    <p id="successMsg" class="success-tip"></p>
 
-                <button type="submit" id="saveBtn" class="btn">保存修改</button>
-            </form>
+                    <button type="submit" id="saveBtn" class="btn">保存修改</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
+        let currentPath = window.location.pathname;
+        let userMenuIds = [];
+        
+        async function loadDynamicMenus() {
+            try {
+                const [menuResponse, userResponse] = await Promise.all([
+                    axios.get('/api/adminmenu/all'),
+                    axios.get('/api/adminuser/get')
+                ]);
+                
+                if (menuResponse.data.code === 0 && userResponse.data.code === 0) {
+                    const menus = menuResponse.data.data.menus || [];
+                    userMenuIds = userResponse.data.data.menuIds || [];
+                    renderDynamicMenus(menus);
+                }
+            } catch (error) {
+                console.error('加载菜单失败', error);
+            }
+        }
+        
+        function renderDynamicMenus(menus) {
+            const container = document.getElementById('dynamic-menus');
+            const menuConfig = {
+                '反馈列表': { url: '/page/adminfeedback/list', group: 'feedback' },
+                '公告列表': { url: '/page/adminannounce/list', group: 'notice' },
+                '新增公告': { url: '/page/adminannounce/add', group: 'notice' },
+                '广告列表': { url: '/page/adminadvert/list', group: 'ad' },
+                '新增广告': { url: '/page/adminadvert/add', group: 'ad' },
+                '权限列表': { url: '/page/adminmenu/list', group: 'permission' },
+                '新增权限': { url: '/page/adminmenu/add', group: 'permission' },
+                '角色列表': { url: '/page/adminrole/list', group: 'role' },
+                '新增角色': { url: '/page/adminrole/add', group: 'role' },
+                '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
+                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
+                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
+            };
+            
+            const groups = {};
+            menus.forEach(function(menu) {
+                if (menu.isDeleted === 1) return;
+                const config = menuConfig[menu.menuName];
+                if (!config) return;
+                if (!groups[config.group]) { groups[config.group] = []; }
+                groups[config.group].push({ id: menu.id, name: menu.menuName, url: config.url });
+            });
+            
+            const groupNames = { 'feedback': '反馈', 'notice': '公告', 'ad': '广告', 'permission': '权限管理', 'role': '角色管理', 'adminuser': '管理员管理', 'accusation': '举报管理' };
+            const groupIcons = { 'feedback': '💬', 'notice': '📢', 'ad': '📺', 'permission': '🔐', 'role': '👥', 'adminuser': '👤', 'accusation': '🚨' };
+            
+            let html = '<a href="/page/admin/index" class="menu-item">首页</a>';
+            for (const groupKey in groups) {
+                const groupMenus = groups[groupKey];
+                const hasPermission = userMenuIds.length === 0 || groupMenus.some(item => userMenuIds.includes(item.id));
+                if (!hasPermission && userMenuIds.length > 0) continue;
+                html += `<div class="menu-item" onclick="toggleSubmenu('${groupKey}')"><span class="icon">${groupIcons[groupKey]}</span><span>${groupNames[groupKey]}</span><span class="arrow">▼</span></div><div class="submenu" id="submenu-${groupKey}">`;
+                groupMenus.forEach(function(item) {
+                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
+                    if (!hasItemPermission && userMenuIds.length > 0) return;
+                    const active = currentPath === item.url ? 'active' : '';
+                    html += `<a href="${item.url}" class="submenu-item ${active}">${item.name}</a>`;
+                });
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+        
+        function toggleSubmenu(groupKey) {
+            const submenu = document.getElementById('submenu-' + groupKey);
+            if (submenu) {
+                const isShow = submenu.classList.contains('show');
+                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
+                if (!isShow) { submenu.classList.add('show'); }
+            }
+        }
+        
+        loadDynamicMenus();
+
         const urlParams = new URLSearchParams(window.location.search);
         const adminId = urlParams.get('id');
         

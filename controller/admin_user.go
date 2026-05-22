@@ -168,21 +168,43 @@ func GetAdminUserHandler(c *gin.Context) {
 		return
 	}
 
-	var menuIds []int
+	//获取所有菜单
+	menuList, err := service.GetAllMenu()
+	if err != nil {
+		service.Logger.Error("GetAllMenu", zap.Error(err))
+		MakeApiResponseError(c, CODE_SYS_ERROR)
+		return
+	}
+
+	var isSys bool
+	menuIdMap := make(map[int]bool)
 	if adminUser.RoleId > 0 {
 		role, err := service.GetRoleNotDeletedById(adminUser.RoleId)
 		if err == nil && role != nil {
-			menuIds = parseMids(role.Mids)
+			isSys = role.IsSys == model.ADMIN_ROLE_IS_SYS
+
+			if len(role.Mids) > 0 {
+				menuIds := parseMids(role.Mids)
+				for _, v := range menuIds {
+					menuIdMap[v] = true
+				}
+			}
+		}
+	}
+
+	userMenu := make([]model.Menu, 0)
+	for _, v := range menuList {
+		if isSys || menuIdMap[v.Id] {
+			userMenu = append(userMenu, v)
 		}
 	}
 
 	data := map[string]interface{}{
-		"user":    adminUser,
-		"menuIds": menuIds,
+		"user": adminUser,
+		"menu": userMenu,
 	}
 
 	MakeApiResponseSuccess(c, data)
-
 }
 
 func parseMids(mids string) []int {

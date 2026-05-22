@@ -7,7 +7,7 @@ import (
 )
 
 func AdminIndexPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin/index.html", nil)
+	RenderAdminPage(c, "admin/index.html", nil)
 }
 
 func AdminEditPageHandler(c *gin.Context) {
@@ -59,7 +59,7 @@ func AdminUserRolePageHandler(c *gin.Context) {
 }
 
 func AdminAccusationListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminaccusation/list.html", nil)
+	RenderAdminPage(c, "adminaccusation/list.html", nil)
 }
 
 func AdminFeedbackListPageHandler(c *gin.Context) {
@@ -80,4 +80,8 @@ func AdminAdvertAddPageHandler(c *gin.Context) {
 
 func AdminAdvertListPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "adminadvert/list.html", nil)
+}
+
+func AdminAccusationEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminaccusation/edit.html", nil)
 }

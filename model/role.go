@@ -21,7 +21,8 @@ type Role struct {
 	//角色名
 	RoleName string `json:"roleName" gorm:"column:role_name" mapstructure:"roleName"`
 	//权限列表
-	Mids string `json:"mids" gorm:"column:mids" mapstructure:"mids"`
+	Mids  string `json:"mids" gorm:"column:mids" mapstructure:"mids"`
+	IsSys int    `json:"isSys" gorm:"column:is_sys" mapstructure:"isSys"`
 
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
@@ -31,6 +32,7 @@ type Role struct {
 }
 
 const (
+	ADMIN_ROLE_IS_SYS = 1   //是否系统管理员
 	ROLE_NAME_LEN_MAX = 100 //角色名最长为100个字
 )
 

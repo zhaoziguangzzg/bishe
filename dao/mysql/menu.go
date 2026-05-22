@@ -36,10 +36,10 @@ func UpdateMenuNotDeletedById(id int, isDeleted int) (err error) {
 
 // 获取全部权限菜单
 func GetAllMenu() (menus []model.Menu, err error) {
-
 	err = DB.Model(&model.Menu{}).
 		Where("is_deleted=?", model.IS_DELETED_NO).
-		Order("id DESC").Find(&menus).Error
+		Order("weight ASC").
+		Find(&menus).Error
 	return
 }
 

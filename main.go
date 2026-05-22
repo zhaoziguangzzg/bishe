@@ -130,7 +130,6 @@ func main() {
 	api.GET("/circle/create", controller.GetUserCreateCircleHandler)
 
 	//圈子列表（排行榜更多）
-	//TODO 展示广告
 	r.GET("/page/circle/list", controller.CircleListPageHandler)
 	//获取全部圈子
 	api.GET("/circle/list", controller.GetAllCircleHandler)
@@ -415,7 +414,7 @@ func main() {
 	adminApi.GET("/adminaccusation/all", controller.GetAllAccusationEssayHandler)
 
 	//修改举报页
-	adminPage.GET("/adminaccusation/edit", controller.AccusationEditPageHandler)
+	adminPage.GET("/adminaccusation/edit", controller.AdminAccusationEditPageHandler)
 	//获取举报内容文章
 	adminApi.GET("/adminaccusation/get", controller.GetEssayContentByAccusationHandler)
 	//更新举报状态

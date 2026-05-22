@@ -21,8 +21,8 @@ type Menu struct {
 	//权限路径
 	Path string `json:"path" gorm:"column:path" mapstructure:"path"`
 	//权限名
-	MenuName string `json:"menuName" gorm:"column:menu_name" mapstructure:"menuName"`
-
+	MenuName    string     `json:"menuName" gorm:"column:menu_name" mapstructure:"menuName"`
+	Weight      int        `json:"weight" gorm:"column:weight" mapstructure:"weight"`
 	CreateAt    *time.Time `json:"createAt" gorm:"column:create_at" mapstructure:"-"`
 	CreateAtStr string     `json:"-" gorm:"-" mapstructure:"createAt"`
 	UpdateAt    *time.Time `json:"updateAt" gorm:"column:update_at" mapstructure:"-"`

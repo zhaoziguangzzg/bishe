@@ -196,7 +196,7 @@ func UpdateCircleHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// TODO 将3个圈子排行接口合并为1个，3个榜单并行处理，waitgroup等并发全部处理，将错误传入channel（有容量），在并发的都处理后判断channel
+// TODO 返回值 圈子排名，是否付费，价格
 // 获取圈子列表
 func GetAllCircleHandler(c *gin.Context) {
 	var wg sync.WaitGroup

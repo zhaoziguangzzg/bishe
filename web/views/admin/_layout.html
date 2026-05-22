@@ -1,0 +1,219 @@
+{{define "admin_layout_head"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 知识分享平台</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .menu-item {
+            padding: 14px 24px;
+            color: rgba(255,255,255,0.85);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .menu-item:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left: 3px solid white;
+        }
+        .submenu {
+            display: none;
+            background: rgba(0,0,0,0.1);
+        }
+        .submenu.show {
+            display: block;
+        }
+        .submenu-item {
+            padding: 12px 24px 12px 48px;
+            color: rgba(255,255,255,0.75);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .submenu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .submenu-item.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left: 3px solid white;
+        }
+        .arrow {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        .menu-item:hover .arrow, .menu-item.active .arrow {
+            transform: rotate(180deg);
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .top-bar {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-name {
+            color: #333;
+            font-size: 14px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: #f56c6c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover {
+            background: #e64545;
+        }
+        .content-area {
+            padding: 24px 32px;
+        }
+    </style>
+    {{block "admin_layout_extra_head" .}}{{end}}
+</head>
+{{end}}
+
+{{define "admin_layout_body_start"}}
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>后台管理</h2>
+            <p>知识分享平台</p>
+        </div>
+        <div id="dynamic-menus"></div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="user-info">
+                <span class="user-name" id="adminName">管理员</span>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+{{end}}
+
+{{define "admin_layout_body_end"}}
+        </div>
+    </div>
+    
+    <script>
+        let currentAdmin = null;
+        let userMenus = [];
+
+        function logout() {
+            window.location.href = '/api/adminuser/logout';
+        }
+
+        async function loadAdminInfo() {
+            try {
+                const response = await axios.get('/api/adminuser/get');
+                if (response.data.code === 0 && response.data.data) {
+                    currentAdmin = response.data.data.user;
+                    userMenus = response.data.data.menu || [];
+                    document.getElementById('adminName').textContent = currentAdmin.name;
+                    renderDynamicMenus();
+                } else {
+                    console.warn('用户信息加载失败，准备跳转登录页');
+                }
+            } catch (error) {
+                console.error('加载用户信息失败', error);
+            }
+        }
+
+        function renderDynamicMenus() {
+            const container = document.getElementById('dynamic-menus');
+            const currentPath = window.location.pathname;
+            
+            let html = '';
+            userMenus.forEach(function(menu) {
+                if (menu.isDeleted === 1) return;
+                
+                const onclick = menu.path ? `window.location.href='${menu.path}';` : '';
+                const menuPrefix = '/' + menu.path.replace(/\/$/, '').split('/').filter(Boolean).slice(0, 2).join('/');
+                const currentPrefix = '/' + currentPath.replace(/\/$/, '').split('/').filter(Boolean).slice(0, 2).join('/');
+                const isActive = menu.path && currentPrefix === menuPrefix;
+                const activeClass = isActive ? ' active' : '';
+                
+                html += `
+                    <div class="menu-item${activeClass}" data-menu-id="${menu.id}" onclick="${onclick}">
+                        <span>${menu.menuName}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        loadAdminInfo();
+    </script>
+    {{block "admin_layout_extra_script" .}}{{end}}
+</body>
+</html>
+{{end}}
