@@ -283,6 +283,8 @@ func main() {
 	api.GET("/course/search", controller.GetCourseByTitleHandler)
 	//获取用户购买记录
 	api.GET("/purchase/all", controller.GetUserPurchaseListHandler)
+	//购买课程页面
+	page.GET("/purchase/index", controller.PurchaseIndexPageHandler)
 
 	//添加课程页面
 	page.GET("/course/add", controller.AddCoursePageHandler)

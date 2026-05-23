@@ -1,0 +1,171 @@
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .purchase-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #667eea;
+    }
+    .purchase-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .purchase-table th {
+        background: #f8f9fa;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 14px;
+        color: #666;
+        font-weight: 600;
+    }
+    .purchase-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #333;
+    }
+    .purchase-table tr:hover {
+        background: #fafafa;
+    }
+    .course-link {
+        color: #667eea;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .course-link:hover {
+        text-decoration: underline;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .status-badge.paid {
+        background: #e8f5e9;
+        color: #4caf50;
+    }
+    .status-badge.unpaid {
+        background: #fff3e0;
+        color: #ff9800;
+    }
+    .status-badge.canceled {
+        background: #ffebee;
+        color: #f44336;
+    }
+    .status-badge.expired {
+        background: #e3f2fd;
+        color: #2196f3;
+    }
+    .status-badge.refund {
+        background: #f3e5f5;
+        color: #9c27b0;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+</style>
+{{end}}
+
+<div class="purchase-card">
+    <h2 class="section-title">📖 我的购买</h2>
+    <div id="purchaseContent">
+        <div class="empty-tip">加载中...</div>
+    </div>
+</div>
+
+{{template "index_layout_body_end" .}}
+
+{{define "index_layout_extra_scripts"}}
+<script>
+    const purchaseStatusMap = {
+        0: { text: '待支付', class: 'unpaid' },
+        1: { text: '已支付', class: 'paid' },
+        2: { text: '已取消', class: 'canceled' },
+        3: { text: '已过期', class: 'expired' },
+        4: { text: '已退款', class: 'refund' }
+    };
+
+    function goToCourse(courseId) {
+        window.location.href = '/page/course/detail?course_id=' + courseId;
+    }
+
+    async function loadPurchases() {
+        const container = document.getElementById('purchaseContent');
+
+        try {
+            container.innerHTML = '<div class="empty-tip">加载中...</div>';
+
+            const response = await axios.get('/api/purchase/all');
+
+            if (response.data.code === 0) {
+                const data = response.data.data;
+                const purchaseCourses = data.purchaseCourses || [];
+
+                if (purchaseCourses.length === 0) {
+                    container.innerHTML = '<div class="empty-tip">暂无购买记录</div>';
+                    return;
+                }
+
+                let html = `
+            <table class="purchase-table">
+                <thead>
+                    <tr>
+                        <th>购买ID</th>
+                        <th>课程名称</th>
+                        <th>购买时间</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+                purchaseCourses.forEach(item => {
+                    const course = item.course;
+                    const purchase = item.purchase;
+                    if (!course) return;
+
+                    const statusInfo = purchaseStatusMap[purchase.purchaseStatus] || { text: '未知', class: '' };
+                    const purchaseTime = purchase.createAt || '-';
+
+                    html += `
+                    <tr>
+                        <td>${purchase.id}</td>
+                        <td><span class="course-link" onclick="goToCourse(${course.id})">${escapeHtml(course.title)}</span></td>
+                        <td>${purchaseTime}</td>
+                        <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
+                    </tr>
+                `;
+                });
+
+                html += '</tbody></table>';
+
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="empty-tip">加载失败: ' + (response.data.msg || '未知错误') + '</div>';
+            }
+        } catch (error) {
+            container.innerHTML = '<div class="empty-tip">加载失败，请稍后重试</div>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPurchases();
+    });
+</script>
+{{end}}

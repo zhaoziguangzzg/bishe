@@ -691,9 +691,9 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
 	// 获取用户购买记录
-	purchases, err := service.GetPurchaseByUidStatus(uid, model.PURCHASE_STATUS_PAID)
+	purchases, err := service.GetAllPurchaseByUid(uid)
 	if err != nil {
-		service.Logger.Error("GetPurchaseByUidStatus", zap.Error(err))
+		service.Logger.Error("GetAllPurchaseByUid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
