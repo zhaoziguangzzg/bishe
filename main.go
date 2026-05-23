@@ -442,7 +442,7 @@ func main() {
 	//获取全部公告
 	adminApi.GET("/adminannounce/all", controller.GetAllAnnounceHandler)
 	//修改公告页
-	adminPage.GET("/adminannounce/edit", controller.AnnounceEditPageHandler)
+	adminPage.GET("/adminannounce/edit", controller.AdminAnnounceEditPageHandler)
 	//查看公告
 	adminApi.GET("/adminannounce/get", controller.GetAnnounceHandler)
 	//更新公告

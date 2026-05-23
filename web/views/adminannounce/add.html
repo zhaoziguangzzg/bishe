@@ -1,298 +1,259 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加公告 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+{{define "admin_layout_extra_head"}}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        width: 100%;
+    }
+    .form-card h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .form-group label .required {
+        color: #f56c6c;
+        margin-left: 4px;
+    }
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+        font-family: inherit;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #667eea;
+    }
+    .form-group textarea {
+        min-height: 200px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+    .hint {
+        color: #909399;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+    .btn-group {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #eee;
+    }
+    .btn {
+        flex: 1;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: opacity 0.3s;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-secondary {
+        background: #909399;
+    }
+    .btn-secondary:hover {
+        background: #82848a;
+    }
+    .error-text {
+        color: #f56c6c;
+        font-size: 13px;
+        margin-top: 8px;
+        display: none;
+    }
+    .error-text.show {
+        display: block;
+    }
+    .success-tip {
+        color: #67c23a;
+        font-size: 14px;
+        margin-top: 16px;
+        text-align: center;
+        display: none;
+    }
+    .success-tip.show {
+        display: block;
+    }
+</style>
+{{end}}
+
+{{define "admin_layout_extra_script"}}
+<script>
+    function clearErrors() {
+        document.querySelectorAll('.error-text').forEach(el => {
+            el.classList.remove('show');
+        });
+    }
+
+    function showError(elementId, message) {
+        const el = document.getElementById(elementId);
+        el.textContent = message;
+        el.classList.add('show');
+    }
+
+    function formatDateTimeForApi(dateTimeStr) {
+        if (!dateTimeStr) return '';
+        const date = new Date(dateTimeStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    async function submitForm() {
+        clearErrors();
+
+        const title = document.getElementById('title').value.trim();
+        const content = document.getElementById('content').value.trim();
+        const startTime = document.getElementById('start_time').value;
+        const successMsg = document.getElementById('successMsg');
+
+        if (!title) {
+            showError('titleError', '请输入公告标题');
+            return;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
+
+        if (title.length > 100) {
+            showError('titleError', '标题不能超过100个字符');
+            return;
         }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 16px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+
+        if (!content) {
+            showError('contentError', '请输入公告内容');
+            return;
         }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
+
+        if (content.length > 5000) {
+            showError('contentError', '内容不能超过5000个字符');
+            return;
         }
-        .header a:hover {
-            text-decoration: underline;
+
+        if (!startTime) {
+            showError('startTimeError', '请选择开始时间');
+            return;
         }
-        .nav {
-            display: flex;
-            gap: 24px;
+
+        const endTime = document.getElementById('end_time').value;
+        if (!endTime) {
+            showError('endTimeError', '请选择结束时间');
+            return;
         }
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: background 0.3s;
+
+        if (new Date(endTime) <= new Date(startTime)) {
+            showError('endTimeError', '结束时间必须晚于开始时间');
+            return;
         }
-        .nav a:hover {
-            background: rgba(255,255,255,0.2);
+
+        const btn = document.querySelector('.btn');
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            formData.append('start_time', formatDateTimeForApi(startTime));
+            formData.append('end_time', formatDateTimeForApi(endTime));
+
+            const response = await axios.post('/api/adminannounce/add', formData);
+
+            if (response.data.code === 0) {
+                successMsg.textContent = '添加成功！';
+                successMsg.classList.add('show');
+                setTimeout(function() {
+                    window.location.href = '/page/adminannounce/list';
+                }, 1500);
+            } else {
+                showError('titleError', response.data.msg || '添加失败');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('titleError', '请求失败，请稍后重试');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '提交';
         }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .form-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .form-card h2 {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-group label .required {
-            color: #f56c6c;
-            margin-left: 4px;
-        }
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-            font-family: inherit;
-        }
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: #667eea;
-        }
-        .form-group textarea {
-            min-height: 200px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-        .hint {
-            color: #909399;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 16px;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid #eee;
-        }
-        .btn {
-            flex: 1;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .btn:hover {
-            opacity: 0.9;
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .btn-secondary {
-            background: #909399;
-        }
-        .btn-secondary:hover {
-            background: #82848a;
-        }
-        .error-text {
-            color: #f56c6c;
-            font-size: 13px;
-            margin-top: 8px;
-            display: none;
-        }
-        .error-text.show {
-            display: block;
-        }
-        .success-tip {
-            color: #67c23a;
-            font-size: 14px;
-            margin-top: 16px;
-            text-align: center;
-            display: none;
-        }
-        .success-tip.show {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="nav">
-            <a href="/page/admin/index">管理员首页</a>
+    }
+
+    function goBack() {
+        window.location.href = '/page/adminannounce/list';
+    }
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="form-card">
+    <h2>添加公告</h2>
+    <form id="addForm">
+        <div class="form-group">
+            <label>公告标题 <span class="required">*</span></label>
+            <input type="text" id="title" name="title" placeholder="请输入公告标题" maxlength="100" required>
+            <div class="hint">最多100个字符</div>
+            <div class="error-text" id="titleError"></div>
         </div>
-        <div style="flex: 1;"></div>
-        <div class="nav">
-            <a href="/api/adminuser/logout">退出登录</a>
+
+        <div class="form-group">
+            <label>公告内容 <span class="required">*</span></label>
+            <textarea id="content" name="content" placeholder="请输入公告内容" maxlength="5000" required></textarea>
+            <div class="hint">最多5000个字符</div>
+            <div class="error-text" id="contentError"></div>
         </div>
-    </div>
 
-    <div class="container">
-        <div class="form-card">
-            <h2>添加公告</h2>
-            <form id="addForm">
-                <div class="form-group">
-                    <label>公告标题 <span class="required">*</span></label>
-                    <input type="text" id="title" name="title" placeholder="请输入公告标题" maxlength="100" required>
-                    <div class="hint">最多100个字符</div>
-                    <div class="error-text" id="titleError"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>公告内容 <span class="required">*</span></label>
-                    <textarea id="content" name="content" placeholder="请输入公告内容" maxlength="5000" required></textarea>
-                    <div class="hint">最多5000个字符</div>
-                    <div class="error-text" id="contentError"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>开始时间 <span class="required">*</span></label>
-                    <input type="datetime-local" id="start_time" name="start_time" required>
-                    <div class="hint">公告开始展示的时间</div>
-                    <div class="error-text" id="startTimeError"></div>
-                </div>
-
-                <div class="btn-group">
-                    <button type="button" class="btn" onclick="submitForm()">提交</button>
-                    <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
-                </div>
-
-                <p id="successMsg" class="success-tip"></p>
-            </form>
+        <div class="form-group">
+            <label>开始时间 <span class="required">*</span></label>
+            <input type="datetime-local" id="start_time" name="start_time" required>
+            <div class="hint">公告开始展示的时间</div>
+            <div class="error-text" id="startTimeError"></div>
         </div>
-    </div>
 
-    <script>
-        function clearErrors() {
-            document.querySelectorAll('.error-text').forEach(el => {
-                el.classList.remove('show');
-            });
-        }
+        <div class="form-group">
+            <label>结束时间 <span class="required">*</span></label>
+            <input type="datetime-local" id="end_time" name="end_time" required>
+            <div class="hint">公告结束展示的时间</div>
+            <div class="error-text" id="endTimeError"></div>
+        </div>
 
-        function showError(elementId, message) {
-            const el = document.getElementById(elementId);
-            el.textContent = message;
-            el.classList.add('show');
-        }
+        <div class="btn-group">
+            <button type="button" class="btn" onclick="submitForm()">提交</button>
+            <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+        </div>
 
-        function formatDateTimeForApi(dateTimeStr) {
-            if (!dateTimeStr) return '';
-            const date = new Date(dateTimeStr);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        }
+        <p id="successMsg" class="success-tip"></p>
+    </form>
+</div>
 
-        async function submitForm() {
-            clearErrors();
-
-            const title = document.getElementById('title').value.trim();
-            const content = document.getElementById('content').value.trim();
-            const startTime = document.getElementById('start_time').value;
-            const successMsg = document.getElementById('successMsg');
-
-            if (!title) {
-                showError('titleError', '请输入公告标题');
-                return;
-            }
-
-            if (title.length > 100) {
-                showError('titleError', '标题不能超过100个字符');
-                return;
-            }
-
-            if (!content) {
-                showError('contentError', '请输入公告内容');
-                return;
-            }
-
-            if (content.length > 5000) {
-                showError('contentError', '内容不能超过5000个字符');
-                return;
-            }
-
-            if (!startTime) {
-                showError('startTimeError', '请选择开始时间');
-                return;
-            }
-
-            const btn = document.querySelector('.btn');
-            btn.disabled = true;
-            btn.textContent = '提交中...';
-
-            try {
-                const formData = new FormData();
-                formData.append('title', title);
-                formData.append('content', content);
-                formData.append('start_time', formatDateTimeForApi(startTime));
-
-                const response = await axios.post('/api/adminannounce/add', formData);
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '添加成功！';
-                    successMsg.classList.add('show');
-                    setTimeout(function() {
-                        window.location.href = '/page/adminannounce/list';
-                    }, 1500);
-                } else {
-                    showError('titleError', response.data.msg || '添加失败');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('titleError', '请求失败，请稍后重试');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '提交';
-            }
-        }
-
-        function goBack() {
-            window.location.href = '/page/adminannounce/list';
-        }
-    </script>
-</body>
-</html>
+{{template "admin_layout_body_end" .}}

@@ -54,19 +54,6 @@ func AddAnnounceHandler(c *gin.Context) {
 
 	createTime := time.Now()
 
-	//开始时间大于当前时间
-	// a after b    a再b后
-	if createTime.After(startTime) {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//开始时间小于结束时间
-	if startTime.After(endTime) {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	// 构造公告
 	announce := &model.Announce{ //其中包含自动生成的id
 		Title:     title,

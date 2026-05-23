@@ -92,6 +92,6 @@ func AdminAnnounceListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminannounce/list.html", nil)
 }
 
-func AnnounceEditPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "announce/edit.html", nil)
+func AdminAnnounceEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminannounce/edit.html", nil)
 }
