@@ -317,7 +317,7 @@ func UpdateAdvertHandler(c *gin.Context) {
 // 删除广告
 func DeletedAdvertByUpdateIsDeletedHandler(c *gin.Context) {
 	//获取广告id
-	advertIdStr := c.PostForm("advert_id")
+	advertIdStr := c.PostForm("id")
 	if advertIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return

@@ -31,7 +31,11 @@ func GetAllAdvert(page int, pagesize int) (adverts []model.Advert, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Advert{}).
-		Order("id DESC").Offset(offset).Limit(pagesize).Find(&adverts).Error
+		Where("is_deleted=?", model.IS_DELETED_NO).
+		Order("id DESC").
+		Offset(offset).
+		Limit(pagesize).
+		Find(&adverts).Error
 	if err != nil {
 		return
 	}

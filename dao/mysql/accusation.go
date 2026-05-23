@@ -30,8 +30,23 @@ func GetUserAccusationEssay(uid int, eid int) (accusation *model.Accusation, err
 	return accusation, nil
 }
 
-// 获取全部未处理举报
-func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusation, err error) {
+// 获取全部举报（支持按状态筛选，status为-1时查询所有）
+func GetAllAccusationEssay(page int, pagesize int, status int) (accusations []model.Accusation, err error) {
+	offset := (page - 1) * pagesize
+
+	query := DB.Model(&model.Accusation{}).
+		Where("is_deleted=?", model.ACCUSATION_NOT_DELETED)
+
+	if status != -1 {
+		query = query.Where("accusation_status=?", status)
+	}
+
+	err = query.Order("accusation_time DESC").Offset(offset).Limit(pagesize).Find(&accusations).Error
+	return
+}
+
+// 获取全部未处理举报（兼容旧版本）
+func GetAllAccusationEssayByStatusWait(page int, pagesize int) (accusations []model.Accusation, err error) {
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Accusation{}).

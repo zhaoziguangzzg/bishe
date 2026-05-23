@@ -249,7 +249,7 @@ func UpdateAnnounceHandler(c *gin.Context) {
 // 删除公告
 func DeletedAnnounceByUpdateIsDeletedHandler(c *gin.Context) {
 	//获取公告id
-	announceIdStr := c.PostForm("announce_id")
+	announceIdStr := c.PostForm("id")
 	if announceIdStr == "" {
 		MakeApiResponseErrorParams(c)
 		return

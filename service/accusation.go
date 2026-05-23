@@ -15,9 +15,9 @@ func GetUserAccusationEssay(uid int, eid int) (accusation *model.Accusation, err
 	return mysql.GetUserAccusationEssay(uid, eid)
 }
 
-// 获取全部未处理举报
-func GetAllAccusationEssay(page int, pagesize int) (accusations []model.Accusation, err error) {
-	return mysql.GetAllAccusationEssay(page, pagesize)
+// 获取全部举报（支持按状态筛选，status为-1时查询所有）
+func GetAllAccusationEssay(page int, pagesize int, status int) (accusations []model.Accusation, err error) {
+	return mysql.GetAllAccusationEssay(page, pagesize, status)
 }
 
 // 获取文章举报内容

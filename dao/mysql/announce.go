@@ -31,7 +31,11 @@ func GetAllAnnounce(page int, pagesize int) (announces []model.Announce, err err
 	offset := (page - 1) * pagesize
 
 	err = DB.Model(&model.Announce{}).
-		Order("id DESC").Offset(offset).Limit(pagesize).Find(&announces).Error
+		Where("is_deleted=?", model.IS_DELETED_NO).
+		Order("id DESC").
+		Offset(offset).
+		Limit(pagesize).
+		Find(&announces).Error
 	if err != nil {
 		return
 	}

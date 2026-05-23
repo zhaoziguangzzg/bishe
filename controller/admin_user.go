@@ -341,7 +341,7 @@ func UpdateAdminUserHandler(c *gin.Context) {
 // 删除管理员用户
 func DeleteAdminUserHandler(c *gin.Context) {
 	//更新字段
-	uidStr := c.PostForm("uid")
+	uidStr := c.PostForm("id")
 	if uidStr == "" {
 		MakeApiResponseErrorParams(c)
 		return

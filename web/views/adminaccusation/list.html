@@ -10,6 +10,23 @@
         font-size: 18px;
         color: #333;
     }
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    .filter-bar select {
+        padding: 8px 12px;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #606266;
+        background: white;
+        cursor: pointer;
+    }
+    .filter-bar select:hover {
+        border-color: #409eff;
+    }
     .table-card {
         background: white;
         border-radius: 12px;
@@ -47,11 +64,11 @@
         background: #fdf6ec;
         color: #e6a23c;
     }
-    .status-processed {
+    .status-normal {
         background: #f0f9eb;
         color: #67c23a;
     }
-    .status-rejected {
+    .status-violate {
         background: #fef0f0;
         color: #f56c6c;
     }
@@ -93,11 +110,13 @@
 
 {{define "admin_layout_extra_script"}}
 <script>
+    let currentStatus = -1; // -1表示全部
+
     function getStatusText(status) {
         switch(status) {
-            case 0: return '待处理';
-            case 1: return '已处理';
-            case 2: return '已驳回';
+            case 0: return '待审核';
+            case 1: return '无违规';
+            case 2: return '有违规';
             default: return '未知';
         }
     }
@@ -105,8 +124,8 @@
     function getStatusClass(status) {
         switch(status) {
             case 0: return 'status-pending';
-            case 1: return 'status-processed';
-            case 2: return 'status-rejected';
+            case 1: return 'status-normal';
+            case 2: return 'status-violate';
             default: return '';
         }
     }
@@ -124,7 +143,11 @@
 
     async function loadAccusations() {
         try {
-            const response = await axios.get('/api/adminaccusation/all?page=1&pagesize=1000');
+            let url = '/api/adminaccusation/all?page=1&pagesize=1000';
+            if (currentStatus !== -1) {
+                url += '&status=' + currentStatus;
+            }
+            const response = await axios.get(url);
             if (response.data.code === 0) {
                 const accusations = response.data.data.accusations || [];
                 const tbody = document.getElementById('accusationTableBody');
@@ -159,8 +182,13 @@
         }
     }
 
+    function onStatusFilterChange(select) {
+        currentStatus = parseInt(select.value);
+        loadAccusations();
+    }
+
     function viewDetail(id) {
-        alert('查看举报详情功能开发中，举报ID: ' + id);
+        window.location.href = `/page/adminaccusation/edit?id=${id}`;
     }
 
     function handleAccusation(id, essayId) {
@@ -173,6 +201,18 @@
 
 {{template "admin_layout_head" .}}
 {{template "admin_layout_body_start" .}}
+
+<div class="tool-bar">
+    <h2>举报管理</h2>
+    <div class="filter-bar">
+        <select onchange="onStatusFilterChange(this)">
+            <option value="-1">全部状态</option>
+            <option value="0">待审核</option>
+            <option value="1">无违规</option>
+            <option value="2">有违规</option>
+        </select>
+    </div>
+</div>
 
 <div class="table-card">
     <table class="table">

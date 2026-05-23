@@ -70,13 +70,24 @@ func AddUserAccusationEssayHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
-// 获取全部未审核举报
+// 获取全部举报（支持按状态筛选）
 func GetAllAccusationEssayHandler(c *gin.Context) {
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
 	pageSize := 10
 
-	accusations, err := service.GetAllAccusationEssay(page, pageSize)
+	// 支持按状态筛选，-1表示查询所有状态
+	statusStr := c.Query("status")
+	status := -1
+	if statusStr != "" {
+		var err error
+		status, err = strconv.Atoi(statusStr)
+		if err != nil {
+			status = -1
+		}
+	}
+
+	accusations, err := service.GetAllAccusationEssay(page, pageSize, status)
 	if err != nil {
 		service.Logger.Error("GetAllAccusationEssay", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
