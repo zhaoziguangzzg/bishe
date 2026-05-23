@@ -141,6 +141,29 @@
     </div>
     
     <script>
+        (function() {
+            var path = window.location.pathname;
+            var showSearchPaths = ['/', '/page/circle/search', '/page/circle/index', '/page/essay/search'];
+            var showSearch = showSearchPaths.indexOf(path) !== -1;
+            if (!showSearch) {
+                var searchEl = document.querySelector('.header-search');
+                if (searchEl) {
+                    searchEl.style.display = 'none';
+                }
+            }
+
+            var searchCirclePaths = ['/', '/page/index', '/page/circle/search'];
+            var inputEl = document.getElementById('searchInput');
+            if (inputEl) {
+                if (searchCirclePaths.indexOf(path) !== -1) {
+                    inputEl.placeholder = '搜索圈子...';
+                } else {
+                    inputEl.placeholder = '搜索文章...';
+                }
+            }
+        })();
+    </script>
+    <script>
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -159,7 +182,22 @@
             if (!keyword) {
                 return;
             }
-            window.location.href = '/page/circle/search?keyword=' + encodeURIComponent(keyword);
+            var path = window.location.pathname;
+            var searchCirclePaths = ['/', '/page/index', '/page/circle/search'];
+            if (searchCirclePaths.indexOf(path) !== -1) {
+                window.location.href = '/page/circle/search?keyword=' + encodeURIComponent(keyword);
+            } else {
+                var url = '/page/essay/search?keyword=' + encodeURIComponent(keyword);
+                var urlParams = new URLSearchParams(window.location.search);
+                var cid = urlParams.get('cid');
+                if (!cid && typeof currentCircleId !== 'undefined') {
+                    cid = currentCircleId;
+                }
+                if (cid) {
+                    url += '&cid=' + encodeURIComponent(cid);
+                }
+                window.location.href = url;
+            }
         }
     </script>
     {{block "index_layout_extra_scripts" .}}{{end}}

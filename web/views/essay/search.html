@@ -308,17 +308,5 @@
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
-
-    function performSearch() {
-        const newKeyword = document.getElementById('searchInput').value.trim();
-        if (!newKeyword) {
-            return;
-        }
-        let url = `/page/essay/search?keyword=${encodeURIComponent(newKeyword)}`;
-        if (cid) {
-            url += `&cid=${cid}`;
-        }
-        window.location.href = url;
-    }
 </script>
 {{end}}

@@ -219,13 +219,5 @@
     function goToCircleDetail(cid) {
         window.location.href = `/page/circle/detail?cid=${cid}`;
     }
-
-    function performSearch() {
-        const newKeyword = document.getElementById('searchInput').value.trim();
-        if (!newKeyword) {
-            return;
-        }
-        window.location.href = `/page/circle/search?keyword=${encodeURIComponent(newKeyword)}`;
-    }
 </script>
 {{end}}

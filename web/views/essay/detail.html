@@ -420,9 +420,16 @@
     let currentLikeStatus = false;
     let currentCollectStatus = false;
 
+    function getBackLink() {
+        if (circleId) {
+            return '<a href="/page/circle/index?cid=' + circleId + '">返回圈子</a>';
+        }
+        return '<a href="/page/index">返回首页</a>';
+    }
+
     (async function init() {
         if (!essayId) {
-            document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
+            document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2>' + getBackLink() + '</div>';
             return;
         }
         await checkLogin();
@@ -447,15 +454,18 @@
             });
 
             if (response.data.code === 0) {
+                if (!circleId) {
+                    circleId = response.data.data.essay.circleId || '';
+                }
                 renderEssayDetail(response.data.data);
                 await loadLikeStatus();
                 await loadCollectStatus();
                 loadComments();
             } else {
-                document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '文章不存在') + '</h2><a href="/page/index">返回首页</a></div>';
+                document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '文章不存在') + '</h2>' + getBackLink() + '</div>';
             }
         } catch (error) {
-            document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/index">返回首页</a></div>';
+            document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2>' + getBackLink() + '</div>';
         }
     }
 
@@ -474,7 +484,7 @@
                     <a class="author-name" onclick="goToAuthorProfile(${essay.authorId})">${escapeHtml(authorName)}</a>
                     <div class="publish-time">${formatDate(essay.createAt)}</div>
                 </div>
-                ${currentUser && currentUser.id === essay.authorId ? '<div class="author-actions"><button class="edit-essay-btn" onclick="window.location.href=\'/page/essay/edit?eid=' + essay.id + '\'">修改文章</button></div>' : ''}
+                ${currentUser && currentUser.id === essay.authorId ? '<div class="author-actions"><button class="edit-essay-btn" onclick="window.location.href=\'/page/essay/edit?eid=' + essay.id + '&cid=' + circleId + '\'">修改文章</button></div>' : ''}
             </div>
             <div class="essay-content">${essay.content}</div>
             <div class="action-bar">
