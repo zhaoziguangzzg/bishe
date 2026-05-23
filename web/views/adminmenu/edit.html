@@ -1,436 +1,217 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修改菜单 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-        }
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-        .sidebar-header {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-        .sidebar-header h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-        .sidebar-header p {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-        .menu-item {
-            padding: 14px 24px;
-            color: rgba(255,255,255,0.85);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .menu-item:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .menu-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .submenu {
-            display: none;
-            background: rgba(0,0,0,0.1);
-        }
-        .submenu.show {
-            display: block;
-        }
-        .submenu-item {
-            padding: 12px 24px 12px 48px;
-            color: rgba(255,255,255,0.75);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: block;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .submenu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .submenu-item.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .arrow {
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-        .menu-item:hover .arrow, .menu-item.active .arrow {
-            transform: rotate(180deg);
-        }
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .top-bar {
-            background: white;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .top-bar h1 {
-            font-size: 20px;
-            color: #333;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .logout-btn {
-            padding: 8px 16px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-        }
-        .logout-btn:hover {
-            background: #e64545;
-        }
-        .content-area {
-            padding: 24px 32px;
-        }
-        .add-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            max-width: 600px;
-        }
-        .add-card h2 {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 24px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus {
-            border-color: #667eea;
-        }
-        .form-group .hint {
-            color: #909399;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:hover {
-            opacity: 0.9;
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .btn-secondary {
-            background: #f5f7fa;
-            color: #666;
-            border: 1px solid #dcdfe6;
-            margin-top: 10px;
-        }
-        .btn-secondary:hover {
-            background: #ebeef5;
-        }
-        .error-tip {
-            color: #f56c6c;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            display: none;
-        }
-        .error-tip.show {
-            display: block;
-        }
-        .success-tip {
-            color: #67c23a;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            display: none;
-        }
-        .success-tip.show {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>管理后台</h2>
-            <p>知识分享平台</p>
-        </div>
-        <div id="dynamic-menus"></div>
-    </div>
-    
-    <div class="main-content">
-        <div class="top-bar">
-            <h1>修改菜单</h1>
-            <div class="user-info">
-                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
-            </div>
-        </div>
-        
-        <div class="content-area">
-            <div class="add-card">
-                <h2>修改菜单</h2>
-                <div class="error-tip" id="errorTip"></div>
-                <div class="success-tip" id="successTip"></div>
+{{define "admin_layout_extra_head"}}
+<style>
+    .add-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .add-card h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 24px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .form-group input:focus {
+        border-color: #667eea;
+    }
+    .form-group .hint {
+        color: #909399;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+        margin-top: 10px;
+    }
+    .btn-secondary:hover {
+        background: #ebeef5;
+    }
+    .error-tip {
+        color: #f56c6c;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .error-tip.show {
+        display: block;
+    }
+    .success-tip {
+        color: #67c23a;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .success-tip.show {
+        display: block;
+    }
+</style>
+{{end}}
 
-                <form id="menuForm">
-                    <input type="hidden" id="menu_id" name="menu_id">
-                    
-                    <div class="form-group">
-                        <label>菜单名称</label>
-                        <input type="text" id="menu_name" name="menu_name" placeholder="请输入菜单名称" maxlength="100" required>
-                        <div class="hint">最多100个字符</div>
-                    </div>
+{{define "admin_layout_extra_script"}}
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const menuId = urlParams.get('menu_id');
 
-                    <div class="form-group">
-                        <label>菜单路径</label>
-                        <input type="text" id="menu_path" name="menu_path" placeholder="请输入菜单路径" maxlength="200" required>
-                        <div class="hint">例如：/page/circle/index</div>
-                    </div>
+    if (!menuId) {
+        alert('缺少菜单ID参数');
+        window.location.href = '/page/adminmenu/list';
+    }
 
-                    <button type="button" class="btn" onclick="submitMenu()">提交</button>
-                    <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    document.getElementById('menu_id').value = menuId;
 
-    <script>
-        let currentPath = window.location.pathname;
-        let userMenuIds = [];
-        
-        async function loadDynamicMenus() {
-            try {
-                const [menuResponse, userResponse] = await Promise.all([
-                    axios.get('/api/adminmenu/all'),
-                    axios.get('/api/adminuser/get')
-                ]);
-                if (menuResponse.data.code === 0 && userResponse.data.code === 0) {
-                    const menus = menuResponse.data.data.menus || [];
-                    userMenuIds = userResponse.data.data.menuIds || [];
-                    renderDynamicMenus(menus);
-                }
-            } catch (error) { console.error('加载菜单失败', error); }
-        }
-        
-        function renderDynamicMenus(menus) {
-            const container = document.getElementById('dynamic-menus');
-            const menuConfig = {
-                '反馈列表': { url: '/page/adminfeedback/list', group: 'feedback' },
-                '公告列表': { url: '/page/adminannounce/list', group: 'notice' },
-                '新增公告': { url: '/page/adminannounce/add', group: 'notice' },
-                '广告列表': { url: '/page/adminadvert/list', group: 'ad' },
-                '新增广告': { url: '/page/adminadvert/add', group: 'ad' },
-                '权限列表': { url: '/page/adminmenu/list', group: 'permission' },
-                '新增权限': { url: '/page/adminmenu/add', group: 'permission' },
-                '角色列表': { url: '/page/adminrole/list', group: 'role' },
-                '新增角色': { url: '/page/adminrole/add', group: 'role' },
-                '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
-                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
-                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
-            };
-            const groups = {};
-            menus.forEach(function(menu) {
-                if (menu.isDeleted === 1) return;
-                const config = menuConfig[menu.menuName];
-                if (!config) return;
-                if (!groups[config.group]) { groups[config.group] = []; }
-                groups[config.group].push({ id: menu.id, name: menu.menuName, url: config.url });
-            });
-            const groupNames = { 'feedback': '反馈', 'notice': '公告', 'ad': '广告', 'permission': '权限管理', 'role': '角色管理', 'adminuser': '管理员管理', 'accusation': '举报管理' };
-            const groupIcons = { 'feedback': '💬', 'notice': '📢', 'ad': '📺', 'permission': '🔐', 'role': '👥', 'adminuser': '👤', 'accusation': '🚨' };
-            let html = '<a href="/page/admin/index" class="menu-item">首页</a>';
-            for (const groupKey in groups) {
-                const groupMenus = groups[groupKey];
-                const hasPermission = userMenuIds.length === 0 || groupMenus.some(item => userMenuIds.includes(item.id));
-                if (!hasPermission && userMenuIds.length > 0) continue;
-                html += `<div class="menu-item" onclick="toggleSubmenu('${groupKey}')"><span class="icon">${groupIcons[groupKey]}</span><span>${groupNames[groupKey]}</span><span class="arrow">▼</span></div><div class="submenu" id="submenu-${groupKey}">`;
-                groupMenus.forEach(function(item) {
-                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
-                    if (!hasItemPermission && userMenuIds.length > 0) return;
-                    const active = currentPath === item.url ? 'active' : '';
-                    html += `<a href="${item.url}" class="submenu-item ${active}">${item.name}</a>`;
-                });
-                html += '</div>';
-            }
-            container.innerHTML = html;
-        }
-        
-        function toggleSubmenu(groupKey) {
-            const submenu = document.getElementById('submenu-' + groupKey);
-            if (submenu) {
-                const isShow = submenu.classList.contains('show');
-                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
-                if (!isShow) { submenu.classList.add('show'); }
-            }
-        }
-        
-        loadDynamicMenus();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const menuId = urlParams.get('menu_id');
-
-        if (!menuId) {
-            alert('缺少菜单ID参数');
-            window.location.href = '/page/adminmenu/list';
-        }
-
-        document.getElementById('menu_id').value = menuId;
-
-        async function loadMenu() {
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    const menus = response.data.data.menus;
-                    const menu = menus.find(m => m.id == menuId);
-                    if (menu) {
-                        document.getElementById('menu_name').value = menu.menuName;
-                        document.getElementById('menu_path').value = menu.path;
-                    } else {
-                        showError('菜单不存在');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('加载菜单信息失败');
-            }
-        }
-
-        loadMenu();
-
-        function showError(message) {
-            const errorTip = document.getElementById('errorTip');
-            const successTip = document.getElementById('successTip');
-            errorTip.textContent = message;
-            errorTip.classList.add('show');
-            successTip.classList.remove('show');
-        }
-
-        function showSuccess(message) {
-            const errorTip = document.getElementById('errorTip');
-            const successTip = document.getElementById('successTip');
-            successTip.textContent = message;
-            successTip.classList.add('show');
-            errorTip.classList.remove('show');
-        }
-
-        async function submitMenu() {
-            const menuName = document.getElementById('menu_name').value.trim();
-            const menuPath = document.getElementById('menu_path').value.trim();
-
-            if (!menuName) {
-                showError('请输入菜单名称');
-                return;
-            }
-
-            if (!menuPath) {
-                showError('请输入菜单路径');
-                return;
-            }
-
-            const btn = document.querySelector('.btn');
-            btn.disabled = true;
-            btn.textContent = '提交中...';
-
-            try {
-                const formData = new FormData();
-                formData.append('menu_id', menuId);
-                formData.append('menu_name', menuName);
-                formData.append('menu_path', menuPath);
-
-                const response = await axios.post('/api/adminmenu/update', formData);
-
-                if (response.data.code === 0) {
-                    showSuccess('修改成功！');
-                    setTimeout(() => {
-                        window.location.href = '/page/adminmenu/list';
-                    }, 1500);
+    async function loadMenu() {
+        try {
+            const response = await axios.get('/api/adminmenu/all');
+            if (response.data.code === 0) {
+                const menus = response.data.data.menus;
+                const menu = menus.find(m => m.id == menuId);
+                if (menu) {
+                    document.getElementById('menu_name').value = menu.menuName;
+                    document.getElementById('menu_path').value = menu.path;
                 } else {
-                    showError(response.data.msg || '修改失败');
+                    showError('菜单不存在');
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('请求失败，请稍后重试');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '提交';
             }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('加载菜单信息失败');
+        }
+    }
+
+    loadMenu();
+
+    function showError(message) {
+        const errorTip = document.getElementById('errorTip');
+        const successTip = document.getElementById('successTip');
+        errorTip.textContent = message;
+        errorTip.classList.add('show');
+        successTip.classList.remove('show');
+    }
+
+    function showSuccess(message) {
+        const errorTip = document.getElementById('errorTip');
+        const successTip = document.getElementById('successTip');
+        successTip.textContent = message;
+        successTip.classList.add('show');
+        errorTip.classList.remove('show');
+    }
+
+    async function submitMenu() {
+        const menuName = document.getElementById('menu_name').value.trim();
+        const menuPath = document.getElementById('menu_path').value.trim();
+
+        if (!menuName) {
+            showError('请输入菜单名称');
+            return;
         }
 
-        function goBack() {
-            window.location.href = '/page/adminmenu/list';
+        if (!menuPath) {
+            showError('请输入菜单路径');
+            return;
         }
-    </script>
-</body>
-</html>
+
+        const btn = document.querySelector('.btn');
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+
+        try {
+            const formData = new FormData();
+            formData.append('menu_id', menuId);
+            formData.append('menu_name', menuName);
+            formData.append('menu_path', menuPath);
+
+            const response = await axios.post('/api/adminmenu/update', formData);
+
+            if (response.data.code === 0) {
+                showSuccess('修改成功！');
+                setTimeout(() => {
+                    window.location.href = '/page/adminmenu/list';
+                }, 1500);
+            } else {
+                showError(response.data.msg || '修改失败');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('请求失败，请稍后重试');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '提交';
+        }
+    }
+
+    function goBack() {
+        window.location.href = '/page/adminmenu/list';
+    }
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="add-card">
+    <h2>修改菜单</h2>
+    <div class="error-tip" id="errorTip"></div>
+    <div class="success-tip" id="successTip"></div>
+
+    <form id="menuForm">
+        <input type="hidden" id="menu_id" name="menu_id">
+        
+        <div class="form-group">
+            <label>菜单名称</label>
+            <input type="text" id="menu_name" name="menu_name" placeholder="请输入菜单名称" maxlength="100" required>
+            <div class="hint">最多100个字符</div>
+        </div>
+
+        <div class="form-group">
+            <label>菜单路径</label>
+            <input type="text" id="menu_path" name="menu_path" placeholder="请输入菜单路径" maxlength="200" required>
+            <div class="hint">例如：/page/circle/index</div>
+        </div>
+
+        <button type="button" class="btn" onclick="submitMenu()">提交</button>
+        <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+    </form>
+</div>
+
+{{template "admin_layout_body_end" .}}

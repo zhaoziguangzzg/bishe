@@ -19,15 +19,15 @@ func AdminRoleEditPageHandler(c *gin.Context) {
 }
 
 func MenuAddPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminmenu/add.html", nil)
+	RenderAdminPage(c, "adminmenu/add.html", nil)
 }
 
 func MenuEditPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminmenu/edit.html", nil)
+	RenderAdminPage(c, "adminmenu/edit.html", nil)
 }
 
 func MenuListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminmenu/list.html", nil)
+	RenderAdminPage(c, "adminmenu/list.html", nil)
 }
 
 func RoleAddPageHandler(c *gin.Context) {
