@@ -100,6 +100,7 @@ const (
 
 	CODE_ORDERS_NOT_EXIST int = 9011
 	CODE_USER_PURCHASED   int = 9012
+	CODE_HAS_UNPAY_ORDER  int = 9013
 
 	CODE_LOCKED int = 9021
 )
@@ -194,8 +195,9 @@ var CodeMsgMap map[int]string = map[int]string{
 	CODE_ACCUSATION_EXIST:                "举报已存在",
 	CODE_ACCUSATION_NOT_EXIST:            "举报不存在",
 
-	CODE_ORDERS_NOT_EXIST: "有未支付订单",
-	CODE_USER_PURCHASED:   "用户已购买",
+	CODE_ORDERS_NOT_EXIST: "订单不存在",
+	CODE_USER_PURCHASED:   "不可重复购买",
+	CODE_HAS_UNPAY_ORDER:  "已有未支付订单",
 
 	CODE_LOCKED: "已锁定，请稍后再试",
 }

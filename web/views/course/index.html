@@ -221,6 +221,14 @@
     .course-action-btn.edit:hover {
         background: #5a6fd6;
     }
+    .course-action-btn.publish {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .course-action-btn.publish:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
     .course-action-btn.view {
         background: #f5f7fa;
         color: #666;
@@ -451,7 +459,12 @@
 
                 container.innerHTML = courses.map(course => {
                     const isFree = course.price === 0;
-                    return '<div class="course-item"><div class="course-cover" onclick="goToCourse(' + course.id + ')">📖</div><div class="course-content"><div class="course-title" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.title) + '</div><div class="course-desc" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta" onclick="goToCourse(' + course.id + ')"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div><div class="course-actions"><button class="course-action-btn edit" onclick="editCourse(' + course.id + ')">修改</button><button class="course-action-btn view" onclick="goToCourse(' + course.id + ')">查看</button></div></div></div>';
+                    var actionHtml = '';
+                    if (currentTab === 0) {
+                        actionHtml = '<button class="course-action-btn publish" onclick="event.stopPropagation();publishCourse(' + course.id + ')">发布</button>';
+                    }
+                    actionHtml += '<button class="course-action-btn edit" onclick="event.stopPropagation();editCourse(' + course.id + ')">修改</button><button class="course-action-btn view" onclick="event.stopPropagation();goToCourse(' + course.id + ')">查看</button>';
+                    return '<div class="course-item"><div class="course-cover" onclick="goToCourse(' + course.id + ')">📖</div><div class="course-content"><div class="course-title" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.title) + '</div><div class="course-desc" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta" onclick="goToCourse(' + course.id + ')"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div><div class="course-actions">' + actionHtml + '</div></div></div>';
                 }).join('');
 
                 document.getElementById('pagination').innerHTML = '';
@@ -467,7 +480,7 @@
 
         try {
             const response = await axios.get('/api/purchase/all', {
-                params: { status: 1, page: page, pagesize: pageSize }
+                params: {page: page, pagesize: pageSize }
             });
 
             if (response.data.code === 0 && response.data.data) {
@@ -599,6 +612,28 @@
     function editCourse(courseId) {
         event.stopPropagation();
         window.location.href = '/page/course/edit?course_id=' + courseId;
+    }
+
+    async function publishCourse(courseId) {
+        if (!confirm('确定要发布这门课程吗？')) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('course_id', courseId);
+
+            const response = await axios.post('/api/course/publish', formData);
+
+            if (response.data.code === 0) {
+                alert('发布成功');
+                loadUserPublishedCourses(currentPage);
+            } else {
+                alert(response.data.msg || '发布失败');
+            }
+        } catch (error) {
+            alert('发布失败，请稍后重试');
+        }
     }
 
     function addCourse() {

@@ -419,12 +419,19 @@
             `;
         }
 
-        if (isPurchased || isFree) {
+        if (isFree) {
             return `
                 <button class="btn btn-study" onclick="window.location.href='/page/lesson/index?course_id=${courseId}'">开始学习</button>
                 <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
             `;
-        } else {
+        }
+        if (isPurchased) {
+            return `
+                <button class="btn btn-study" onclick="window.location.href='page/purchase/index'">查看订单</button>
+                <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
+            `;
+        }
+        else {
             return `
                 <button class="btn btn-primary" onclick="purchaseCourse()">购买课程</button>
                 <button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>
@@ -439,9 +446,9 @@
         successTip.classList.remove('show');
 
         try {
-            const response = await axios.post('/api/purchase/add', null, {
-                params: { course_id: courseId }
-            });
+            const params = new URLSearchParams();
+            params.append('course_id', courseId);
+            const response = await axios.post('/api/purchase/add', params);
 
             if (response.data.code === 0) {
                 successTip.textContent = '购买成功！';
@@ -462,9 +469,9 @@
     async function confirmPurchase() {
         closeModal();
         try {
-            const response = await axios.post('/api/purchase/add', null, {
-                params: { course_id: courseId }
-            });
+            const params = new URLSearchParams();
+            params.append('course_id', courseId);
+            const response = await axios.post('/api/purchase/add', params);
 
             if (response.data.code === 0) {
                 const successTip = document.getElementById('actionSuccess');

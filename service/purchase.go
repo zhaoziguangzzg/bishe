@@ -32,8 +32,8 @@ func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 }
 
 // 获取用户购买课程记录
-func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
-	return mysql.GetPurchaseByUid(uid, status)
+func GetPurchaseByUidStatus(uid int, status int) (purchases []model.Purchase, err error) {
+	return mysql.GetPurchaseByUidStatus(uid, status)
 }
 
 // 根据状态时间获取订单

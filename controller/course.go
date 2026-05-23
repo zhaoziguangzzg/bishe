@@ -356,6 +356,57 @@ func UpdateCourseHandler(c *gin.Context) {
 	MakeApiResponseSuccessDefault(c)
 }
 
+func PublishCourseHandler(c *gin.Context) {
+	cidStr := c.PostForm("course_id")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	uid := service.GetUidFromContext(c)
+
+	course, err := service.GetCourseById(cid)
+	if err != nil {
+		service.Logger.Error("GetCourseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if course == nil {
+		MakeApiResponseError(c, CODE_COURSE_NOT_EXIST)
+		return
+	}
+
+	if course.Uid != uid {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if course.CourseStatus == model.COURSE_STATUS_PUBLISHED {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	updateMap := map[string]interface{}{
+		"course_status": model.COURSE_STATUS_PUBLISHED,
+	}
+
+	rowsAffected, err := service.UpdateCourse(cid, updateMap)
+	if err != nil || rowsAffected == 0 {
+		service.Logger.Error("UpdateCourse err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
 // 添加课时
 func AddLessonHandler(c *gin.Context) {
 	title := c.PostForm("title")
@@ -557,10 +608,10 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	if len(purchases) != 0 {
+	if len(purchases) > 0 {
 		for _, v := range purchases {
 			if v.PurchaseStatus == model.PURCHASE_STATUS_UNPAID {
-				MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
+				MakeApiResponseError(c, CODE_HAS_UNPAY_ORDER)
 				return
 			}
 
@@ -639,27 +690,10 @@ func GetPurchaseHandler(c *gin.Context) {
 func GetUserPurchaseListHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
-	statusStr := c.Query("status")
-	if statusStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	status, err := strconv.Atoi(statusStr)
-	if err != nil {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	if status != model.PURCHASE_STATUS_PAID && status != model.PURCHASE_STATUS_UNPAID {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	// 获取用户购买记录
-	purchases, err := service.GetPurchaseByUid(uid, status)
+	purchases, err := service.GetPurchaseByUidStatus(uid, model.PURCHASE_STATUS_PAID)
 	if err != nil {
-		service.Logger.Error("GetPurchaseByUid", zap.Error(err))
+		service.Logger.Error("GetPurchaseByUidStatus", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -669,11 +703,8 @@ func GetUserPurchaseListHandler(c *gin.Context) {
 	}
 
 	var courseIds []int
-
 	for _, v := range purchases {
-		if v.PurchaseStatus == model.PURCHASE_STATUS_PAID {
-			courseIds = append(courseIds, v.CourseId)
-		}
+		courseIds = append(courseIds, v.CourseId)
 	}
 
 	if len(courseIds) == 0 {

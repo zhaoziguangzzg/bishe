@@ -47,7 +47,7 @@ func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err erro
 func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err error) {
 	purchase = new(model.Purchase)
 	err = DB.Model(&model.Purchase{}).
-		Where("user_id=? and course_id=? and purchase_status=?", uid, cid, model.PURCHASE_STATUS_PAID).
+		Where("user_id=? and course_id=?", uid, cid).
 		First(&purchase).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
@@ -63,7 +63,9 @@ func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err er
 
 // 获取用户全部购买课程记录
 func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
-	err = DB.Model(&model.Purchase{}).Where("user_id = ?", uid).Find(&purchases).Error
+	err = DB.Model(&model.Purchase{}).
+		Where("user_id = ?", uid).
+		Find(&purchases).Error
 	if err != nil {
 		return
 	}
@@ -71,9 +73,10 @@ func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 	return
 }
 
-// 获取用户购买课程记录
-func GetPurchaseByUid(uid int, status int) (purchases []model.Purchase, err error) {
-	err = DB.Model(&model.Purchase{}).Where("user_id = ? and purchase_status=?", uid, status).Find(&purchases).Error
+func GetPurchaseByUidStatus(uid int, status int) (purchases []model.Purchase, err error) {
+	err = DB.Model(&model.Purchase{}).
+		Where("user_id = ? and purchase_status=?", uid, status).
+		Find(&purchases).Error
 	if err != nil {
 		return
 	}

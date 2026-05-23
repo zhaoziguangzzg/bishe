@@ -304,6 +304,8 @@ func main() {
 	page.GET("/course/edit", controller.EditCoursePageHandler)
 	//修改课程
 	api.POST("/course/update", controller.UpdateCourseHandler)
+	//发布课程
+	api.POST("/course/publish", controller.PublishCourseHandler)
 
 	//课时
 	//课时页面
