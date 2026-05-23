@@ -1,487 +1,265 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加广告 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-        }
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-        .sidebar-header {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-        .sidebar-header h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-        .sidebar-header p {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-        .menu-item {
-            padding: 14px 24px;
-            color: rgba(255,255,255,0.85);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .menu-item:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .menu-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .submenu {
-            display: none;
-            background: rgba(0,0,0,0.1);
-        }
-        .submenu.show {
-            display: block;
-        }
-        .submenu-item {
-            padding: 12px 24px 12px 48px;
-            color: rgba(255,255,255,0.75);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: block;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .submenu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .submenu-item.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .arrow {
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-        .menu-item:hover .arrow, .menu-item.active .arrow {
-            transform: rotate(180deg);
-        }
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .top-bar {
-            background: white;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .top-bar h1 {
-            font-size: 20px;
-            color: #333;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .logout-btn {
-            padding: 8px 16px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .logout-btn:hover {
-            background: #e64545;
-        }
-        .content-area {
-            padding: 24px 32px;
-        }
-        .form-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            max-width: 800px;
-        }
-        .form-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #eee;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #606266;
-            font-size: 14px;
-        }
-        .form-group label .required {
-            color: #f56c6c;
-            margin-left: 2px;
-        }
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #606266;
-            transition: border-color 0.3s;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .form-control.error {
-            border-color: #f56c6c;
-        }
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-        .error-tip {
-            color: #f56c6c;
-            font-size: 12px;
-            margin-top: 4px;
-            display: none;
-        }
-        .error-tip.show {
-            display: block;
-        }
-        .success-tip {
-            background: #67c23a;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: none;
-            font-size: 14px;
-        }
-        .success-tip.show {
-            display: block;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-        .btn {
-            padding: 10px 24px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        .btn-secondary {
-            background: #f5f7fa;
-            color: #606266;
-            border: 1px solid #dcdfe6;
-        }
-        .btn-secondary:hover {
-            background: #eef0f4;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>管理后台</h2>
-            <p>知识分享平台</p>
-        </div>
-        <div id="dynamic-menus"></div>
-    </div>
+{{define "admin_layout_extra_head"}}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        width: 100%;
+    }
+    .form-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #eee;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #606266;
+        font-size: 14px;
+    }
+    .form-group label .required {
+        color: #f56c6c;
+        margin-left: 2px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #606266;
+        transition: border-color 0.3s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .form-control.error {
+        border-color: #f56c6c;
+    }
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .error-tip {
+        color: #f56c6c;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+    }
+    .error-tip.show {
+        display: block;
+    }
+    .success-tip {
+        background: #67c23a;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+        font-size: 14px;
+    }
+    .success-tip.show {
+        display: block;
+    }
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    .btn {
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+    .btn-secondary {
+        background: #f5f7fa;
+        color: #606266;
+        border: 1px solid #dcdfe6;
+    }
+    .btn-secondary:hover {
+        background: #eef0f4;
+    }
+</style>
+{{end}}
 
-    <div class="main-content">
-        <div class="top-bar">
-            <h1>添加广告</h1>
-            <div class="user-info">
-                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
-            </div>
-        </div>
+{{define "admin_layout_extra_script"}}
+<script>
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = message;
+            element.classList.add('show');
+        }
+    }
 
-        <div class="content-area">
-            <div class="form-card">
-                <h3 class="form-title">广告信息</h3>
-                
-                <p id="successMsg" class="success-tip"></p>
+    function hideError(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.classList.remove('show');
+        }
+    }
 
-                <form id="advertForm">
-                    <div class="form-group">
-                        <label>广告位置 <span class="required">*</span></label>
-                        <select class="form-control" id="position" name="position">
-                            <option value="">请选择广告位置</option>
-                            <option value="1">圈子首页</option>
-                            <option value="2">课程首页</option>
-                            <option value="3">用户个人中心</option>
-                        </select>
-                        <p id="positionError" class="error-tip">请选择广告位置</p>
-                    </div>
+    function clearErrors() {
+        document.querySelectorAll('.error-tip').forEach(el => el.classList.remove('show'));
+        document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+    }
 
-                    <div class="form-group">
-                        <label>广告内容 <span class="required">*</span></label>
-                        <textarea class="form-control" id="content" name="content" placeholder="请输入广告内容" maxlength="200"></textarea>
-                        <p id="contentError" class="error-tip">请输入广告内容</p>
-                    </div>
+    function validateForm() {
+        clearErrors();
+        let isValid = true;
 
-                    <div class="form-group">
-                        <label>广告地址 <span class="required">*</span></label>
-                        <input type="text" class="form-control" id="advertAddr" name="advertAddr" placeholder="请输入广告跳转地址" maxlength="200">
-                        <p id="advertAddrError" class="error-tip">请输入广告地址</p>
-                    </div>
+        const position = document.getElementById('position').value.trim();
+        if (!position) {
+            showError('positionError', '请输入广告位置');
+            document.getElementById('position').classList.add('error');
+            isValid = false;
+        }
 
-                    <div class="form-group">
-                        <label>广告图片</label>
-                        <input type="file" class="form-control" id="img" accept="image/*"/>
-                    </div>
+        const content = document.getElementById('content').value.trim();
+        if (!content) {
+            showError('contentError', '请输入广告内容');
+            document.getElementById('content').classList.add('error');
+            isValid = false;
+        }
 
-                    <div class="form-group">
-                        <label>开始时间 <span class="required">*</span></label>
-                        <input type="datetime-local" class="form-control" id="startTime" name="startTime">
-                        <p id="startTimeError" class="error-tip">请选择开始时间</p>
-                    </div>
+        const advertAddr = document.getElementById('advertAddr').value.trim();
+        if (!advertAddr) {
+            showError('advertAddrError', '请输入广告地址');
+            document.getElementById('advertAddr').classList.add('error');
+            isValid = false;
+        }
 
-                    <div class="form-group">
-                        <label>结束时间</label>
-                        <input type="datetime-local" class="form-control" id="endTime" name="endTime">
-                    </div>
+        const startTime = document.getElementById('startTime').value;
+        if (!startTime) {
+            showError('startTimeError', '请选择开始时间');
+            document.getElementById('startTime').classList.add('error');
+            isValid = false;
+        }
 
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary" onclick="submitForm()">提交</button>
-                        <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+        return isValid;
+    }
 
-    <script>
-        let currentPath = window.location.pathname;
-        let userMenuIds = [];
-        
-        async function loadDynamicMenus() {
-            try {
-                const [menuResponse, userResponse] = await Promise.all([
-                    axios.get('/api/adminmenu/all'),
-                    axios.get('/api/adminuser/get')
-                ]);
-                
-                if (menuResponse.data.code === 0 && userResponse.data.code === 0) {
-                    const menus = menuResponse.data.data.menus || [];
-                    userMenuIds = userResponse.data.data.menuIds || [];
-                    renderDynamicMenus(menus);
-                }
-            } catch (error) {
-                console.error('加载菜单失败', error);
+    async function submitForm() {
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('position', document.getElementById('position').value.trim());
+            formData.append('content', document.getElementById('content').value.trim());
+            formData.append('addvert_addr', document.getElementById('advertAddr').value.trim());
+
+            const imgFile = document.getElementById('img').files[0];
+            if (imgFile) {
+                formData.append('avatar', imgFile);
             }
-        }
-        
-        function renderDynamicMenus(menus) {
-            const container = document.getElementById('dynamic-menus');
-            const menuConfig = {
-                '反馈列表': { url: '/page/adminfeedback/list', group: 'feedback' },
-                '公告列表': { url: '/page/adminannounce/list', group: 'notice' },
-                '新增公告': { url: '/page/adminannounce/add', group: 'notice' },
-                '广告列表': { url: '/page/adminadvert/list', group: 'ad' },
-                '新增广告': { url: '/page/adminadvert/add', group: 'ad' },
-                '权限列表': { url: '/page/adminmenu/list', group: 'permission' },
-                '新增权限': { url: '/page/adminmenu/add', group: 'permission' },
-                '角色列表': { url: '/page/adminrole/list', group: 'role' },
-                '新增角色': { url: '/page/adminrole/add', group: 'role' },
-                '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
-                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
-                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
-            };
             
-            const groups = {};
-            menus.forEach(function(menu) {
-                if (menu.isDeleted === 1) return;
-                const config = menuConfig[menu.menuName];
-                if (!config) return;
-                if (!groups[config.group]) { groups[config.group] = []; }
-                groups[config.group].push({ id: menu.id, name: menu.menuName, url: config.url });
-            });
-            
-            const groupNames = { 'feedback': '反馈', 'notice': '公告', 'ad': '广告', 'permission': '权限管理', 'role': '角色管理', 'adminuser': '管理员管理', 'accusation': '举报管理' };
-            const groupIcons = { 'feedback': '💬', 'notice': '📢', 'ad': '📺', 'permission': '🔐', 'role': '👥', 'adminuser': '👤', 'accusation': '🚨' };
-            
-            let html = '<a href="/page/admin/index" class="menu-item">首页</a>';
-            for (const groupKey in groups) {
-                const groupMenus = groups[groupKey];
-                const hasPermission = userMenuIds.length === 0 || groupMenus.some(item => userMenuIds.includes(item.id));
-                if (!hasPermission && userMenuIds.length > 0) continue;
-                html += `<div class="menu-item" onclick="toggleSubmenu('${groupKey}')"><span class="icon">${groupIcons[groupKey]}</span><span>${groupNames[groupKey]}</span><span class="arrow">▼</span></div><div class="submenu" id="submenu-${groupKey}">`;
-                groupMenus.forEach(function(item) {
-                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
-                    if (!hasItemPermission && userMenuIds.length > 0) return;
-                    const active = currentPath === item.url ? 'active' : '';
-                    html += `<a href="${item.url}" class="submenu-item ${active}">${item.name}</a>`;
-                });
-                html += '</div>';
-            }
-            container.innerHTML = html;
-        }
-        
-        function toggleSubmenu(groupKey) {
-            const submenu = document.getElementById('submenu-' + groupKey);
-            if (submenu) {
-                const isShow = submenu.classList.contains('show');
-                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
-                if (!isShow) { submenu.classList.add('show'); }
-            }
-        }
-        
-        loadDynamicMenus();
-
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.textContent = message;
-                element.classList.add('show');
-            }
-        }
-
-        function hideError(elementId) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.classList.remove('show');
-            }
-        }
-
-        function clearErrors() {
-            document.querySelectorAll('.error-tip').forEach(el => el.classList.remove('show'));
-            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-        }
-
-        function validateForm() {
-            clearErrors();
-            let isValid = true;
-
-            const position = document.getElementById('position').value.trim();
-            if (!position) {
-                showError('positionError', '请输入广告位置');
-                document.getElementById('position').classList.add('error');
-                isValid = false;
-            }
-
-            const content = document.getElementById('content').value.trim();
-            if (!content) {
-                showError('contentError', '请输入广告内容');
-                document.getElementById('content').classList.add('error');
-                isValid = false;
-            }
-
-            const advertAddr = document.getElementById('advertAddr').value.trim();
-            if (!advertAddr) {
-                showError('advertAddrError', '请输入广告地址');
-                document.getElementById('advertAddr').classList.add('error');
-                isValid = false;
-            }
-
             const startTime = document.getElementById('startTime').value;
-            if (!startTime) {
-                showError('startTimeError', '请选择开始时间');
-                document.getElementById('startTime').classList.add('error');
-                isValid = false;
+            if (startTime) {
+                const formattedStartTime = startTime.replace('T', ' ') + ':00';
+                formData.append('start_time', formattedStartTime);
             }
 
-            return isValid;
-        }
-
-        async function submitForm() {
-            if (!validateForm()) {
-                return;
+            const endTime = document.getElementById('endTime').value;
+            if (endTime) {
+                const formattedEndTime = endTime.replace('T', ' ') + ':00';
+                formData.append('end_time', formattedEndTime);
             }
 
-            try {
-                const formData = new FormData();
-                formData.append('position', document.getElementById('position').value.trim());
-                formData.append('content', document.getElementById('content').value.trim());
-                formData.append('addvert_addr', document.getElementById('advertAddr').value.trim());
+            const response = await axios.post('/api/adminadvert/add', formData);
 
-                const imgFile = document.getElementById('img').files[0];
-                if (imgFile) {
-                    formData.append('avatar', imgFile);
-                }
-                
-                const startTime = document.getElementById('startTime').value;
-                if (startTime) {
-                    const formattedStartTime = startTime.replace('T', ' ') + ':00';
-                    formData.append('start_time', formattedStartTime);
-                }
-
-                const endTime = document.getElementById('endTime').value;
-                if (endTime) {
-                    const formattedEndTime = endTime.replace('T', ' ') + ':00';
-                    formData.append('end_time', formattedEndTime);
-                }
-
-                const response = await axios.post('/api/adminadvert/add', formData);
-
-                if (response.data.code === 0) {
-                    successMsg.textContent = '添加成功！';
-                    successMsg.classList.add('show');
-                    setTimeout(function() {
-                        window.location.href = '/page/adminadvert/list';
-                    }, 1500);
-                } else {
-                    showError('positionError', response.data.msg || '添加失败');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('positionError', '请求失败，请稍后重试');
+            if (response.data.code === 0) {
+                successMsg.textContent = '添加成功！';
+                successMsg.classList.add('show');
+                setTimeout(function() {
+                    window.location.href = '/page/adminadvert/list';
+                }, 1500);
+            } else {
+                showError('positionError', response.data.msg || '添加失败');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('positionError', '请求失败，请稍后重试');
         }
+    }
 
-        function goBack() {
-            window.location.href = '/page/adminadvert/list';
-        }
-    </script>
-</body>
-</html>
+    function goBack() {
+        window.location.href = '/page/adminadvert/list';
+    }
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="form-card">
+    <h3 class="form-title">广告信息</h3>
+    
+    <p id="successMsg" class="success-tip"></p>
+
+    <form id="advertForm">
+        <div class="form-group">
+            <label>广告位置 <span class="required">*</span></label>
+            <select class="form-control" id="position" name="position">
+                <option value="">请选择广告位置</option>
+                <option value="1">圈子首页</option>
+                <option value="2">课程首页</option>
+                <option value="3">用户个人中心</option>
+            </select>
+            <p id="positionError" class="error-tip">请选择广告位置</p>
+        </div>
+
+        <div class="form-group">
+            <label>广告内容 <span class="required">*</span></label>
+            <textarea class="form-control" id="content" name="content" placeholder="请输入广告内容" maxlength="200"></textarea>
+            <p id="contentError" class="error-tip">请输入广告内容</p>
+        </div>
+
+        <div class="form-group">
+            <label>广告地址 <span class="required">*</span></label>
+            <input type="text" class="form-control" id="advertAddr" name="advertAddr" placeholder="请输入广告跳转地址" maxlength="200">
+            <p id="advertAddrError" class="error-tip">请输入广告地址</p>
+        </div>
+
+        <div class="form-group">
+            <label>广告图片</label>
+            <input type="file" class="form-control" id="img" accept="image/*"/>
+        </div>
+
+        <div class="form-group">
+            <label>开始时间 <span class="required">*</span></label>
+            <input type="datetime-local" class="form-control" id="startTime" name="startTime">
+            <p id="startTimeError" class="error-tip">请选择开始时间</p>
+        </div>
+
+        <div class="form-group">
+            <label>结束时间</label>
+            <input type="datetime-local" class="form-control" id="endTime" name="endTime">
+        </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary" onclick="submitForm()">提交</button>
+            <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+        </div>
+    </form>
+</div>
+
+{{template "admin_layout_body_end" .}}
