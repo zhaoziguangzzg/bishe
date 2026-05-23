@@ -114,8 +114,18 @@
             gap: 16px;
         }
         .user-name {
-            color: #333;
+            color: #667eea;
             font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        .user-name:hover {
+            color: #764ba2;
+            background: rgba(102, 126, 234, 0.1);
         }
         .logout-btn {
             padding: 8px 16px;
@@ -151,8 +161,8 @@
     <div class="main-content">
         <div class="top-bar">
             <div class="user-info">
-                <span class="user-name" id="adminName">管理员</span>
-                <button class="logout-btn" onclick="logout()">退出登录</button>
+                <a href="/page/adminuser/edit" class="user-name" id="adminName"></a>
+                <button class="logout-btn" onclick="logout()">退出</button>
             </div>
         </div>
         

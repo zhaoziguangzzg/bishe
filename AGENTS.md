@@ -5,3 +5,5 @@
 web\views存放html模板 
 每个page使用独立的html模板
 
+后台页面都使用admin/_layout.html模板  
+

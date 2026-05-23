@@ -8,10 +8,6 @@ func AdminIndexPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "admin/index.html", nil)
 }
 
-func AdminEditPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "admin/edit.html", nil)
-}
-
 func MenuAddPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminmenu/add.html", nil)
 }
@@ -40,16 +36,20 @@ func RoleListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminrole/list.html", nil)
 }
 
-func AdminUserAddPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "adminuser/add.html", nil)
-}
-
 func AdminUserListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminuser/list.html", nil)
 }
 
+func AdminUserAddPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminuser/add.html", nil)
+}
+
 func AdminUserDetailPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminuser/detail.html", nil)
+}
+
+func AdminUserEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminuser/edit.html", nil)
 }
 
 func AdminUserRolePageHandler(c *gin.Context) {
@@ -88,14 +88,6 @@ func AdminAnnounceListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminannounce/list.html", nil)
 }
 
-// func AnnounceListPageHandler(c *gin.Context) {
-// 	RenderAdminPage(c, "announce/list.html", nil)
-// }
-
 func AnnounceEditPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "announce/edit.html", nil)
 }
-
-// func AnnounceDetailPageHandler(c *gin.Context) {
-// 	RenderAdminPage(c, "announce/detail.html", nil)
-// }

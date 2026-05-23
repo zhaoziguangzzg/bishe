@@ -239,27 +239,31 @@ func UpdateAdminUserHandler(c *gin.Context) {
 
 	//检测name超长，name="",
 	userNameLen := len(userName)
-	if userNameLen == 0 || userNameLen > 20 {
+	if userNameLen > 20 {
 		MakeApiResponseError(c, CODE_USER_NAME_LEN_INVALID)
 		return
 	}
 
 	//检测email格式错误
-	if !service.IsValidEmail(email) {
+	if email != "" && !service.IsValidEmail(email) {
 		MakeApiResponseError(c, CODE_USER_EMAIL_INVALID)
 		return
 	}
 
 	//检测手机号长度11位
-	if len(phoneStr) != 11 {
+	if phoneStr != "" && len(phoneStr) != 11 {
 		MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
 		return
 	}
 
-	phone, err := strconv.Atoi(phoneStr)
-	if err != nil {
-		MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
-		return
+	var phone int
+	if phoneStr != "" {
+		var err error
+		phone, err = strconv.Atoi(phoneStr)
+		if err != nil {
+			MakeApiResponseError(c, CODE_USER_PHONE_INVALID)
+			return
+		}
 	}
 
 	//根据id获取用户
@@ -278,10 +282,15 @@ func UpdateAdminUserHandler(c *gin.Context) {
 		return
 	}
 
-	updateMap := map[string]interface{}{
-		"name":  userName,
-		"email": email,
-		"phone": phone,
+	updateMap := map[string]interface{}{}
+	if userName != "" {
+		updateMap["name"] = userName
+	}
+	if email != "" {
+		updateMap["email"] = email
+	}
+	if phoneStr != "" {
+		updateMap["phone"] = phone
 	}
 
 	fileType := service.FILE_TYPE_UAER_AVATAR
@@ -308,6 +317,11 @@ func UpdateAdminUserHandler(c *gin.Context) {
 	}
 
 	//更新用户信息
+	if len(updateMap) == 0 {
+		MakeApiResponseSuccessDefault(c)
+		return
+	}
+
 	affectRows, err := service.UpdateAdminUserByUid(uid, updateMap)
 	if !(affectRows > 0 && err == nil) {
 		service.Logger.Error("UpdateAdminUserByUid err", zap.Error(err))
@@ -316,7 +330,9 @@ func UpdateAdminUserHandler(c *gin.Context) {
 	}
 
 	//修改cookie中的用户名
-	service.SetAdminUserJwtCookie(c, uid, userName, timeNow)
+	if userName != "" {
+		service.SetAdminUserJwtCookie(c, uid, userName, timeNow)
+	}
 
 	MakeApiResponseSuccessDefault(c)
 

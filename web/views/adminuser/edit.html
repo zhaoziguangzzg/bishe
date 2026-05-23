@@ -1,0 +1,291 @@
+{{define "admin_layout_extra_head"}}
+<style>
+    .edit-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .edit-card h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 24px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+        font-family: inherit;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #667eea;
+    }
+    .form-group input:disabled {
+        background: #f5f7fa;
+        color: #999;
+    }
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+        margin-top: 10px;
+    }
+    .btn-secondary:hover {
+        background: #ebeef5;
+    }
+    .error-tip {
+        color: #f56c6c;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .error-tip.show {
+        display: block;
+    }
+    .success-tip {
+        color: #67c23a;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .success-tip.show {
+        display: block;
+    }
+</style>
+{{end}}
+
+{{define "admin_layout_extra_script"}}
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+
+    let currentUser = null;
+    let allRoles = [];
+    let isEditingSelf = false;
+
+    async function loadRoles() {
+        try {
+            const response = await axios.get('/api/adminrole/all');
+            if (response.data.code === 0) {
+                allRoles = response.data.data.roles || [];
+                const select = document.getElementById('role_id');
+                
+                if (allRoles.length === 0) {
+                    select.innerHTML = '<option value="">暂无角色</option>';
+                    return;
+                }
+
+                select.innerHTML = '<option value="">请选择角色</option>' + 
+                    allRoles.map(role => `<option value="${role.id}">${role.roleName}</option>`).join('');
+            }
+        } catch (error) {
+            console.error('Error loading roles:', error);
+        }
+    }
+
+    function getRoleName(roleId) {
+        if (!roleId) return '-';
+        const role = allRoles.find(r => r.id == roleId);
+        return role ? role.roleName : '-';
+    }
+
+    async function loadUserInfo() {
+        try {
+            if (userId) {
+                const response = await axios.get('/api/adminuser/all?page=1&pagesize=1000');
+                if (response.data.code === 0) {
+                    const users = response.data.data.users || [];
+                    currentUser = users.find(u => u.id == userId);
+                    
+                    if (!currentUser) {
+                        document.getElementById('errorMsg').textContent = '用户不存在';
+                        document.getElementById('errorMsg').classList.add('show');
+                        return;
+                    }
+                }
+            } else {
+                isEditingSelf = true;
+                const response = await axios.get('/api/adminuser/get');
+                if (response.data.code === 0 && response.data.data) {
+                    currentUser = response.data.data.user;
+                } else {
+                    document.getElementById('errorMsg').textContent = '加载失败';
+                    document.getElementById('errorMsg').classList.add('show');
+                    return;
+                }
+            }
+
+            document.getElementById('name').value = currentUser.name || '';
+            document.getElementById('email').value = currentUser.email || '';
+            document.getElementById('phone').value = currentUser.phone || '';
+            
+            if (isEditingSelf) {
+                document.getElementById('roleGroup').style.display = 'none';
+            } else {
+                if (currentUser.roleId) {
+                    document.getElementById('role_id').value = currentUser.roleId;
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('errorMsg').textContent = '加载失败，请稍后重试';
+            document.getElementById('errorMsg').classList.add('show');
+        }
+    }
+
+    async function submitForm() {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const saveBtn = document.getElementById('saveBtn');
+
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
+
+        if (!name) {
+            errorMsg.textContent = '用户名不能为空';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存中...';
+
+        try {
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('phone', phone);
+
+            if (userId) {
+                formData.append('id', userId);
+            }
+
+            const response = await axios.post('/api/adminuser/update', formData);
+
+            if (response.data.code === 0) {
+                if (!isEditingSelf && userId) {
+                    const roleId = document.getElementById('role_id').value;
+                    if (roleId && currentUser && roleId != currentUser.roleId) {
+                        const roleFormData = new FormData();
+                        roleFormData.append('uid', userId);
+                        roleFormData.append('role_id', roleId);
+                        
+                        const roleResponse = await axios.post('/api/adminuser/update-role', roleFormData);
+                        if (roleResponse.data.code !== 0) {
+                            errorMsg.textContent = '角色更新失败: ' + (roleResponse.data.msg || '');
+                            errorMsg.classList.add('show');
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = '保存修改';
+                            return;
+                        }
+                    }
+                }
+
+                successMsg.textContent = '修改成功';
+                successMsg.classList.add('show');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                errorMsg.textContent = response.data.msg || '修改失败';
+                errorMsg.classList.add('show');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            errorMsg.textContent = '请求失败，请稍后重试';
+            errorMsg.classList.add('show');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '保存修改';
+        }
+    }
+
+    function goBack() {
+        window.location.href = isEditingSelf ? '/page/admin/index' : '/page/adminuser/list';
+    }
+
+    async function init() {
+        await loadRoles();
+        await loadUserInfo();
+    }
+
+    init();
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="edit-card">
+    <h2>编辑用户</h2>
+    <div class="error-tip" id="errorMsg"></div>
+    <div class="success-tip" id="successMsg"></div>
+
+    <form id="editForm">
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="name" name="name" placeholder="请输入用户名" required>
+        </div>
+
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="email" name="email" placeholder="请输入邮箱">
+        </div>
+
+        <div class="form-group">
+            <label>手机号</label>
+            <input type="text" id="phone" name="phone" placeholder="请输入手机号">
+        </div>
+
+        <div class="form-group" id="roleGroup">
+            <label>角色</label>
+            <select id="role_id" name="role_id" required>
+                <option value="">请选择角色</option>
+            </select>
+        </div>
+
+        <button type="button" class="btn" id="saveBtn" onclick="submitForm()">保存修改</button>
+        <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+    </form>
+</div>
+
+{{template "admin_layout_body_end" .}}
