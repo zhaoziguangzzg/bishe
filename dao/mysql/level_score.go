@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // 添加等级分数
@@ -24,7 +25,9 @@ func UserAddLevelScore(uid int, cid int, createAt time.Time) (err error) {
 func GetUserLevelScoreByUidCid(uid int, cid int) (levelScore *model.LevelScore, err error) {
 	levelScore = new(model.LevelScore)
 
-	err = DB.Model(&model.LevelScore{}).Where("uid=? and cid=?", uid, cid).First(&levelScore).Error
+	err = DB.Model(&model.LevelScore{}).
+		Where("uid=? and cid=?", uid, cid).
+		First(&levelScore).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空
 			return nil, nil
@@ -52,31 +55,23 @@ func GetLevelScoreMapByUids(uids []int, cid int) (levelScoreMap map[int]model.Le
 	return
 }
 
-// 更新等级分数
-func UpdateLevelScoreByUidCid(uid int, cid int, score int) (int64, error) {
-	now := time.Now()
-
-	// 先尝试更新
-	result := DB.Model(&model.LevelScore{}).
-		Where("uid=? and cid=?", uid, cid).
-		UpdateColumn("score", gorm.Expr("score + ?", score))
-
-	// 如果没有更新任何记录，说明记录不存在，需要创建
-	if result.RowsAffected == 0 {
-		levelScore := &model.LevelScore{
-			Uid:       uid,
-			Cid:       cid,
-			Score:     score,
-			CreateAt:  &now,
-			UpdateAt:  &now,
-			IsDeleted: model.IS_DELETED_NO,
-		}
-		err := DB.Model(&model.LevelScore{}).Create(levelScore).Error
-		if err != nil {
-			return 0, err
-		}
-		return 1, nil
+func UpdateLevelScoreByUidCid(uid int, cid int, score int, now time.Time) (int64, error) {
+	levelScore := &model.LevelScore{
+		Uid:       uid,
+		Cid:       cid,
+		Score:     score,
+		CreateAt:  &now,
+		UpdateAt:  &now,
+		IsDeleted: model.IS_DELETED_NO,
 	}
+
+	result := DB.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "uid"}, {Name: "cid"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"score":     gorm.Expr("level_score.score + ?", score),
+			"update_at": &now,
+		}),
+	}).Create(levelScore)
 
 	return result.RowsAffected, result.Error
 }

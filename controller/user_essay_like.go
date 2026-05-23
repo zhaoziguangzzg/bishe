@@ -105,7 +105,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 		relateId = newUserEssayLike.Id
 		score := 2
 		//点赞 更新等级分数 增加2
-		affectRows, err := service.UpdateLevelScoreByUidCid(uid, cid, score)
+		affectRows, err := service.UpdateLevelScoreByUidCid(uid, cid, score, nowTime)
 		if err != nil || affectRows == 0 {
 			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)
@@ -122,7 +122,7 @@ func AddUserEssayLikeHandler(c *gin.Context) {
 
 		score = 3
 		//被点赞 更新等级分数 增加3
-		affectRows, err = service.UpdateLevelScoreByUidCid(authorId, cid, score)
+		affectRows, err = service.UpdateLevelScoreByUidCid(authorId, cid, score, nowTime)
 		if err != nil || affectRows == 0 {
 			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
 			MakeApiResponseErrorDefault(c)

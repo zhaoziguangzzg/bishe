@@ -13,7 +13,7 @@ func AddEssayPageHandler(c *gin.Context) {
 
 // 文章详情页面
 func EssayDetailPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "essay/detail.html", nil)
+	RenderIndexPage(c, "essay/detail.html", nil)
 }
 
 // 修改文章页面

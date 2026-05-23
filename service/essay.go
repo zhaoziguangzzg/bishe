@@ -46,8 +46,8 @@ func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, er
 }
 
 // get圈子中的文章
-func GetAllEssayByCid(cid int, page int, pagesize int) (essays []model.Essay, err error) {
-	return mysql.GetAllEssayByCid(cid, page, pagesize)
+func GetAllEssayByCid(cid int, uid int, filterType string, page int, pagesize int) (essays []model.Essay, err error) {
+	return mysql.GetAllEssayByCid(cid, uid, filterType, page, pagesize)
 }
 
 // 根据eid获取文章

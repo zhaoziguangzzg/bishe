@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加入的圈子 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -127,12 +125,81 @@
             background: #f5f7fa;
             border-radius: 10px;
             min-height: 200px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        .ad-carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        .ad-carousel-slide {
+            min-width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #909399;
+        }
+        .ad-carousel-slide a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .ad-carousel-slide img {
+            max-width: 100%;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+        }
+        .ad-carousel-slide .ad-slide-content {
+            padding: 10px;
             font-size: 14px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            color: #333;
+            text-align: center;
+        }
+        .ad-carousel-indicators {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+        .ad-carousel-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .ad-carousel-indicator.active {
+            background: #667eea;
+        }
+        .ad-carousel-prev, .ad-carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: background 0.3s;
+        }
+        .ad-carousel-prev { left: 8px; }
+        .ad-carousel-next { right: 8px; }
+        .ad-carousel-prev:hover, .ad-carousel-next:hover {
+            background: rgba(0,0,0,0.5);
         }
         .card {
             background: white;
@@ -191,26 +258,6 @@
         .circle-menu-content.show {
             max-height: 500px;
             overflow-y: auto;
-        }
-        .add-circle-btn-menu {
-            display: block;
-            width: 100%;
-            padding: 10px 12px;
-            margin: 8px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-        .add-circle-btn-menu:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            color: white;
         }
         .circle-list {
             list-style: none;
@@ -465,6 +512,32 @@
         }
         .create-essay-btn:hover {
             opacity: 0.9;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        .filter-tab:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .filter-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
         }
         .comment-modal {
             display: none;
@@ -821,28 +894,7 @@
             cursor: not-allowed;
         }
     </style>
-</head>
-<body>
-    <div class="header">
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/page/circle/index">圈子</a>
-            <a href="/page/course/index">课程</a>
-            <a href="/page/announce/list">公告</a>
-        </div>
-        <div class="header-search">
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索..." onkeypress="handleSearchKeyPress(event)"/>
-                <button class="search-btn" onclick="performSearch()">🔍</button>
-            </div>
-        </div>
-        <div class="user-nav">
-            <a href="/page/chat/index">私信</a>
-            <a href="/page/notice/index">通知</a>
-            <a href="/page/feedback/index">反馈</a>
-            <a href="/page/user/profile">我的</a>
-        </div>
-    </div>
+{{end}}
 
     <div class="main-container">
         <div class="left-sidebar">
@@ -864,12 +916,8 @@
                     </div>
                     <div class="circle-menu-content" id="menuCreate">
                         <ul class="circle-list" id="circleListCreate"></ul>
-                        <a href="/page/circle/add" class="add-circle-btn-menu">+ 添加圈子</a>
                     </div>
                 </div>
-            </div>
-            <div class="ad-slot-container">
-                <div id="adSlot2" class="ad-slot"></div>
             </div>
         </div>
 
@@ -877,19 +925,28 @@
             <div style="margin-bottom: 16px;">
                 <a href="/page/essay/add" class="create-essay-btn" id="createEssayBtn">发布文章</a>
             </div>
+            <div class="filter-tabs">
+                <span class="filter-tab active" data-type="" onclick="switchFilter('')">全部</span>
+                <span class="filter-tab" data-type="essence" onclick="switchFilter('essence')">精华</span>
+                <span class="filter-tab" data-type="weekly" onclick="switchFilter('weekly')">周刊</span>
+                <span class="filter-tab" data-type="my" onclick="switchFilter('my')">我发布的</span>
+            </div>
             <div class="essay-list" id="essayList"></div>
         </div>
 
         <div class="right-sidebar">
             <div class="card circle-info-card" id="circleInfo">
                 <div class="card-title">圈子信息</div>
-                <div class="circle-info-icon" id="circleIcon">圈</div>
+                <img class="circle-info-icon" id="circleIcon" src="/img/default-circle.png" alt="圈子图标">
                 <div class="circle-info-title" id="circleTitle">请选择圈子</div>
                 <div class="circle-owner">
                     <img class="circle-owner-avatar" id="circleOwnerAvatar" src="/img/default-avatar.png" alt="圈主"/>
                     <span class="circle-owner-name" id="circleOwnerName">-</span>
                 </div>
                 <div class="circle-intro" id="circleIntro">点击左侧圈子查看详情</div>
+            </div>
+            <div class="ad-slot-container">
+                <div id="adSlot2" class="ad-slot"></div>
             </div>
         </div>
     </div>
@@ -960,55 +1017,117 @@
         let favorites = [];
         let selectedFavoriteId = null;
         let currentCircleType = 'join'; // 'join' or 'create'
+        let currentFilterType = '';
+        let adCarouselIndex = 0;
+        let adCarouselTimer = null;
+        let adCarouselCount = 0;
 
         function toggleCircleMenu(type) {
             const menuContent = document.getElementById('menu' + type.charAt(0).toUpperCase() + type.slice(1));
             const arrow = document.getElementById('arrow' + type.charAt(0).toUpperCase() + type.slice(1));
             
-            // 切换展开/折叠状态
             menuContent.classList.toggle('show');
             arrow.classList.toggle('collapsed');
             
-            // 加载对应的圈子列表
             if (menuContent.classList.contains('show')) {
                 currentCircleType = type;
-                loadMyCircles(type);
+                loadMyCircles(type, null, true);
             }
         }
 
         async function loadAds() {
             try {
                 const response = await axios.get('/api/advert/all-time?position=1&page=1&pagesize=10');
+                const adSlot = document.getElementById('adSlot2');
                 if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
                     const adverts = response.data.data.adverts;
-                    const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
-                    const adSlot = document.getElementById('adSlot2');
-                    
-                    let adHtml = '';
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml = `<a href="${randomAd.advertAddr}" target="_blank" style="text-decoration:none;color:inherit;display:block;">`;
+                    adCarouselCount = adverts.length;
+
+                    if (adCarouselCount === 1) {
+                        const ad = adverts[0];
+                        adSlot.innerHTML = renderAdSlide(ad, 0);
+                        return;
                     }
-                    
-                    if (randomAd.img) {
-                        adHtml += `<img src="${randomAd.img}" style="max-width:100%;border-radius:10px;display:block;">`;
-                    }
-                    
-                    if (randomAd.content) {
-                        adHtml += `<div style="padding:10px;font-size:14px;color:#333;text-align:center;">${randomAd.content}</div>`;
-                    }
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml += `</a>`;
-                    }
-                    
-                    if (adHtml) {
-                        adSlot.innerHTML = adHtml;
-                    }
+
+                    adCarouselIndex = 0;
+                    adSlot.innerHTML = `
+                        <div class="ad-carousel-track" id="adCarouselTrack">
+                            ${adverts.map((ad, i) => renderAdSlide(ad, i)).join('')}
+                        </div>
+                        <div class="ad-carousel-indicators" id="adCarouselIndicators">
+                            ${adverts.map((_, i) => `<span class="ad-carousel-indicator${i === 0 ? ' active' : ''}" onclick="goToAdSlide(${i})"></span>`).join('')}
+                        </div>
+                        <button class="ad-carousel-prev" onclick="prevAdSlide()">&#10094;</button>
+                        <button class="ad-carousel-next" onclick="nextAdSlide()">&#10095;</button>
+                    `;
+                    startAdCarousel();
                 }
             } catch (error) {
                 console.error('Load ads error:', error);
             }
+        }
+
+        function renderAdSlide(ad, index) {
+            let inner = '';
+            if (ad.img) {
+                inner += `<img src="${ad.img}" alt="${escapeHtml(ad.content || '')}">`;
+            }
+            if (ad.content) {
+                inner += `<div class="ad-slide-content">${escapeHtml(ad.content)}</div>`;
+            }
+            if (ad.advertAddr) {
+                return `<div class="ad-carousel-slide"><a href="${ad.advertAddr}" target="_blank">${inner}</a></div>`;
+            }
+            return `<div class="ad-carousel-slide">${inner}</div>`;
+        }
+
+        function goToAdSlide(index) {
+            adCarouselIndex = index;
+            updateAdCarousel();
+            resetAdCarouselTimer();
+        }
+
+        function prevAdSlide() {
+            adCarouselIndex = (adCarouselIndex - 1 + adCarouselCount) % adCarouselCount;
+            updateAdCarousel();
+            resetAdCarouselTimer();
+        }
+
+        function nextAdSlide() {
+            adCarouselIndex = (adCarouselIndex + 1) % adCarouselCount;
+            updateAdCarousel();
+            resetAdCarouselTimer();
+        }
+
+        function updateAdCarousel() {
+            const track = document.getElementById('adCarouselTrack');
+            if (track) {
+                track.style.transform = `translateX(-${adCarouselIndex * 100}%)`;
+            }
+            const indicators = document.querySelectorAll('.ad-carousel-indicator');
+            indicators.forEach((dot, i) => {
+                dot.classList.toggle('active', i === adCarouselIndex);
+            });
+        }
+
+        function startAdCarousel() {
+            stopAdCarousel();
+            adCarouselTimer = setInterval(() => {
+                adCarouselIndex = (adCarouselIndex + 1) % adCarouselCount;
+                updateAdCarousel();
+            }, 4000);
+        }
+
+        function stopAdCarousel() {
+            if (adCarouselTimer) {
+                clearInterval(adCarouselTimer);
+                adCarouselTimer = null;
+            }
+        }
+
+        function resetAdCarouselTimer() {
+            stopAdCarousel();
+            startAdCarousel();
         }
 
         async function loadCurrentUser() {
@@ -1022,7 +1141,7 @@
             }
         }
 
-        async function loadMyCircles(type, cidFromUrl) {
+        async function loadMyCircles(type, cidFromUrl, skipAutoSelect) {
             const containerId = type === 'join' ? 'circleListJoin' : 'circleListCreate';
             const container = document.getElementById(containerId);
             container.innerHTML = '<div class="no-data">加载中...</div>';
@@ -1045,16 +1164,32 @@
                         container.innerHTML = circles.map(circle =>
                             `<li class="circle-item" data-id="${circle.id}" data-owner="${circle.circleOwnerId || circle.CircleOwnerId}" onclick="selectCircle(${circle.id}, ${circle.circleOwnerId || circle.CircleOwnerId}, '${type}')">${circle.title}</li>`
                         ).join('');
-                        let targetCircle = null;
+                        
+                        if (skipAutoSelect) {
+                            return;
+                        }
+                        
+                        var hasAutoSelected = false;
                         if (cidFromUrl) {
-                            targetCircle = circles.find(c => c.id === parseInt(cidFromUrl));
+                            const targetCircle = circles.find(c => c.id === parseInt(cidFromUrl));
+                            if (targetCircle) {
+                                const circleItem = container.querySelector(`[data-id="${targetCircle.id}"]`);
+                                if (circleItem) {
+                                    circleItem.classList.add('active');
+                                }
+                                updateEssayBtnHref(targetCircle.id);
+                                selectCircle(targetCircle.id, targetCircle.circleOwnerId || targetCircle.CircleOwnerId, type);
+                                hasAutoSelected = true;
+                            }
                         }
-                        if (!targetCircle && circles.length > 0) {
-                            targetCircle = circles[0];
-                        }
-                        if (targetCircle) {
-                            updateEssayBtnHref(targetCircle.id);
-                            selectCircle(targetCircle.id, targetCircle.circleOwnerId || targetCircle.CircleOwnerId, type);
+                        if (!hasAutoSelected) {
+                            const firstCircle = circles[0];
+                            const circleItem = container.querySelector(`[data-id="${firstCircle.id}"]`);
+                            if (circleItem) {
+                                circleItem.classList.add('active');
+                            }
+                            updateEssayBtnHref(firstCircle.id);
+                            selectCircle(firstCircle.id, firstCircle.circleOwnerId || firstCircle.CircleOwnerId, type);
                         }
                     }
                 } else {
@@ -1105,7 +1240,7 @@
                     if (circleOwnerId === null || circleOwnerId === undefined) {
                         currentUserCircleOwnerId = circle.circleOwnerId;
                     }
-                    document.getElementById('circleIcon').textContent = circle.title ? circle.title.charAt(0).toUpperCase() : '圈';
+                    document.getElementById('circleIcon').src = circle.img || '/img/default-circle.png';
                     document.getElementById('circleTitle').textContent = circle.title || '未命名圈子';
                     document.getElementById('circleIntro').textContent = circle.introduction || '暂无简介';
                     document.getElementById('circleIntro').onclick = () => window.location.href = `/page/circle/detail?cid=${circleId}`;
@@ -1126,6 +1261,16 @@
             }
         }
 
+        function switchFilter(type) {
+            currentFilterType = type;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === type);
+            });
+            if (currentCircleId) {
+                loadEssays(currentCircleId);
+            }
+        }
+
         async function loadEssays(circleId) {
             const container = document.getElementById('essayList');
             container.innerHTML = '<div class="empty-state">加载中...</div>';
@@ -1136,7 +1281,11 @@
             }
 
             try {
-                const response = await axios.get(`/api/essay/circle-all?cid=${circleId}&page=1`);
+                let url = '/api/essay/circle-all?cid=' + circleId + '&page=1';
+                if (currentFilterType) {
+                    url += '&type=' + currentFilterType;
+                }
+                const response = await axios.get(url);
                 if (response.data.code === 0 && response.data.data) {
                     const data = response.data.data;
                     essays = data.userEssays || data.essays || [];
@@ -1637,5 +1786,4 @@
             await loadAds();
         };
     </script>
-</body>
-</html>
+{{template "index_layout_body_end" .}}

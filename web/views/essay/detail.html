@@ -1,906 +1,839 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章详情 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .detail-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .essay-title {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        .author-section {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .author-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        .author-avatar:hover {
-            transform: scale(1.1);
-        }
-        .author-info {
-            margin-left: 12px;
-        }
-        .author-name {
-            font-size: 16px;
-            color: #333;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .author-name:hover {
-            color: #667eea;
-        }
-        .publish-time {
-            font-size: 13px;
-            color: #909399;
-            margin-top: 4px;
-        }
-        .author-actions {
-            margin-left: auto;
-        }
-        .edit-essay-btn {
-            padding: 6px 16px;
-            background: #e6a23c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .edit-essay-btn:hover {
-            opacity: 0.9;
-        }
-        .essay-content {
-            font-size: 15px;
-            color: #333;
-            line-height: 1.8;
-            margin-bottom: 30px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .essay-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        .essay-content p {
-            margin-bottom: 16px;
-        }
-        .essay-content pre,
-        .essay-content code {
-            background: #f5f7fa;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-family: 'Courier New', monospace;
-        }
-        .essay-content pre {
-            padding: 12px;
-            overflow-x: auto;
-        }
-        .action-bar {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            border: 1px solid #dcdfe6;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            color: #666;
-            transition: all 0.3s;
-        }
-        .action-btn:hover {
-            background: #f5f7fa;
-        }
-        .action-btn.liked {
-            color: #ff0000;
-            border-color: #ff0000;
-            background: #ffe6e6;
-        }
-        .action-btn.collected {
-            color: #ffd700;
-            border-color: #ffd700;
-            background: #fffbe6;
-        }
-        .action-btn .icon {
-            font-size: 16px;
-        }
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #909399;
-        }
-        .not-found {
-            text-align: center;
-            padding: 60px;
-        }
-        .not-found h2 {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .comment-section {
-            margin-top: 30px;
-            padding-top: 24px;
-            border-top: 1px solid #eee;
-        }
-        .comment-header {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 16px;
-            font-weight: 500;
-        }
-        .comment-list {
-            margin-bottom: 16px;
-        }
-        .comment-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .comment-item:last-child {
-            border-bottom: none;
-        }
-        .comment-author {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .comment-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .comment-author-name {
-            margin-left: 8px;
-            font-size: 14px;
-            color: #333;
-        }
-        .comment-content {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
-            margin-left: 40px;
-        }
-        .comment-time {
-            font-size: 12px;
-            color: #909399;
-            margin-left: 40px;
-            margin-top: 4px;
-        }
-        .comment-input-section {
-            display: flex;
-            gap: 10px;
-        }
-        .comment-input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid #dcdfe6;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            resize: none;
-        }
-        .comment-input:focus {
-            border-color: #667eea;
-        }
-        .comment-submit {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: opacity 0.3s;
-        }
-        .comment-submit:hover {
-            opacity: 0.9;
-        }
-        .comment-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .no-comment {
-            text-align: center;
-            padding: 30px;
-            color: #909399;
-            font-size: 14px;
-        }
-        .favorite-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .favorite-modal.show {
-            display: flex;
-        }
-        .favorite-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            width: 400px;
-            max-height: 60vh;
-            overflow: hidden;
-        }
-        .favorite-modal-header {
-            padding: 0 0 16px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .favorite-modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        .favorite-modal-close {
-            font-size: 24px;
-            color: #999;
-            cursor: pointer;
-            line-height: 1;
-        }
-        .favorite-modal-close:hover {
-            color: #333;
-        }
-        .favorite-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .favorite-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .favorite-item:hover {
-            border-color: #667eea;
-            background: #f5f7fa;
-        }
-        .favorite-item-name {
-            font-size: 14px;
-            color: #333;
-        }
-        .btn-add-favorite {
-            display: block;
-            width: 100%;
-            padding: 10px 16px;
-            margin-top: 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .btn-add-favorite:hover {
-            opacity: 0.9;
-        }
-        .btn-back-favorite {
-            background: none;
-            border: none;
-            color: #667eea;
-            font-size: 13px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-        .btn-back-favorite:hover {
-            text-decoration: underline;
-        }
-        .add-favorite-form {
-            padding: 16px 0 0 0;
-            border-top: 1px solid #eee;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .favorite-input {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #dcdfe6;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .favorite-input:focus {
-            border-color: #667eea;
-        }
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .btn-cancel {
-            padding: 8px 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 4px;
-            background: white;
-            color: #666;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .btn-cancel:hover {
-            border-color: #667eea;
-            color: #667eea;
-        }
-        .btn-submit {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .btn-submit:hover {
-            opacity: 0.9;
-        }
-        .no-data {
-            text-align: center;
-            padding: 30px;
-            color: #909399;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <span>知识分享平台</span>
-        <a id="backLink" href="/page/index">返回首页</a>
-    </div>
+{{template "index_layout_head" .}}
 
-    <div class="container">
-        <div class="detail-card" id="content">
-            <div class="loading">加载中...</div>
-        </div>
-    </div>
+{{template "index_layout_body_start" .}}
 
-    <div class="favorite-modal" id="favoriteModal">
-        <div class="favorite-content">
-            <div class="favorite-modal-header">
-                <span class="favorite-modal-title" id="favoriteModalTitle">收藏到收藏夹</span>
-                <div>
-                    <button class="btn-back-favorite" id="btnBackFavorite" onclick="showFavoriteList()" style="display:none;">返回列表</button>
-                    <span class="favorite-modal-close" onclick="closeFavoriteModal()">&times;</span>
-                </div>
+{{block "index_layout_extra_styles" .}}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .essay-title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    .author-section {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .author-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .author-avatar:hover {
+        transform: scale(1.1);
+    }
+    .author-info {
+        margin-left: 12px;
+    }
+    .author-name {
+        font-size: 16px;
+        color: #333;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .author-name:hover {
+        color: #667eea;
+    }
+    .publish-time {
+        font-size: 13px;
+        color: #909399;
+        margin-top: 4px;
+    }
+    .author-actions {
+        margin-left: auto;
+    }
+    .edit-essay-btn {
+        padding: 6px 16px;
+        background: #e6a23c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+    .edit-essay-btn:hover {
+        opacity: 0.9;
+    }
+    .essay-content {
+        font-size: 15px;
+        color: #333;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .essay-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 10px 0;
+    }
+    .essay-content p {
+        margin-bottom: 16px;
+    }
+    .essay-content pre,
+    .essay-content code {
+        background: #f5f7fa;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: 'Courier New', monospace;
+    }
+    .essay-content pre {
+        padding: 12px;
+        overflow-x: auto;
+    }
+    .action-bar {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border: 1px solid #dcdfe6;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        transition: all 0.3s;
+    }
+    .action-btn:hover {
+        background: #f5f7fa;
+    }
+    .action-btn.liked {
+        color: #ff0000;
+        border-color: #ff0000;
+        background: #ffe6e6;
+    }
+    .action-btn.collected {
+        color: #ffd700;
+        border-color: #ffd700;
+        background: #fffbe6;
+    }
+    .action-btn .icon {
+        font-size: 16px;
+    }
+    .loading {
+        text-align: center;
+        padding: 60px;
+        color: #909399;
+    }
+    .not-found {
+        text-align: center;
+        padding: 60px;
+    }
+    .not-found h2 {
+        color: #666;
+        margin-bottom: 20px;
+    }
+    .comment-section {
+        margin-top: 30px;
+        padding-top: 24px;
+        border-top: 1px solid #eee;
+    }
+    .comment-header {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 16px;
+        font-weight: 500;
+    }
+    .comment-list {
+        margin-bottom: 16px;
+    }
+    .comment-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+    .comment-author {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .comment-author-name {
+        margin-left: 8px;
+        font-size: 14px;
+        color: #333;
+    }
+    .comment-content {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.5;
+        margin-left: 40px;
+    }
+    .comment-time {
+        font-size: 12px;
+        color: #909399;
+        margin-left: 40px;
+        margin-top: 4px;
+    }
+    .comment-input-section {
+        display: flex;
+        gap: 10px;
+    }
+    .comment-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid #dcdfe6;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        resize: none;
+    }
+    .comment-input:focus {
+        border-color: #667eea;
+    }
+    .comment-submit {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: opacity 0.3s;
+    }
+    .comment-submit:hover {
+        opacity: 0.9;
+    }
+    .comment-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .no-comment {
+        text-align: center;
+        padding: 30px;
+        color: #909399;
+        font-size: 14px;
+    }
+    .favorite-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .favorite-modal.show {
+        display: flex;
+    }
+    .favorite-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        width: 400px;
+        max-height: 60vh;
+        overflow: hidden;
+    }
+    .favorite-modal-header {
+        padding: 0 0 16px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .favorite-modal-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .favorite-modal-close {
+        font-size: 24px;
+        color: #999;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .favorite-modal-close:hover {
+        color: #333;
+    }
+    .favorite-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .favorite-item {
+        padding: 12px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .favorite-item:hover {
+        border-color: #667eea;
+        background: #f5f7fa;
+    }
+    .favorite-item-name {
+        font-size: 14px;
+        color: #333;
+    }
+    .btn-add-favorite {
+        display: block;
+        width: 100%;
+        padding: 10px 16px;
+        margin-top: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+    }
+    .btn-add-favorite:hover {
+        opacity: 0.9;
+    }
+    .btn-back-favorite {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-size: 13px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    .btn-back-favorite:hover {
+        text-decoration: underline;
+    }
+    .add-favorite-form {
+        padding: 16px 0 0 0;
+        border-top: 1px solid #eee;
+    }
+    .form-group {
+        margin-bottom: 12px;
+    }
+    .favorite-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        box-sizing: border-box;
+    }
+    .favorite-input:focus {
+        border-color: #667eea;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .btn-cancel {
+        padding: 8px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        background: white;
+        color: #666;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .btn-cancel:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+    .btn-submit {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .btn-submit:hover {
+        opacity: 0.9;
+    }
+    .no-data {
+        text-align: center;
+        padding: 30px;
+        color: #909399;
+        font-size: 14px;
+    }
+</style>
+{{end}}
+
+<div class="detail-card" id="content">
+    <div class="loading">加载中...</div>
+</div>
+
+<div class="favorite-modal" id="favoriteModal">
+    <div class="favorite-content">
+        <div class="favorite-modal-header">
+            <span class="favorite-modal-title" id="favoriteModalTitle">收藏到收藏夹</span>
+            <div>
+                <button class="btn-back-favorite" id="btnBackFavorite" onclick="showFavoriteList()" style="display:none;">返回列表</button>
+                <span class="favorite-modal-close" onclick="closeFavoriteModal()">&times;</span>
             </div>
-            <div class="favorite-list" id="favoriteList"></div>
-            <button class="btn-add-favorite" id="btnAddFavorite" onclick="showAddFavoriteForm()">+ 添加收藏夹</button>
-            <div class="add-favorite-form" id="addFavoriteForm" style="display:none;">
-                <div class="form-group">
-                    <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="50"/>
-                </div>
-                <div class="form-actions">
-                    <button class="btn-cancel" onclick="showFavoriteList()">取消</button>
-                    <button class="btn-submit" onclick="submitNewFavorite()">创建</button>
-                </div>
+        </div>
+        <div class="favorite-list" id="favoriteList"></div>
+        <button class="btn-add-favorite" id="btnAddFavorite" onclick="showAddFavoriteForm()">+ 添加收藏夹</button>
+        <div class="add-favorite-form" id="addFavoriteForm" style="display:none;">
+            <div class="form-group">
+                <input type="text" class="favorite-input" id="favoriteTitleInput" placeholder="请输入收藏夹名称" maxlength="50"/>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="showFavoriteList()">取消</button>
+                <button class="btn-submit" onclick="submitNewFavorite()">创建</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        //TODO 进行点赞、收藏
-        //TODO 显示是否周刊、精华
+{{template "index_layout_body_end" .}}
+
+{{define "index_layout_extra_scripts"}}
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const essayId = urlParams.get('eid');
+    const circleId = urlParams.get('cid');
+
+    let currentUser = null;
+    let currentLikeStatus = false;
+    let currentCollectStatus = false;
+
+    (async function init() {
+        if (!essayId) {
+            document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
+            return;
+        }
+        await checkLogin();
+        await loadEssayDetail();
+    })();
+
+    async function checkLogin() {
+        try {
+            const response = await axios.get('/api/user/get');
+            if (response.data.code === 0 && response.data.data) {
+                currentUser = response.data.data.user;
+            }
+        } catch (error) {
+            currentUser = null;
+        }
+    }
+
+    async function loadEssayDetail() {
+        try {
+            const response = await axios.get('/api/essay/get', {
+                params: { eid: essayId }
+            });
+
+            if (response.data.code === 0) {
+                renderEssayDetail(response.data.data);
+                await loadLikeStatus();
+                await loadCollectStatus();
+                loadComments();
+            } else {
+                document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '文章不存在') + '</h2><a href="/page/index">返回首页</a></div>';
+            }
+        } catch (error) {
+            document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/index">返回首页</a></div>';
+        }
+    }
+
+    function renderEssayDetail(data) {
+        const essay = data.essay;
+        const author = data.author;
+
+        const avatarUrl = author && author.avatar ? author.avatar : '/img/default-avatar.png';
+        const authorName = author && author.name ? author.name : '未知作者';
+
+        const html = `
+            <h1 class="essay-title">${escapeHtml(essay.title)}</h1>
+            <div class="author-section">
+                <img class="author-avatar" src="${avatarUrl}" alt="头像" onclick="goToAuthorProfile(${essay.authorId})">
+                <div class="author-info">
+                    <a class="author-name" onclick="goToAuthorProfile(${essay.authorId})">${escapeHtml(authorName)}</a>
+                    <div class="publish-time">${formatDate(essay.createAt)}</div>
+                </div>
+                ${currentUser && currentUser.id === essay.authorId ? '<div class="author-actions"><button class="edit-essay-btn" onclick="window.location.href=\'/page/essay/edit?eid=' + essay.id + '\'">修改文章</button></div>' : ''}
+            </div>
+            <div class="essay-content">${essay.content}</div>
+            <div class="action-bar">
+                <button class="action-btn ${currentLikeStatus ? 'liked' : ''}" id="likeBtn" onclick="toggleLike()">
+                    <span class="icon">${currentLikeStatus ? '❤️' : '🤍'}</span>
+                    <span>喜欢 ${essay.likeNum || 0}</span>
+                </button>
+                <button class="action-btn ${currentCollectStatus ? 'collected' : ''}" id="collectBtn" onclick="toggleCollect()">
+                    <span class="icon">${currentCollectStatus ? '⭐' : '☆'}</span>
+                    <span>收藏 ${essay.collectNum || 0}</span>
+                </button>
+                <button class="action-btn">
+                    <span class="icon">💬</span>
+                    <span>评论 ${essay.commentNum || 0}</span>
+                </button>
+            </div>
+            <div class="comment-section">
+                <div class="comment-header">评论</div>
+                <div class="comment-list" id="commentList">
+                    <div class="loading">加载评论...</div>
+                </div>
+                <div class="comment-input-section">
+                    <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..." rows="2"></textarea>
+                    <button class="comment-submit" id="commentSubmit" onclick="submitComment()">发送</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('content').innerHTML = html;
+    }
+
+    async function loadLikeStatus() {
+        if (!currentUser) {
+            currentLikeStatus = false;
+            return;
+        }
+        try {
+            const response = await axios.get('/api/like/get', {
+                params: { eid: essayId }
+            });
+            if (response.data.code === 0) {
+                currentLikeStatus = response.data.data && response.data.data.isLike;
+            }
+        } catch (error) {
+            currentLikeStatus = false;
+        }
+        updateLikeButton();
+    }
+
+    async function loadCollectStatus() {
+        if (!currentUser) {
+            currentCollectStatus = false;
+            return;
+        }
+        try {
+            const response = await axios.get('/api/collect/get', {
+                params: { eid: essayId }
+            });
+            if (response.data.code === 0) {
+                currentCollectStatus = response.data.data && response.data.data.isCollect;
+            }
+        } catch (error) {
+            currentCollectStatus = false;
+        }
+        updateCollectButton();
+    }
+
+    function updateLikeButton() {
+        const likeBtn = document.getElementById('likeBtn');
+        if (likeBtn) {
+            likeBtn.className = 'action-btn ' + (currentLikeStatus ? 'liked' : '');
+            likeBtn.querySelector('.icon').textContent = currentLikeStatus ? '❤️' : '🤍';
+        }
+    }
+
+    function updateCollectButton() {
+        const collectBtn = document.getElementById('collectBtn');
+        if (collectBtn) {
+            collectBtn.className = 'action-btn ' + (currentCollectStatus ? 'collected' : '');
+            collectBtn.querySelector('.icon').textContent = currentCollectStatus ? '⭐' : '☆';
+        }
+    }
+
+    async function toggleLike() {
+        if (!currentUser) {
+            alert('请先登录');
+            window.location.href = '/page/user/login';
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('eid', essayId);
+            
+            let response;
+            if (currentLikeStatus) {
+                response = await axios.post('/api/like/cancel', formData);
+            } else {
+                response = await axios.post('/api/like/add', formData);
+            }
+            
+            if (response.data.code === 0) {
+                updateLikeUI(!currentLikeStatus);
+            } else if (response.data.code === 2003) {
+                window.location.href = '/page/user/login';
+            }
+        } catch (error) {
+            alert('操作失败');
+        }
+    }
+
+    function updateLikeUI(isLiked) {
+        const likeBtn = document.getElementById('likeBtn');
+        const likeNumSpan = likeBtn.querySelector('span:last-child');
+        const likeIcon = likeBtn.querySelector('.icon');
         
-        const urlParams = new URLSearchParams(window.location.search);
-        const essayId = urlParams.get('eid');
-        const circleId = urlParams.get('cid');
+        let currentNum = parseInt(likeNumSpan.textContent.replace(/\D/g, '')) || 0;
+        
+        if (isLiked) {
+            likeBtn.classList.add('liked');
+            likeIcon.textContent = '❤️';
+            likeNumSpan.textContent = '喜欢 ' + (currentNum + 1);
+        } else {
+            likeBtn.classList.remove('liked');
+            likeIcon.textContent = '🤍';
+            likeNumSpan.textContent = '喜欢 ' + (currentNum - 1);
+        }
+        
+        currentLikeStatus = isLiked;
+    }
 
-        let currentUser = null;
-        let currentLikeStatus = false;
-        let currentCollectStatus = false;
-
-        (async function init() {
-            if (circleId) {
-                const backLink = document.getElementById('backLink');
-                backLink.href = `/page/circle/index?cid=${circleId}`;
-                backLink.textContent = '返回圈子';
-            }
-            if (!essayId) {
-                document.getElementById('content').innerHTML = '<div class="not-found"><h2>缺少文章ID参数</h2><a href="/page/index">返回首页</a></div>';
-                return;
-            }
-            await checkLogin();
-            await loadEssayDetail();
-        })();
-
-        async function checkLogin() {
-            try {
-                const response = await axios.get('/api/user/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentUser = response.data.data.user;
-                }
-            } catch (error) {
-                currentUser = null;
-            }
+    async function toggleCollect() {
+        if (!currentUser) {
+            alert('请先登录');
+            window.location.href = '/page/user/login';
+            return;
         }
 
-        async function loadEssayDetail() {
-            try {
-                const response = await axios.get('/api/essay/get', {
-                    params: { eid: essayId }
-                });
-
-                if (response.data.code === 0) {
-                    renderEssayDetail(response.data.data);
-                    // 等待状态加载完成
-                    await loadLikeStatus();
-                    await loadCollectStatus();
-                    loadComments();
-                } else {
-                    document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '文章不存在') + '</h2><a href="/page/index">返回首页</a></div>';
-                }
-            } catch (error) {
-                document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/index">返回首页</a></div>';
-            }
-        }
-
-        function renderEssayDetail(data) {
-            const essay = data.essay;
-            const author = data.author;
-
-            const avatarUrl = author && author.avatar ? author.avatar : '/img/default-avatar.png';
-            const authorName = author && author.name ? author.name : '未知作者';
-
-            const html = `
-                <h1 class="essay-title">${escapeHtml(essay.title)}</h1>
-                <div class="author-section">
-                    <img class="author-avatar" src="${avatarUrl}" alt="头像" onclick="goToAuthorProfile(${essay.authorId})">
-                    <div class="author-info">
-                        <a class="author-name" onclick="goToAuthorProfile(${essay.authorId})">${escapeHtml(authorName)}</a>
-                        <div class="publish-time">${formatDate(essay.createAt)}</div>
-                    </div>
-                    ${currentUser && currentUser.id === essay.authorId ? '<div class="author-actions"><button class="edit-essay-btn" onclick="window.location.href=\'/page/essay/edit?eid=' + essay.id + '\'">修改文章</button></div>' : ''}
-                </div>
-                <div class="essay-content">${essay.content}</div>
-                <div class="action-bar">
-                    <button class="action-btn ${currentLikeStatus ? 'liked' : ''}" id="likeBtn" onclick="toggleLike()">
-                        <span class="icon">${currentLikeStatus ? '❤️' : '🤍'}</span>
-                        <span>喜欢 ${essay.likeNum || 0}</span>
-                    </button>
-                    <button class="action-btn ${currentCollectStatus ? 'collected' : ''}" id="collectBtn" onclick="toggleCollect()">
-                        <span class="icon">${currentCollectStatus ? '⭐' : '☆'}</span>
-                        <span>收藏 ${essay.collectNum || 0}</span>
-                    </button>
-                    <button class="action-btn">
-                        <span class="icon">💬</span>
-                        <span>评论 ${essay.commentNum || 0}</span>
-                    </button>
-                </div>
-                <div class="comment-section">
-                    <div class="comment-header">评论</div>
-                    <div class="comment-list" id="commentList">
-                        <div class="loading">加载评论...</div>
-                    </div>
-                    <div class="comment-input-section">
-                        <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..." rows="2"></textarea>
-                        <button class="comment-submit" id="commentSubmit" onclick="submitComment()">发送</button>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('content').innerHTML = html;
-        }
-
-        async function loadLikeStatus() {
-            if (!currentUser) {
-                currentLikeStatus = false;
-                return;
-            }
-            try {
-                const response = await axios.get('/api/like/get', {
-                    params: { eid: essayId }
-                });
-                if (response.data.code === 0) {
-                    currentLikeStatus = response.data.data && response.data.data.isLike;
-                }
-            } catch (error) {
-                currentLikeStatus = false;
-            }
-            updateLikeButton();
-        }
-
-        async function loadCollectStatus() {
-            if (!currentUser) {
-                currentCollectStatus = false;
-                return;
-            }
-            try {
-                const response = await axios.get('/api/collect/get', {
-                    params: { eid: essayId }
-                });
-                if (response.data.code === 0) {
-                    currentCollectStatus = response.data.data && response.data.data.isCollect;
-                }
-            } catch (error) {
-                currentCollectStatus = false;
-            }
-            updateCollectButton();
-        }
-
-        function updateLikeButton() {
-            const likeBtn = document.getElementById('likeBtn');
-            if (likeBtn) {
-                likeBtn.className = 'action-btn ' + (currentLikeStatus ? 'liked' : '');
-                likeBtn.querySelector('.icon').textContent = currentLikeStatus ? '❤️' : '🤍';
-            }
-        }
-
-        function updateCollectButton() {
-            const collectBtn = document.getElementById('collectBtn');
-            if (collectBtn) {
-                collectBtn.className = 'action-btn ' + (currentCollectStatus ? 'collected' : '');
-                collectBtn.querySelector('.icon').textContent = currentCollectStatus ? '⭐' : '☆';
-            }
-        }
-
-        async function toggleLike() {
-            if (!currentUser) {
-                alert('请先登录');
-                window.location.href = '/page/user/login';
-                return;
-            }
-
+        if (currentCollectStatus) {
             try {
                 const formData = new FormData();
                 formData.append('eid', essayId);
-                
-                let response;
-                if (currentLikeStatus) {
-                    // 取消点赞
-                    response = await axios.post('/api/like/cancel', formData);
-                } else {
-                    // 添加点赞
-                    response = await axios.post('/api/like/add', formData);
-                }
-                
+                const response = await axios.post('/api/collect/cancel', formData);
                 if (response.data.code === 0) {
-                    // 直接更新 UI
-                    updateLikeUI(!currentLikeStatus);
+                    updateCollectUI(false);
                 } else if (response.data.code === 2003) {
                     window.location.href = '/page/user/login';
                 }
             } catch (error) {
                 alert('操作失败');
             }
-        }
-
-        function updateLikeUI(isLiked) {
-            const likeBtn = document.getElementById('likeBtn');
-            const likeNumSpan = likeBtn.querySelector('span:last-child');
-            const likeIcon = likeBtn.querySelector('.icon');
-            
-            let currentNum = parseInt(likeNumSpan.textContent.replace(/\D/g, '')) || 0;
-            
-            if (isLiked) {
-                // 点赞
-                likeBtn.classList.add('liked');
-                likeIcon.textContent = '❤️';
-                likeNumSpan.textContent = '喜欢 ' + (currentNum + 1);
-            } else {
-                // 取消点赞
-                likeBtn.classList.remove('liked');
-                likeIcon.textContent = '🤍';
-                likeNumSpan.textContent = '喜欢 ' + (currentNum - 1);
+        } else {
+            try {
+                const favResponse = await axios.get('/api/favorite/all');
+                if (favResponse.data.code !== 0 || !favResponse.data.data || !favResponse.data.data.favorites || favResponse.data.data.favorites.length === 0) {
+                    alert('您还没有收藏夹，请先创建收藏夹');
+                    return;
+                }
+                renderFavoriteModal(favResponse.data.data.favorites);
+            } catch (error) {
+                alert('加载收藏夹失败');
             }
-            
-            currentLikeStatus = isLiked;
+        }
+    }
+
+    function updateCollectUI(isCollected) {
+        const collectBtn = document.getElementById('collectBtn');
+        const collectNumSpan = collectBtn.querySelector('span:last-child');
+        const collectIcon = collectBtn.querySelector('.icon');
+        
+        let currentNum = parseInt(collectNumSpan.textContent.replace(/\D/g, '')) || 0;
+        
+        if (isCollected) {
+            collectBtn.classList.add('collected');
+            collectIcon.textContent = '⭐';
+            collectNumSpan.textContent = '收藏 ' + (currentNum + 1);
+        } else {
+            collectBtn.classList.remove('collected');
+            collectIcon.textContent = '☆';
+            collectNumSpan.textContent = '收藏 ' + (currentNum - 1);
+        }
+        
+        currentCollectStatus = isCollected;
+    }
+
+    function renderFavoriteModal(favorites) {
+        const modal = document.getElementById('favoriteModal');
+        const list = document.getElementById('favoriteList');
+
+        if (favorites.length === 0) {
+            list.innerHTML = '<div class="no-data">暂无收藏夹</div>';
+        } else {
+            list.innerHTML = favorites.map(fav => `
+                <div class="favorite-item" onclick="doCollect(${fav.id})">
+                    <div class="favorite-item-name">${escapeHtml(fav.title)}</div>
+                </div>
+            `).join('');
         }
 
-        async function toggleCollect() {
-            if (!currentUser) {
-                alert('请先登录');
+        document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
+        document.getElementById('addFavoriteForm').style.display = 'none';
+        document.getElementById('btnBackFavorite').style.display = 'none';
+        document.getElementById('favoriteList').style.display = 'block';
+        document.getElementById('btnAddFavorite').style.display = 'block';
+
+        modal.classList.add('show');
+    }
+
+    function showFavoriteList() {
+        document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
+        document.getElementById('addFavoriteForm').style.display = 'none';
+        document.getElementById('btnBackFavorite').style.display = 'none';
+        document.getElementById('favoriteList').style.display = 'block';
+        document.getElementById('btnAddFavorite').style.display = 'block';
+    }
+
+    function showAddFavoriteForm() {
+        document.getElementById('btnAddFavorite').style.display = 'none';
+        document.getElementById('favoriteList').style.display = 'none';
+        document.getElementById('addFavoriteForm').style.display = 'block';
+        document.getElementById('favoriteModalTitle').textContent = '添加收藏夹';
+        document.getElementById('btnBackFavorite').style.display = 'block';
+    }
+
+    async function submitNewFavorite() {
+        const title = document.getElementById('favoriteTitleInput').value.trim();
+        if (!title) {
+            alert('请输入收藏夹名称');
+            return;
+        }
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            const response = await axios.post('/api/favorite/add', formData);
+            if (response.data.code === 0) {
+                const favResponse = await axios.get('/api/favorite/all');
+                if (favResponse.data.code === 0 && favResponse.data.data) {
+                    const favorites = favResponse.data.data.favorites || [];
+                    document.getElementById('favoriteTitleInput').value = '';
+                    renderFavoriteModal(favorites);
+                }
+            } else {
+                alert(response.data.message || '创建失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+        }
+    }
+
+    function closeFavoriteModal() {
+        document.getElementById('favoriteModal').classList.remove('show');
+    }
+
+    async function doCollect(fid) {
+        closeFavoriteModal();
+        try {
+            const formData = new FormData();
+            formData.append('eid', essayId);
+            formData.append('fid', fid);
+            const response = await axios.post('/api/collect/add', formData);
+            if (response.data.code === 0) {
+                updateCollectUI(true);
+            } else if (response.data.code === 2003) {
                 window.location.href = '/page/user/login';
-                return;
             }
+        } catch (error) {
+            alert('操作失败');
+        }
+    }
 
-            if (currentCollectStatus) {
-                // 已收藏，取消收藏
-                try {
-                    const formData = new FormData();
-                    formData.append('eid', essayId);
-                    const response = await axios.post('/api/collect/cancel', formData);
-                    if (response.data.code === 0) {
-                        // 直接更新 UI
-                        updateCollectUI(false);
-                    } else if (response.data.code === 2003) {
-                        window.location.href = '/page/user/login';
-                    }
-                } catch (error) {
-                    alert('操作失败');
-                }
+    async function loadComments() {
+        try {
+            const response = await axios.get('/api/comment/essayall', {
+                params: { eid: essayId, page: 1 }
+            });
+
+            if (response.data.code === 0) {
+                renderComments(response.data.data || {});
             } else {
-                // 未收藏，显示收藏夹选择弹窗
-                try {
-                    const favResponse = await axios.get('/api/favorite/all');
-                    if (favResponse.data.code !== 0 || !favResponse.data.data || !favResponse.data.data.favorites || favResponse.data.data.favorites.length === 0) {
-                        alert('您还没有收藏夹，请先创建收藏夹');
-                        return;
-                    }
-                    renderFavoriteModal(favResponse.data.data.favorites);
-                } catch (error) {
-                    alert('加载收藏夹失败');
-                }
-            }
-        }
-
-        function updateCollectUI(isCollected) {
-            const collectBtn = document.getElementById('collectBtn');
-            const collectNumSpan = collectBtn.querySelector('span:last-child');
-            const collectIcon = collectBtn.querySelector('.icon');
-            
-            let currentNum = parseInt(collectNumSpan.textContent.replace(/\D/g, '')) || 0;
-            
-            if (isCollected) {
-                // 收藏
-                collectBtn.classList.add('collected');
-                collectIcon.textContent = '⭐';
-                collectNumSpan.textContent = '收藏 ' + (currentNum + 1);
-            } else {
-                // 取消收藏
-                collectBtn.classList.remove('collected');
-                collectIcon.textContent = '☆';
-                collectNumSpan.textContent = '收藏 ' + (currentNum - 1);
-            }
-            
-            currentCollectStatus = isCollected;
-        }
-
-        function renderFavoriteModal(favorites) {
-            const modal = document.getElementById('favoriteModal');
-            const list = document.getElementById('favoriteList');
-
-            if (favorites.length === 0) {
-                list.innerHTML = '<div class="no-data">暂无收藏夹</div>';
-            } else {
-                list.innerHTML = favorites.map(fav => `
-                    <div class="favorite-item" onclick="doCollect(${fav.id})">
-                        <div class="favorite-item-name">${escapeHtml(fav.title)}</div>
-                    </div>
-                `).join('');
-            }
-
-            document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
-            document.getElementById('addFavoriteForm').style.display = 'none';
-            document.getElementById('btnBackFavorite').style.display = 'none';
-            document.getElementById('favoriteList').style.display = 'block';
-            document.getElementById('btnAddFavorite').style.display = 'block';
-
-            modal.classList.add('show');
-        }
-
-        function showFavoriteList() {
-            document.getElementById('favoriteModalTitle').textContent = '收藏到收藏夹';
-            document.getElementById('addFavoriteForm').style.display = 'none';
-            document.getElementById('btnBackFavorite').style.display = 'none';
-            document.getElementById('favoriteList').style.display = 'block';
-            document.getElementById('btnAddFavorite').style.display = 'block';
-        }
-
-        function showAddFavoriteForm() {
-            document.getElementById('btnAddFavorite').style.display = 'none';
-            document.getElementById('favoriteList').style.display = 'none';
-            document.getElementById('addFavoriteForm').style.display = 'block';
-            document.getElementById('favoriteModalTitle').textContent = '添加收藏夹';
-            document.getElementById('btnBackFavorite').style.display = 'block';
-        }
-
-        async function submitNewFavorite() {
-            const title = document.getElementById('favoriteTitleInput').value.trim();
-            if (!title) {
-                alert('请输入收藏夹名称');
-                return;
-            }
-            try {
-                const formData = new FormData();
-                formData.append('title', title);
-                const response = await axios.post('/api/favorite/add', formData);
-                if (response.data.code === 0) {
-                    // 重新加载收藏夹列表
-                    const favResponse = await axios.get('/api/favorite/all');
-                    if (favResponse.data.code === 0 && favResponse.data.data) {
-                        const favorites = favResponse.data.data.favorites || [];
-                        document.getElementById('favoriteTitleInput').value = '';
-                        // 重新渲染弹窗
-                        renderFavoriteModal(favorites);
-                    }
-                } else {
-                    alert(response.data.message || '创建失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        function closeFavoriteModal() {
-            document.getElementById('favoriteModal').classList.remove('show');
-        }
-
-        async function doCollect(fid) {
-            closeFavoriteModal();
-            try {
-                const formData = new FormData();
-                formData.append('eid', essayId);
-                formData.append('fid', fid);
-                const response = await axios.post('/api/collect/add', formData);
-                if (response.data.code === 0) {
-                    // 直接更新 UI
-                    updateCollectUI(true);
-                } else if (response.data.code === 2003) {
-                    window.location.href = '/page/user/login';
-                }
-            } catch (error) {
-                alert('操作失败');
-            }
-        }
-
-        async function loadComments() {
-            try {
-                const response = await axios.get('/api/comment/essayall', {
-                    params: { eid: essayId, page: 1 }
-                });
-
-                if (response.data.code === 0) {
-                    renderComments(response.data.data || {});
-                } else {
-                    document.getElementById('commentList').innerHTML = '<div class="no-comment">加载评论失败</div>';
-                }
-            } catch (error) {
                 document.getElementById('commentList').innerHTML = '<div class="no-comment">加载评论失败</div>';
             }
+        } catch (error) {
+            document.getElementById('commentList').innerHTML = '<div class="no-comment">加载评论失败</div>';
+        }
+    }
+
+    function renderComments(data) {
+        const userComments = data.userComments || [];
+
+        if (userComments.length === 0) {
+            document.getElementById('commentList').innerHTML = '<div class="no-comment">暂无评论，快来抢沙发吧</div>';
+            return;
         }
 
-        function renderComments(data) {
-            const userComments = data.userComments || [];
-
-            if (userComments.length === 0) {
-                document.getElementById('commentList').innerHTML = '<div class="no-comment">暂无评论，快来抢沙发吧</div>';
-                return;
-            }
-
-            document.getElementById('commentList').innerHTML = userComments.map(item => {
-                const user = item.user || {};
-                const comment = item.comment || {};
-                const avatar = user.avatar || '/img/default-avatar.png';
-                const name = user.name || '匿名用户';
-                return `
-                    <div class="comment-item">
-                        <div class="comment-author">
-                            <img class="comment-avatar" src="${avatar}" alt="头像">
-                            <span class="comment-author-name">${escapeHtml(name)}</span>
-                        </div>
-                        <div class="comment-content">${escapeHtml(comment.content)}</div>
-                        <div class="comment-time">${formatDate(comment.createAt)}</div>
+        document.getElementById('commentList').innerHTML = userComments.map(item => {
+            const user = item.user || {};
+            const comment = item.comment || {};
+            const avatar = user.avatar || '/img/default-avatar.png';
+            const name = user.name || '匿名用户';
+            return `
+                <div class="comment-item">
+                    <div class="comment-author">
+                        <img class="comment-avatar" src="${avatar}" alt="头像">
+                        <span class="comment-author-name">${escapeHtml(name)}</span>
                     </div>
-                `;
-            }).join('');
+                    <div class="comment-content">${escapeHtml(comment.content)}</div>
+                    <div class="comment-time">${formatDate(comment.createAt)}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function submitComment() {
+        if (!currentUser) {
+            alert('请先登录');
+            window.location.href = '/page/user/login';
+            return;
         }
 
-        async function submitComment() {
-            if (!currentUser) {
-                alert('请先登录');
-                window.location.href = '/page/user/login';
-                return;
-            }
-
-            const content = document.getElementById('commentInput').value.trim();
-            if (!content) {
-                alert('请输入评论内容');
-                return;
-            }
-
-            const submitBtn = document.getElementById('commentSubmit');
-            submitBtn.disabled = true;
-
-            try {
-                await axios.post('/api/comment/add', `eid=${essayId}&content=${encodeURIComponent(content)}`);
-                document.getElementById('commentInput').value = '';
-                loadComments();
-                loadEssayDetail();
-            } catch (error) {
-                alert('评论失败');
-            } finally {
-                submitBtn.disabled = false;
-            }
+        const content = document.getElementById('commentInput').value.trim();
+        if (!content) {
+            alert('请输入评论内容');
+            return;
         }
 
-        function goToAuthorProfile(authorId) {
-            window.location.href = '/page/user/profile?uid=' + authorId;
-        }
+        const submitBtn = document.getElementById('commentSubmit');
+        submitBtn.disabled = true;
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        try {
+            await axios.post('/api/comment/add', `eid=${essayId}&content=${encodeURIComponent(content)}`);
+            document.getElementById('commentInput').value = '';
+            loadComments();
+            loadEssayDetail();
+        } catch (error) {
+            alert('评论失败');
+        } finally {
+            submitBtn.disabled = false;
         }
+    }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hour = String(date.getHours()).padStart(2, '0');
-            const minute = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hour}:${minute}`;
+    function goToAuthorProfile(authorId) {
+        window.location.href = '/page/user/profile?uid=' + authorId;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hour}:${minute}`;
+    }
+
+    document.getElementById('favoriteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeFavoriteModal();
         }
-
-        document.getElementById('favoriteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFavoriteModal();
-            }
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
+{{end}}

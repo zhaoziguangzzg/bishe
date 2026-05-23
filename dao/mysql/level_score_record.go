@@ -35,7 +35,8 @@ func UserUpdateLevelScoreRecord(uid int, cid int, typei int, isDeleted int) (err
 func GetUserLevelScoreRecordByUidCidType(uid int, cid int, typei int) (levelScoreRecord *model.LevelScoreRecord, err error) {
 	levelScoreRecord = new(model.LevelScoreRecord)
 
-	err = DB.Model(&model.LevelScoreRecord{}).Where("uid=? and cid=? and type=?", uid, cid, typei).
+	err = DB.Model(&model.LevelScoreRecord{}).
+		Where("uid=? and cid=? and type=?", uid, cid, typei).
 		First(&levelScoreRecord).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound { //没查到数据返回空

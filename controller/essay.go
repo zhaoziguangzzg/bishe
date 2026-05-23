@@ -323,8 +323,9 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 
 	pagesize := 10
 
-	//获取圈子中全部essay
-	essays, err := service.GetAllEssayByCid(cid, page, pagesize)
+	filterType := c.Query("type")
+
+	essays, err := service.GetAllEssayByCid(cid, uid, filterType, page, pagesize)
 	if err != nil {
 		service.Logger.Error("GetAllEssayByCid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -369,12 +370,6 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 		return
 	}
 
-	if len(levelScoreMap) == 0 {
-		service.Logger.Error("GetLevelScoreMapByUids len(levelScoreMap) == 0")
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
 	//根据eids获取essayLikeMap
 	essayLikeMap, err := service.GetUserEssayLikeMapByEids(uid, eids)
 	if err != nil {
@@ -390,10 +385,6 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 		MakeApiResponseErrorDefault(c)
 		return
 	}
-
-	// if len(essayLikeMap) == 0 {
-
-	// }
 
 	userEssays := make([]model.UserEssay, 0)
 
@@ -464,15 +455,20 @@ func UpdateEssayWeeklyHandler(c *gin.Context) {
 		return
 	}
 
-	isWeekly, err := strconv.Atoi(isWeeklyStr)
+	isWeeklyOld, err := strconv.Atoi(isWeeklyStr)
 	if err != nil {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	switch isWeekly {
+	scoreType := model.LEVEL_SCORE_RECORD_TYPE_WEEKLY
+	score := model.GetScoreByType(scoreType)
+
+	var isWeekly int
+	switch isWeeklyOld {
 	case model.ESSAY_IS_WEEKLY:
 		isWeekly = model.ESSAY_NOT_WEEKLY
+		score = -score
 	case model.ESSAY_NOT_WEEKLY:
 		isWeekly = model.ESSAY_IS_WEEKLY
 	default:
@@ -480,10 +476,26 @@ func UpdateEssayWeeklyHandler(c *gin.Context) {
 		return
 	}
 
+	essay, err := service.GetEssayByEid(eid)
+	if err != nil {
+		service.Logger.Error("GetEssayById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	// 更新IsWeekly 添加文章周刊
 	affectRows, err := service.UpdateEssayWeekly(eid, isWeekly)
 	if err != nil || affectRows == 0 {
 		service.Logger.Error("AddEssayWeekly err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	nowTime := time.Now()
+	// 更新等级分数
+	err = service.UpdateLevelScoreAndRecord(essay.AuthorId, essay.CircleId, eid, scoreType, score, nowTime)
+	if err != nil {
+		service.Logger.Error("UpdateLevelScoreAndRecord err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
@@ -548,17 +560,22 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
-	isEssence, err := strconv.Atoi(isEssenceStr)
+	isEssenceOld, err := strconv.Atoi(isEssenceStr)
 	if err != nil {
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
-	switch isEssence {
+	var isEssence int
+	score := model.GetScoreByType(model.LEVEL_SCORE_RECORD_TYPE_ESSENCE)
+	switch isEssenceOld {
 	case model.ESSAY_IS_ESSENCE:
 		isEssence = model.ESSAY_NOT_ESSENCE
+		//减分
+		score = -score
 	case model.ESSAY_NOT_ESSENCE:
 		isEssence = model.ESSAY_IS_ESSENCE
+		//加分
 	default:
 		MakeApiResponseErrorParams(c)
 		return
@@ -577,26 +594,6 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
-	switch isEssence {
-	case model.ESSAY_IS_ESSENCE:
-	case model.ESSAY_NOT_ESSENCE:
-	default:
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	levelScore, err := service.GetUserLevelScoreByUidCid(essay.AuthorId, essay.CircleId)
-	if err != nil {
-		service.Logger.Error("GetUserLevelScoreByUidCid err", zap.Error(err))
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
-	if levelScore == nil {
-		MakeApiResponseErrorDefault(c)
-		return
-	}
-
 	nowTime := time.Now()
 
 	// Update essay essence
@@ -607,84 +604,20 @@ func UpdateEssayEssenceHandler(c *gin.Context) {
 		return
 	}
 
-	typei := model.LEVEL_SCORE_RECORD_TYPE_ESSENCE
-	levelScoreRecord, err := service.GetUserLevelScoreRecordByUidCidType(essay.AuthorId, essay.CircleId, typei)
+	// 更新等级分数
+	err = service.UpdateLevelScoreAndRecord(essay.AuthorId, essay.CircleId, eid, model.LEVEL_SCORE_RECORD_TYPE_ESSENCE, score, nowTime)
 	if err != nil {
-		service.Logger.Error("GetUserLevelScoreRecordByUidCidType err", zap.Error(err))
+		service.Logger.Error("UpdateLevelScoreAndRecord err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	switch isEssence {
-	case model.ESSAY_IS_ESSENCE:
-		//加分
-		score := 100
-
-		//加精，更新等级分数 增加100
-		affectRows, err = service.UpdateLevelScoreByUidCid(essay.AuthorId, essay.CircleId, score)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		//根据条件判断是否需要增加等级详情
-		if levelScoreRecord == nil {
-			//增加等级详情
-			err = service.UserAddLevelScoreRecord(essay.AuthorId, essay.CircleId, score, eid, typei, time.Now())
-			if err != nil {
-				service.Logger.Error("UserAddLevelScoreRecord err", zap.Error(err))
-				MakeApiResponseErrorDefault(c)
-				return
-			}
-		}
-
-		if levelScoreRecord.IsDeleted == model.IS_DELETED_YES {
-			//更新等级详情
-			err = service.UserUpdateLevelScoreRecord(essay.AuthorId, essay.CircleId, typei, model.IS_DELETED_NO)
-			if err != nil {
-				service.Logger.Error("UserUpdateLevelScoreRecord err", zap.Error(err))
-				MakeApiResponseErrorDefault(c)
-				return
-			}
-		}
-
-	case model.ESSAY_NOT_ESSENCE:
-		//减分
-		score := -100
-		//减精，更新等级分数 减少100
-		affectRows, err = service.UpdateLevelScoreByUidCid(essay.AuthorId, essay.CircleId, score)
-		if err != nil || affectRows == 0 {
-			service.Logger.Error("UpdateLevelScoreByUidCid err", zap.Error(err))
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-
-		//根据条件判断是否需要增加等级详情
-		if levelScoreRecord.IsDeleted == model.IS_DELETED_NO {
-			//删除等级详情
-			err = service.UserUpdateLevelScoreRecord(essay.AuthorId, essay.CircleId, typei, model.IS_DELETED_YES)
-			if err != nil {
-				service.Logger.Error("UserUpdateLevelScoreRecord err", zap.Error(err))
-				MakeApiResponseErrorDefault(c)
-				return
-			}
-		}
-
-	default:
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
 	// 给用户发通知
-	typei = model.NOTICE_TYPE_ESSENCE
-
 	noticeMsg := &model.NoticeMsg{
-		Type:    typei,
+		Type:    model.NOTICE_TYPE_ESSENCE,
 		Time:    nowTime.Unix(),
 		EssayId: eid,
 	}
-
 	_, _, err = service.ProduceKafkaNoticeMessage(noticeMsg)
 	if err != nil {
 		service.Logger.Error("ProduceKafkaNoticeMessage err", zap.Error(err))

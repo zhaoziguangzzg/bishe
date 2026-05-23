@@ -26,11 +26,21 @@ func GetAllEssayByUid(uid int, page int, pagesize int) (essays []model.Essay, er
 }
 
 // get圈子中的文章
-func GetAllEssayByCid(cid int, page int, pagesize int) (essays []model.Essay, err error) {
+func GetAllEssayByCid(cid int, uid int, filterType string, page int, pagesize int) (essays []model.Essay, err error) {
 	offset := (page - 1) * pagesize
 
-	err = DB.Model(&model.Essay{}).Where("circle_id=? and is_deleted=?", cid, model.ESSAY_NOT_DELETED).
-		Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
+	query := DB.Model(&model.Essay{}).Where("circle_id=? and is_deleted=?", cid, model.ESSAY_NOT_DELETED)
+
+	switch filterType {
+	case "essence":
+		query = query.Where("is_essence=?", model.ESSAY_IS_ESSENCE)
+	case "weekly":
+		query = query.Where("is_weekly=?", model.ESSAY_IS_WEEKLY)
+	case "my":
+		query = query.Where("author_id=?", uid)
+	}
+
+	err = query.Order("id DESC").Offset(offset).Limit(pagesize).Find(&essays).Error
 	if err != nil {
 		return
 	}
