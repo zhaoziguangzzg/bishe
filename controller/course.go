@@ -3,6 +3,7 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -42,6 +43,38 @@ func AddCourseHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
+	timeNow := time.Now()
+
+	courseImgPath := ""
+	courseImgFile, courseImgHeader, err := c.Request.FormFile("img")
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile img err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	if err == nil && courseImgHeader.Size != 0 {
+		courseImgPath, err = service.FileSave(courseImgFile, courseImgHeader, service.FILE_TYPE_COURSE_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
+	payImgPath := ""
+	payImgFile, payImgHeader, err := c.Request.FormFile("pay_img")
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile pay_img err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	if err == nil && payImgHeader.Size != 0 {
+		payImgPath, err = service.FileSave(payImgFile, payImgHeader, service.FILE_TYPE_COURSE_PAY_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
 	lockKey := "course-add-" + title
 	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
@@ -60,9 +93,11 @@ func AddCourseHandler(c *gin.Context) {
 	createTime := time.Now()
 
 	// 构造课程
-	course := &model.Course{ //其中包含自动生成的id
+	course := &model.Course{
 		Title:     title,
 		Content:   content,
+		Img:       courseImgPath,
+		PayImg:    payImgPath,
 		Uid:       uid,
 		Price:     price,
 		CreateAt:  &createTime,
@@ -77,8 +112,11 @@ func AddCourseHandler(c *gin.Context) {
 		return
 	}
 
-	MakeApiResponseSuccess(c, map[string]interface{}{})
+	data := map[string]interface{}{
+		"course": course,
+	}
 
+	MakeApiResponseSuccess(c, data)
 }
 
 // 获取全部课程
@@ -264,10 +302,48 @@ func UpdateCourseHandler(c *gin.Context) {
 		return
 	}
 
+	timeNow := time.Now()
+
+	courseImgPath := ""
+	courseImgFile, courseImgHeader, err := c.Request.FormFile("img")
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile img err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	if err == nil && courseImgHeader.Size != 0 {
+		courseImgPath, err = service.FileSave(courseImgFile, courseImgHeader, service.FILE_TYPE_COURSE_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
+	payImgPath := ""
+	payImgFile, payImgHeader, err := c.Request.FormFile("pay_img")
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile pay_img err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+	if err == nil && payImgHeader.Size != 0 {
+		payImgPath, err = service.FileSave(payImgFile, payImgHeader, service.FILE_TYPE_COURSE_PAY_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
 	courseMap := map[string]interface{}{
 		"title":   title,
 		"content": content,
 		"price":   price,
+	}
+	if courseImgPath != "" {
+		courseMap["img"] = courseImgPath
+	}
+	if payImgPath != "" {
+		courseMap["pay_img"] = payImgPath
 	}
 
 	rowsAffected, err := service.UpdateCourse(cid, courseMap)

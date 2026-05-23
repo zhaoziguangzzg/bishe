@@ -30,6 +30,8 @@ type Course struct {
 	Uid int `json:"uid" gorm:"column:uid" mapstructure:"uid"`
 	//课程内容简介
 	Content string `json:"content" gorm:"column:content" mapstructure:"content"`
+	Img     string `json:"img" gorm:"column:img" mapstructure:"img"`
+	PayImg  string `json:"payImg" gorm:"column:pay_img" mapstructure:"payImg"`
 	//价格
 	Price int `json:"price" gorm:"column:price" mapstructure:"price"`
 	//加入人数

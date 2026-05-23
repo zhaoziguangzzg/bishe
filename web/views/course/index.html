@@ -1,768 +1,618 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课程列表 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 16px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .nav {
-            display: flex;
-            gap: 24px;
-        }
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .nav a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            display: flex;
-            gap: 24px;
-        }
-        .sidebar {
-            width: 200px;
-            flex-shrink: 0;
-        }
-        .sidebar-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .sidebar-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #909399;
-            margin-bottom: 12px;
-            padding-left: 12px;
-        }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #666;
-            transition: all 0.3s;
-            margin-bottom: 4px;
-        }
-        .menu-item:hover {
-            background: #f5f7fa;
-        }
-        .menu-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .menu-icon {
-            margin-right: 10px;
-            font-size: 16px;
-        }
-        .ad-slot-container {
-            margin-top: 16px;
-        }
-        .ad-slot {
-            background: #f5f7fa;
-            border-radius: 12px;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #909399;
-            font-size: 14px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .content {
-            flex: 1;
-            min-width: 0;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .search-box {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .search-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        .search-input:focus {
-            border-color: #667eea;
-        }
-        .search-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .search-btn:hover {
-            opacity: 0.9;
-        }
-        .back-btn {
-            display: inline-block;
-            margin-bottom: 16px;
-            padding: 8px 16px;
-            background: #f5f7fa;
-            color: #666;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .back-btn:hover {
-            background: #e4e7ed;
-        }
-        .tab-container {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        .tab-item {
-            padding: 10px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #666;
-            background: #f5f7fa;
-            transition: all 0.3s;
-        }
-        .tab-item:hover {
-            background: #e4e7ed;
-        }
-        .tab-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .add-course-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .add-course-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-        .course-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .course-item {
-            border-radius: 12px;
-            background: #fafafa;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .course-item:hover {
-            background: #f0f4ff;
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-        }
-        .course-cover {
-            height: 140px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-        }
-        .course-content {
-            padding: 16px;
-        }
-        .course-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .course-desc {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 12px;
-            height: 40px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-        .course-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            color: #999;
-        }
-        .course-price {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-        .course-price.free {
-            color: #52c41a;
-        }
-        .course-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .course-action-btn {
-            flex: 1;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .course-action-btn.edit {
-            background: #667eea;
-            color: white;
-        }
-        .course-action-btn.edit:hover {
-            background: #5a6fd6;
-        }
-        .course-action-btn.view {
-            background: #f5f7fa;
-            color: #666;
-            border: 1px solid #ddd;
-        }
-        .course-action-btn.view:hover {
-            background: #e4e7ed;
-        }
-        .no-data {
-            text-align: center;
-            padding: 60px;
-            color: #999;
-            font-size: 14px;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 24px;
-        }
-        .pagination button {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .pagination button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .pagination span {
-            font-size: 14px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/page/circle/index">圈子</a>
-            <a href="/page/course/index">课程</a>
-            <a href="/page/announce/list">公告</a>
-        </div>
-        <div class="header-search">
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索..." onkeypress="handleSearchKeyPress(event)"/>
-                <button class="search-btn" onclick="performSearch()">🔍</button>
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .course-main {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 24px;
+    }
+    .sidebar {
+        width: 200px;
+        flex-shrink: 0;
+    }
+    .sidebar-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .sidebar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #909399;
+        margin-bottom: 12px;
+        padding-left: 12px;
+    }
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        transition: all 0.3s;
+        margin-bottom: 4px;
+    }
+    .menu-item:hover {
+        background: #f5f7fa;
+    }
+    .menu-item.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .menu-icon {
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    .ad-slot-container {
+        margin-top: 16px;
+    }
+    .ad-slot {
+        background: #f5f7fa;
+        border-radius: 12px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #909399;
+        font-size: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .content {
+        flex: 1;
+        min-width: 0;
+    }
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    .back-btn {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 8px 16px;
+        background: #f5f7fa;
+        color: #666;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .back-btn:hover {
+        background: #e4e7ed;
+    }
+    .tab-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+    .tab-item {
+        padding: 10px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        background: #f5f7fa;
+        transition: all 0.3s;
+    }
+    .tab-item:hover {
+        background: #e4e7ed;
+    }
+    .tab-item.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .add-course-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .add-course-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+    .course-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    .course-item {
+        border-radius: 12px;
+        background: #fafafa;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .course-item:hover {
+        background: #f0f4ff;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+    }
+    .course-cover {
+        height: 140px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 48px;
+    }
+    .course-content {
+        padding: 16px;
+    }
+    .course-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .course-desc {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 12px;
+        height: 40px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .course-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #999;
+    }
+    .course-price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #ff6b6b;
+    }
+    .course-price.free {
+        color: #52c41a;
+    }
+    .course-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .course-action-btn {
+        flex: 1;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .course-action-btn.edit {
+        background: #667eea;
+        color: white;
+    }
+    .course-action-btn.edit:hover {
+        background: #5a6fd6;
+    }
+    .course-action-btn.view {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #ddd;
+    }
+    .course-action-btn.view:hover {
+        background: #e4e7ed;
+    }
+    .no-data {
+        text-align: center;
+        padding: 60px;
+        color: #999;
+        font-size: 14px;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    .pagination button {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .pagination button:hover:not(:disabled) {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .pagination span {
+        font-size: 14px;
+        color: #666;
+    }
+</style>
+{{end}}
+
+<div class="course-main">
+    <div class="sidebar">
+        <div class="sidebar-card">
+            <div class="sidebar-title">课程菜单</div>
+            <div class="menu-item active" onclick="switchMenu('all')">
+                <span class="menu-icon">📚</span>
+                <span>全部课程</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('published')">
+                <span class="menu-icon">📝</span>
+                <span>发布课程</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('learning')">
+                <span class="menu-icon">📖</span>
+                <span>我的学习</span>
             </div>
         </div>
-        <div class="user-nav">
-            <a href="/page/chat/index">私信</a>
-            <a href="/page/notice/index">通知</a>
-            <a href="/page/feedback/index">反馈</a>
-            <a href="/page/user/profile">我的</a>
+        <div class="ad-slot-container">
+            <div id="adSlot1" class="ad-slot"></div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="sidebar">
-            <div class="sidebar-card">
-                <div class="sidebar-title">课程菜单</div>
-                <div class="menu-item active" onclick="switchMenu('all')">
-                    <span class="menu-icon">📚</span>
-                    <span>全部课程</span>
-                </div>
-                <div class="menu-item" onclick="switchMenu('published')">
-                    <span class="menu-icon">📝</span>
-                    <span>发布课程</span>
-                </div>
-                <div class="menu-item" onclick="switchMenu('learning')">
-                    <span class="menu-icon">📖</span>
-                    <span>我的学习</span>
-                </div>
-            </div>
-            <div class="ad-slot-container">
-                <div id="adSlot1" class="ad-slot"></div>
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="card">
+    <div class="content">
+        <div class="card">
+            <div class="title-row">
                 <h2 class="card-title" id="pageTitle">📚 全部课程</h2>
-                <div class="search-box">
-                    <input type="text" id="searchInput" class="search-input" placeholder="搜索课程..." onkeypress="handleKeyPress(event)">
-                    <button class="search-btn" onclick="searchCourse()">搜索</button>
-                </div>
-                <div id="backBtn" class="back-btn" style="display: none;" onclick="backToList()">← 返回列表</div>
-                <div id="tabContainer" class="tab-container" style="display: none;">
-                    <div class="tab-item active" data-status="1" onclick="switchTab(1)">已发布</div>
-                    <div class="tab-item" data-status="0" onclick="switchTab(0)">未发布</div>
-                    <button id="addCourseBtn" class="add-course-btn" style="display: none;" onclick="addCourse()">添加课程</button>
-                </div>
-                <div id="courseList" class="course-list"></div>
-                <div id="pagination" class="pagination"></div>
+                <button id="addCourseBtn" class="add-course-btn" style="display: none;" onclick="addCourse()">添加课程</button>
             </div>
+            <div id="backBtn" class="back-btn" style="display: none;" onclick="backToList()">← 返回列表</div>
+            <div id="tabContainer" class="tab-container" style="display: none;">
+                <div class="tab-item active" data-status="1" onclick="switchTab(1)">已发布</div>
+                <div class="tab-item" data-status="0" onclick="switchTab(0)">未发布</div>
+            </div>
+            <div id="courseList" class="course-list"></div>
+            <div id="pagination" class="pagination"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        let currentPage = 1;
-        const pageSize = 12;
-        let currentMenu = 'all';
-        let currentTab = 1;
-        let isSearchMode = false;
-        let searchTitle = '';
+{{template "index_layout_body_end" .}}
 
-        async function loadAds() {
-            try {
-                const response = await axios.get('/api/advert/all-time?position=2&page=1&pagesize=10');
-                if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
-                    const adverts = response.data.data.adverts;
-                    const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
-                    const adSlot = document.getElementById('adSlot1');
-                    
-                    let adHtml = '';
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml = `<a href="${randomAd.advertAddr}" target="_blank" style="text-decoration:none;color:inherit;display:block;">`;
-                    }
-                    
-                    if (randomAd.img) {
-                        adHtml += `<img src="${randomAd.img}" style="max-width:100%;border-radius:12px;display:block;">`;
-                    }
-                    
-                    if (randomAd.content) {
-                        adHtml += `<div style="padding:10px;font-size:14px;color:#333;text-align:center;">${randomAd.content}</div>`;
-                    }
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml += `</a>`;
-                    }
-                    
-                    if (adHtml) {
-                        adSlot.innerHTML = adHtml;
-                    }
+{{define "index_layout_extra_scripts"}}
+<script>
+    let currentPage = 1;
+    const pageSize = 12;
+    let currentMenu = 'all';
+    let currentTab = 1;
+    let isSearchMode = false;
+    let searchTitle = '';
+
+    async function loadAds() {
+        try {
+            const response = await axios.get('/api/advert/all-time?position=2&page=1&pagesize=10');
+            if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
+                const adverts = response.data.data.adverts;
+                const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
+                const adSlot = document.getElementById('adSlot1');
+                
+                let adHtml = '';
+                
+                if (randomAd.advertAddr) {
+                    adHtml = '<a href="' + escapeHtml(randomAd.advertAddr) + '" target="_blank" style="text-decoration:none;color:inherit;display:block;">';
                 }
-            } catch (error) {
-                console.error('Load ads error:', error);
-            }
-        }
-
-        function switchMenu(menu) {
-            currentMenu = menu;
-            isSearchMode = false;
-            searchTitle = '';
-            currentPage = 1;
-            document.getElementById('searchInput').value = '';
-            document.getElementById('backBtn').style.display = 'none';
-
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.closest('.menu-item').classList.add('active');
-
-            if (menu === 'all') {
-                document.getElementById('pageTitle').textContent = '📚 全部课程';
-                document.getElementById('tabContainer').style.display = 'none';
-                loadCourseList(1);
-            } else if (menu === 'published') {
-                document.getElementById('pageTitle').textContent = '📝 发布课程';
-                document.getElementById('tabContainer').style.display = 'flex';
-                currentTab = 1;
-                updateTabStyle();
-                const addBtn = document.getElementById('addCourseBtn');
-                if (addBtn) {
-                    addBtn.style.display = 'none';
+                
+                if (randomAd.img) {
+                    adHtml += '<img src="' + escapeHtml(randomAd.img) + '" style="max-width:100%;border-radius:12px;display:block;">';
                 }
-                loadUserPublishedCourses(1);
-            } else if (menu === 'learning') {
-                document.getElementById('pageTitle').textContent = '📖 我的学习';
-                document.getElementById('tabContainer').style.display = 'none';
-                loadMyLearningCourses(1);
+                
+                if (randomAd.content) {
+                    adHtml += '<div style="padding:10px;font-size:14px;color:#333;text-align:center;">' + escapeHtml(randomAd.content) + '</div>';
+                }
+                
+                if (randomAd.advertAddr) {
+                    adHtml += '</a>';
+                }
+                
+                if (adHtml) {
+                    adSlot.innerHTML = adHtml;
+                }
             }
+        } catch (error) {
+            console.error('Load ads error:', error);
         }
+    }
 
-        function switchTab(status) {
-            currentTab = status;
-            currentPage = 1;
+    function switchMenu(menu) {
+        currentMenu = menu;
+        isSearchMode = false;
+        searchTitle = '';
+        currentPage = 1;
+        document.getElementById('searchInput').value = '';
+        document.getElementById('backBtn').style.display = 'none';
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.target.closest('.menu-item').classList.add('active');
+
+        if (menu === 'all') {
+            document.getElementById('pageTitle').textContent = '📚 全部课程';
+            document.getElementById('tabContainer').style.display = 'none';
+            document.getElementById('addCourseBtn').style.display = 'none';
+            loadCourseList(1);
+        } else if (menu === 'published') {
+            document.getElementById('pageTitle').textContent = '📝 发布课程';
+            document.getElementById('tabContainer').style.display = 'flex';
+            currentTab = 1;
             updateTabStyle();
+            document.getElementById('addCourseBtn').style.display = 'block';
             loadUserPublishedCourses(1);
-            
-            const addBtn = document.getElementById('addCourseBtn');
-            if (addBtn) {
-                addBtn.style.display = status === 0 ? 'block' : 'none';
-            }
+        } else if (menu === 'learning') {
+            document.getElementById('pageTitle').textContent = '📖 我的学习';
+            document.getElementById('tabContainer').style.display = 'none';
+            document.getElementById('addCourseBtn').style.display = 'none';
+            loadMyLearningCourses(1);
         }
+    }
 
-        function updateTabStyle() {
-            document.querySelectorAll('.tab-item').forEach(item => {
-                item.classList.remove('active');
+    function switchTab(status) {
+        currentTab = status;
+        currentPage = 1;
+        updateTabStyle();
+        loadUserPublishedCourses(1);
+        
+        document.getElementById('addCourseBtn').style.display = 'block';
+    }
+
+    function updateTabStyle() {
+        document.querySelectorAll('.tab-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector('.tab-item[data-status="' + currentTab + '"]').classList.add('active');
+    }
+
+    async function loadCourseList(page) {
+        const container = document.getElementById('courseList');
+        container.innerHTML = '<div class="no-data">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/course/all', {
+                params: { page: page, pagesize: pageSize }
             });
-            document.querySelector(`.tab-item[data-status="${currentTab}"]`).classList.add('active');
-        }
 
-        async function loadCourseList(page) {
-            const container = document.getElementById('courseList');
-            container.innerHTML = '<div class="no-data">加载中...</div>';
+            if (response.data.code === 0 && response.data.data) {
+                const courses = response.data.data.courses || [];
 
-            try {
-                const response = await axios.get('/api/course/all', {
-                    params: { page: page, pagesize: pageSize }
-                });
-
-                if (response.data.code === 0 && response.data.data) {
-                    const courses = response.data.data.courses || [];
-
-                    if (courses.length === 0) {
-                        container.innerHTML = '<div class="no-data">暂无课程</div>';
-                        document.getElementById('pagination').innerHTML = '';
-                        return;
-                    }
-
-                    container.innerHTML = courses.map(course => {
-                        const isFree = course.price === 0;
-                        return `
-                        <div class="course-item" onclick="goToCourse(${course.id})">
-                            <div class="course-cover">📖</div>
-                            <div class="course-content">
-                                <div class="course-title">${course.title}</div>
-                                <div class="course-desc">${course.content || '暂无简介'}</div>
-                                <div class="course-meta">
-                                    <span>${course.joinNum || 0}人学习</span>
-                                    <span class="course-price ${isFree ? 'free' : ''}">${isFree ? '免费' : course.price + '元'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-
-                    renderPagination(response.data.data.total || 0, page);
-                }
-            } catch (error) {
-                container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
-            }
-        }
-
-        async function loadUserPublishedCourses(page) {
-            const container = document.getElementById('courseList');
-            container.innerHTML = '<div class="no-data">加载中...</div>';
-
-            try {
-                const response = await axios.get('/api/course/user-all', {
-                    params: { page: page, pagesize: pageSize, status: currentTab }
-                });
-
-                if (response.data.code === 0 && response.data.data) {
-                    const courses = response.data.data.courses || [];
-
-                    if (courses.length === 0) {
-                        container.innerHTML = '<div class="no-data">' + (currentTab === 1 ? '暂无已发布的课程' : '暂无未发布的课程') + '</div>';
-                        document.getElementById('pagination').innerHTML = '';
-                        return;
-                    }
-
-                    container.innerHTML = courses.map(course => {
-                        const isFree = course.price === 0;
-                        return `
-                        <div class="course-item">
-                            <div class="course-cover" onclick="goToCourse(${course.id})">📖</div>
-                            <div class="course-content">
-                                <div class="course-title" onclick="goToCourse(${course.id})">${course.title}</div>
-                                <div class="course-desc" onclick="goToCourse(${course.id})">${course.content || '暂无简介'}</div>
-                                <div class="course-meta" onclick="goToCourse(${course.id})">
-                                    <span>${course.joinNum || 0}人学习</span>
-                                    <span class="course-price ${isFree ? 'free' : ''}">${isFree ? '免费' : course.price + '元'}</span>
-                                </div>
-                                <div class="course-actions">
-                                    <button class="course-action-btn edit" onclick="editCourse(${course.id})">修改</button>
-                                    <button class="course-action-btn view" onclick="goToCourse(${course.id})">查看</button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-
+                if (courses.length === 0) {
+                    container.innerHTML = '<div class="no-data">暂无课程</div>';
                     document.getElementById('pagination').innerHTML = '';
+                    return;
                 }
-            } catch (error) {
-                container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
+
+                container.innerHTML = courses.map(course => {
+                    const isFree = course.price === 0;
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                }).join('');
+
+                renderPagination(response.data.data.total || 0, page);
             }
+        } catch (error) {
+            container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
         }
+    }
 
-        async function loadMyLearningCourses(page) {
-            const container = document.getElementById('courseList');
-            container.innerHTML = '<div class="no-data">加载中...</div>';
+    async function loadUserPublishedCourses(page) {
+        const container = document.getElementById('courseList');
+        container.innerHTML = '<div class="no-data">加载中...</div>';
 
-            try {
-                const response = await axios.get('/api/purchase/all', {
-                    params: { status: 1, page: page, pagesize: pageSize }
-                });
+        try {
+            const response = await axios.get('/api/course/user-all', {
+                params: { page: page, pagesize: pageSize, status: currentTab }
+            });
 
-                if (response.data.code === 0 && response.data.data) {
-                    const purchaseCourses = response.data.data.purchaseCourses || [];
+            if (response.data.code === 0 && response.data.data) {
+                const courses = response.data.data.courses || [];
 
-                    if (purchaseCourses.length === 0) {
-                        container.innerHTML = '<div class="no-data">暂无正在学习的课程</div>';
-                        document.getElementById('pagination').innerHTML = '';
-                        return;
-                    }
-
-                    container.innerHTML = purchaseCourses.map(item => {
-                        const course = item.course;
-                        if (!course) return '';
-                        const isFree = course.price === 0;
-                        return `
-                        <div class="course-item" onclick="goToCourse(${course.id})">
-                            <div class="course-cover">📖</div>
-                            <div class="course-content">
-                                <div class="course-title">${course.title}</div>
-                                <div class="course-desc">${course.content || '暂无简介'}</div>
-                                <div class="course-meta">
-                                    <span>${course.joinNum || 0}人学习</span>
-                                    <span class="course-price ${isFree ? 'free' : ''}">${isFree ? '免费' : course.price + '元'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-
+                if (courses.length === 0) {
+                    container.innerHTML = '<div class="no-data">' + (currentTab === 1 ? '暂无已发布的课程' : '暂无未发布的课程') + '</div>';
                     document.getElementById('pagination').innerHTML = '';
-                } else {
-                    container.innerHTML = '<div class="no-data">加载失败，请登录后重试</div>';
+                    return;
                 }
-            } catch (error) {
-                container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
+
+                container.innerHTML = courses.map(course => {
+                    const isFree = course.price === 0;
+                    return '<div class="course-item"><div class="course-cover" onclick="goToCourse(' + course.id + ')">📖</div><div class="course-content"><div class="course-title" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.title) + '</div><div class="course-desc" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta" onclick="goToCourse(' + course.id + ')"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div><div class="course-actions"><button class="course-action-btn edit" onclick="editCourse(' + course.id + ')">修改</button><button class="course-action-btn view" onclick="goToCourse(' + course.id + ')">查看</button></div></div></div>';
+                }).join('');
+
+                document.getElementById('pagination').innerHTML = '';
             }
+        } catch (error) {
+            container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
         }
+    }
 
-        async function searchCourse(page = 1) {
-            const input = document.getElementById('searchInput');
-            const title = input.value.trim();
+    async function loadMyLearningCourses(page) {
+        const container = document.getElementById('courseList');
+        container.innerHTML = '<div class="no-data">加载中...</div>';
 
-            if (!title) {
-                alert('请输入搜索关键词');
-                return;
-            }
+        try {
+            const response = await axios.get('/api/purchase/all', {
+                params: { status: 1, page: page, pagesize: pageSize }
+            });
 
-            isSearchMode = true;
-            searchTitle = title;
-            currentPage = page;
+            if (response.data.code === 0 && response.data.data) {
+                const purchaseCourses = response.data.data.purchaseCourses || [];
 
-            const container = document.getElementById('courseList');
-            container.innerHTML = '<div class="no-data">搜索中...</div>';
-
-            try {
-                const response = await axios.get('/api/course/search', {
-                    params: { title: title, page: page, pagesize: pageSize }
-                });
-
-                if (response.data.code === 0 && response.data.data) {
-                    const courses = response.data.data.courses || [];
-
-                    if (courses.length === 0) {
-                        container.innerHTML = '<div class="no-data">未找到相关课程</div>';
-                        document.getElementById('pagination').innerHTML = '';
-                        return;
-                    }
-
-                    container.innerHTML = courses.map(course => {
-                        const isFree = course.price === 0;
-                        return `
-                        <div class="course-item" onclick="goToCourse(${course.id})">
-                            <div class="course-cover">📖</div>
-                            <div class="course-content">
-                                <div class="course-title">${course.title}</div>
-                                <div class="course-desc">${course.content || '暂无简介'}</div>
-                                <div class="course-meta">
-                                    <span>${course.joinNum || 0}人学习</span>
-                                    <span class="course-price ${isFree ? 'free' : ''}">${isFree ? '免费' : course.price + '元'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-
-                    document.getElementById('backBtn').style.display = 'inline-block';
-                    renderSearchPagination(response.data.data.total || 0, page);
+                if (purchaseCourses.length === 0) {
+                    container.innerHTML = '<div class="no-data">暂无正在学习的课程</div>';
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
                 }
-            } catch (error) {
-                container.innerHTML = '<div class="no-data">搜索失败，请稍后重试</div>';
-            }
-        }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                searchCourse();
-            }
-        }
+                container.innerHTML = purchaseCourses.map(item => {
+                    const course = item.course;
+                    if (!course) return '';
+                    const isFree = course.price === 0;
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                }).join('');
 
-        function backToList() {
-            isSearchMode = false;
-            searchTitle = '';
-            currentPage = 1;
-            document.getElementById('searchInput').value = '';
-            document.getElementById('backBtn').style.display = 'none';
-
-            if (currentMenu === 'all') {
-                document.getElementById('pageTitle').textContent = '📚 全部课程';
-                loadCourseList(1);
+                document.getElementById('pagination').innerHTML = '';
             } else {
-                document.getElementById('pageTitle').textContent = '📝 发布的课程';
-                loadUserPublishedCourses(1);
+                container.innerHTML = '<div class="no-data">加载失败，请登录后重试</div>';
             }
+        } catch (error) {
+            container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
+        }
+    }
+
+    async function searchCourse(page) {
+        page = page || 1;
+        const input = document.getElementById('searchInput');
+        const title = input.value.trim();
+
+        if (!title) {
+            alert('请输入搜索关键词');
+            return;
         }
 
-        function renderPagination(total, page) {
-            const totalPages = Math.ceil(total / pageSize);
-            const paginationEl = document.getElementById('pagination');
+        isSearchMode = true;
+        searchTitle = title;
+        currentPage = page;
 
-            if (totalPages <= 1) {
-                paginationEl.innerHTML = '';
-                return;
+        const container = document.getElementById('courseList');
+        container.innerHTML = '<div class="no-data">搜索中...</div>';
+
+        try {
+            const response = await axios.get('/api/course/search', {
+                params: { title: title, page: page, pagesize: pageSize }
+            });
+
+            if (response.data.code === 0 && response.data.data) {
+                const courses = response.data.data.courses || [];
+
+                if (courses.length === 0) {
+                    container.innerHTML = '<div class="no-data">未找到相关课程</div>';
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
+                }
+
+                container.innerHTML = courses.map(course => {
+                    const isFree = course.price === 0;
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                }).join('');
+
+                document.getElementById('backBtn').style.display = 'inline-block';
+                renderSearchPagination(response.data.data.total || 0, page);
             }
+        } catch (error) {
+            container.innerHTML = '<div class="no-data">搜索失败，请稍后重试</div>';
+        }
+    }
 
-            let html = `
-                <button onclick="changePage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
-                <span>第 ${page} / ${totalPages} 页</span>
-                <button onclick="changePage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
-            `;
-            paginationEl.innerHTML = html;
+
+    function backToList() {
+        isSearchMode = false;
+        searchTitle = '';
+        currentPage = 1;
+        document.getElementById('searchInput').value = '';
+        document.getElementById('backBtn').style.display = 'none';
+
+        if (currentMenu === 'all') {
+            document.getElementById('pageTitle').textContent = '📚 全部课程';
+            loadCourseList(1);
+        } else {
+            document.getElementById('pageTitle').textContent = '📝 发布的课程';
+            loadUserPublishedCourses(1);
+        }
+    }
+
+    function renderPagination(total, page) {
+        const totalPages = Math.ceil(total / pageSize);
+        const paginationEl = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = '';
+            return;
         }
 
-        function renderSearchPagination(total, page) {
-            const totalPages = Math.ceil(total / pageSize);
-            const paginationEl = document.getElementById('pagination');
+        let html = '<button onclick="changePage(' + (page - 1) + ')" ' + (page <= 1 ? 'disabled' : '') + '>上一页</button><span>第 ' + page + ' / ' + totalPages + ' 页</span><button onclick="changePage(' + (page + 1) + ')" ' + (page >= totalPages ? 'disabled' : '') + '>下一页</button>';
+        paginationEl.innerHTML = html;
+    }
 
-            if (totalPages <= 1) {
-                paginationEl.innerHTML = '';
-                return;
-            }
+    function renderSearchPagination(total, page) {
+        const totalPages = Math.ceil(total / pageSize);
+        const paginationEl = document.getElementById('pagination');
 
-            let html = `
-                <button onclick="searchCourse(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
-                <span>第 ${page} / ${totalPages} 页</span>
-                <button onclick="searchCourse(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>下一页</button>
-            `;
-            paginationEl.innerHTML = html;
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = '';
+            return;
         }
 
-        function changePage(page) {
-            currentPage = page;
-            if (currentMenu === 'all') {
-                loadCourseList(page);
-            } else {
-                loadUserPublishedCourses(page);
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        let html = '<button onclick="searchCourse(' + (page - 1) + ')" ' + (page <= 1 ? 'disabled' : '') + '>上一页</button><span>第 ' + page + ' / ' + totalPages + ' 页</span><button onclick="searchCourse(' + (page + 1) + ')" ' + (page >= totalPages ? 'disabled' : '') + '>下一页</button>';
+        paginationEl.innerHTML = html;
+    }
 
-        function goToCourse(courseId) {
-            window.location.href = '/page/course/detail?course_id=' + courseId;
+    function changePage(page) {
+        currentPage = page;
+        if (currentMenu === 'all') {
+            loadCourseList(page);
+        } else {
+            loadUserPublishedCourses(page);
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-        function editCourse(courseId) {
-            event.stopPropagation();
-            window.location.href = '/page/course/edit?course_id=' + courseId;
-        }
+    function goToCourse(courseId) {
+        window.location.href = '/page/course/detail?course_id=' + courseId;
+    }
 
-        function addCourse() {
-            window.location.href = '/page/course/add';
-        }
+    function editCourse(courseId) {
+        event.stopPropagation();
+        window.location.href = '/page/course/edit?course_id=' + courseId;
+    }
 
+    function addCourse() {
+        window.location.href = '/page/course/add';
+    }
+
+    var urlParams = new URLSearchParams(window.location.search);
+    var keywordFromUrl = urlParams.get('keyword');
+    if (keywordFromUrl) {
+        document.getElementById('searchInput').value = keywordFromUrl;
+        searchCourse(1);
+    } else {
         loadCourseList(currentPage);
-        loadAds();
-    </script>
-</body>
-</html>
+    }
+    loadAds();
+</script>
+{{end}}
