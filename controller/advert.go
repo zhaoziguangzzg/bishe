@@ -117,9 +117,7 @@ func GetAllAdvertByTimeHandler(c *gin.Context) {
 
 	nowTime := time.Now()
 
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-
+	page := 1
 	pagesize := 10
 
 	//获取全部广告

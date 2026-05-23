@@ -375,13 +375,12 @@ func UpdateUserPasswordHandler(c *gin.Context) {
 	newPassword := service.MakeUserPassword(password)
 
 	//更新用户信息
-	affectRows, err := service.UpdateUserPasswordByUid(uid, newPassword)
-	if !(affectRows > 0 && err == nil) {
+	_, err = service.UpdateUserPasswordByUid(uid, newPassword)
+	if err != nil {
 		service.Logger.Error("UpdateUserPasswordByUid err", zap.Error(err))
 		MakeApiResponseError(c, CODE_SYS_ERROR)
 		return
 	}
 
 	MakeApiResponseSuccessDefault(c)
-
 }

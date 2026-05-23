@@ -1,350 +1,353 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            font-size: 24px;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-            display: flex;
-            gap: 24px;
-        }
-        .profile-sidebar {
-            width: 200px;
-            flex-shrink: 0;
-        }
-        .profile-main {
-            flex: 1;
-            min-width: 0;
-        }
-        .ad-slot-container {
-            margin-bottom: 0;
-        }
-        .ad-slot {
-            background: #f5f7fa;
-            border-radius: 12px;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #909399;
-            font-size: 14px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .profile-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
-        }
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid #f0f0f0;
-            margin-bottom: 24px;
-        }
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #667eea;
-        }
-        .user-info {
-            flex: 1;
-        }
-        .user-name {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .user-age {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-        .more-btn {
-            background: none;
-            border: 1px solid #667eea;
-            color: #667eea;
-            padding: 6px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        .more-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-        .stats-row {
-            display: flex;
-            gap: 32px;
-            margin-bottom: 24px;
-            padding: 16px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .stat-item {
-            text-align: center;
-        }
-        .stat-num {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-        }
-        .stat-label {
-            font-size: 13px;
-            color: #999;
-            margin-top: 4px;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .action-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .action-btn.primary {
-            background: #667eea;
-            color: white;
-        }
-        .action-btn.primary:hover {
-            background: #5568d3;
-        }
-        .action-btn.follow {
-            background: #409eff;
-            color: white;
-        }
-        .action-btn.follow:hover {
-            background: #3a8ee6;
-        }
-        .action-btn.follow.followed {
-            background: #909399;
-        }
-        .action-btn.follow.followed:hover {
-            background: #82848a;
-        }
-        .action-btn.secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        .action-btn.secondary:hover {
-            background: #e0e0e0;
-        }
-        .tab-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .tab-header {
-            display: flex;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .tab-item {
-            flex: 1;
-            text-align: center;
-            padding: 16px;
-            cursor: pointer;
-            font-size: 15px;
-            color: #666;
-            transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-item:hover {
-            color: #667eea;
-        }
-        .tab-item.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            font-weight: 600;
-        }
-        .tab-content {
-            padding: 20px;
-            min-height: 300px;
-        }
-        .essay-item {
-            padding: 16px;
-            border-bottom: 1px solid #f5f5f5;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .essay-item:hover {
-            background: #fafafa;
-        }
-        .essay-item:last-child {
-            border-bottom: none;
-        }
-        .essay-title {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .essay-meta {
-            font-size: 13px;
-            color: #999;
-        }
-        .favorite-item {
-            padding: 16px;
-            border-bottom: 1px solid #f5f5f5;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .favorite-item:hover {
-            background: #fafafa;
-        }
-        .favorite-item:last-child {
-            border-bottom: none;
-        }
-        .favorite-title {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .favorite-meta {
-            font-size: 13px;
-            color: #999;
-        }
-        .comment-item {
-            padding: 16px;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        .comment-item:last-child {
-            border-bottom: none;
-        }
-        .comment-content {
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .comment-meta {
-            font-size: 13px;
-            color: #999;
-        }
-        .follow-user-item {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid #f5f5f5;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .follow-user-item:hover {
-            background: #fafafa;
-        }
-        .follow-user-item:last-child {
-            border-bottom: none;
-        }
-        .follow-user-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 16px;
-        }
-        .follow-user-info {
-            flex: 1;
-        }
-        .follow-user-name {
-            font-size: 15px;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        .follow-user-meta {
-            font-size: 13px;
-            color: #999;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .loading-tip {
-            text-align: center;
-            padding: 40px;
-            color: #667eea;
-        }
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            padding: 16px 0;
-        }
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .detail-label {
-            font-size: 12px;
-            color: #999;
-        }
-        .detail-value {
-            font-size: 14px;
-            color: #333;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <a href="/">← 返回首页</a>
-        <h1>个人中心</h1>
-        <div></div>
-    </div>
+{{template "index_layout_head" .}}
 
-    <div class="container">
-        <div class="profile-sidebar">
-            <div class="ad-slot-container">
-                <div id="adSlot4" class="ad-slot"></div>
-            </div>
-        </div>
-        <div class="profile-main">
-            <div class="profile-card">
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .profile-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 24px;
+    }
+    .profile-main {
+        max-width: 1200px;
+        flex: 1;
+        min-width: 0;
+    }
+    .ad-carousel {
+        max-width: 1200px;
+        position: relative;
+        margin: 0 auto 24px;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .ad-carousel-inner {
+        display: flex;
+        transition: transform 0.5s ease;
+    }
+    .ad-carousel-item {
+        min-width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
+    .ad-carousel-item img {
+        width: 100%;
+        max-height: 240px;
+        object-fit: cover;
+        display: block;
+    }
+    .ad-carousel-item-text {
+        padding: 20px;
+        font-size: 16px;
+        color: #333;
+        text-align: center;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ad-carousel-dots {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+    }
+    .ad-carousel-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .ad-carousel-dot.active {
+        background: white;
+    }
+    .ad-carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.3);
+        color: white;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+        z-index: 2;
+    }
+    .ad-carousel-arrow:hover {
+        background: rgba(0,0,0,0.5);
+    }
+    .ad-carousel-arrow.prev {
+        left: 12px;
+    }
+    .ad-carousel-arrow.next {
+        right: 12px;
+    }
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 24px;
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 24px;
+    }
+    .avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #667eea;
+    }
+    .user-info {
+        flex: 1;
+    }
+    .user-name {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .user-age {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 12px;
+    }
+    .stats-row {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 24px;
+    }
+    .stat-item {
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .stat-item:hover {
+        transform: scale(1.05);
+    }
+    .stat-num {
+        font-size: 28px;
+        color: #667eea;
+        font-weight: bold;
+    }
+    .stat-label {
+        font-size: 13px;
+        color: #909399;
+        margin-top: 4px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .action-btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .action-btn.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .action-btn.primary:hover {
+        opacity: 0.9;
+    }
+    .action-btn.secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+    }
+    .action-btn.secondary:hover {
+        background: #ebeef5;
+    }
+    .action-btn.follow {
+        background: #f56c6c;
+        color: white;
+    }
+    .action-btn.follow.followed {
+        background: #67c23a;
+    }
+    .tab-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .tab-header {
+        display: flex;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .tab-item {
+        flex: 1;
+        padding: 14px 0;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-bottom: 2px solid transparent;
+    }
+    .tab-item:hover {
+        color: #667eea;
+    }
+    .tab-item.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+    .tab-content {
+        padding: 20px;
+        min-height: 200px;
+    }
+    .essay-item {
+        padding: 16px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .essay-item:hover {
+        background: #fafafa;
+    }
+    .essay-item:last-child {
+        border-bottom: none;
+    }
+    .essay-title {
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 6px;
+    }
+    .essay-meta {
+        font-size: 13px;
+        color: #999;
+    }
+    .favorite-item {
+        padding: 16px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .favorite-item:hover {
+        background: #fafafa;
+    }
+    .favorite-item:last-child {
+        border-bottom: none;
+    }
+    .favorite-title {
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 6px;
+    }
+    .favorite-meta {
+        font-size: 13px;
+        color: #999;
+    }
+    .comment-item {
+        padding: 16px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .comment-item:hover {
+        background: #fafafa;
+    }
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+    .comment-content {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .comment-meta {
+        font-size: 13px;
+        color: #999;
+    }
+    .follow-user-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .follow-user-item:hover {
+        background: #fafafa;
+    }
+    .follow-user-item:last-child {
+        border-bottom: none;
+    }
+    .follow-user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 16px;
+    }
+    .follow-user-info {
+        flex: 1;
+    }
+    .follow-user-name {
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    .follow-user-meta {
+        font-size: 13px;
+        color: #999;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+    .loading-tip {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+    }
+</style>
+{{end}}
+
+<div class="ad-carousel" id="adCarousel" style="display:none;">
+    <div class="ad-carousel-inner" id="adCarouselInner"></div>
+    <button class="ad-carousel-arrow prev" onclick="prevAd()">&#10094;</button>
+    <button class="ad-carousel-arrow next" onclick="nextAd()">&#10095;</button>
+    <div class="ad-carousel-dots" id="adCarouselDots"></div>
+</div>
+
+<div class="profile-wrapper">
+    <div class="profile-main">
+        <div class="profile-card">
             <div class="profile-header">
                 <img id="avatar" class="avatar" src="" alt="头像"/>
                 <div class="user-info">
                     <div class="user-name" id="userName">加载中...</div>
                     <div class="user-age" id="userAge"></div>
-                    <button class="more-btn" id="moreBtn" onclick="toggleMore()">更多</button>
                 </div>
             </div>
 
@@ -361,11 +364,6 @@
 
             <div class="action-buttons" id="actionButtons">
             </div>
-
-            <div id="moreMenu" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
-                <div class="detail-grid" id="userDetails">
-                </div>
-            </div>
         </div>
 
         <div class="tab-container">
@@ -380,411 +378,423 @@
                 <div class="loading-tip">加载中...</div>
             </div>
         </div>
-        </div>
     </div>
+</div>
 
-    <script>
-        let currentUserId = 0;
-        let profileUserId = 0;
-        let profileUser = null;
-        let isOwnProfile = false;
-        let isFollowed = false;
-        let currentTab = 'essay';
+{{template "index_layout_body_end" .}}
 
-        async function loadAds() {
-            try {
-                const response = await axios.get('/api/advert/all-time?position=3&page=1&pagesize=10');
-                if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
-                    const adverts = response.data.data.adverts;
-                    const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
-                    const adSlot = document.getElementById('adSlot4');
-                    
-                    let adHtml = '';
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml = `<a href="${randomAd.advertAddr}" target="_blank" style="text-decoration:none;color:inherit;display:block;">`;
-                    }
-                    
-                    if (randomAd.img) {
-                        adHtml += `<img src="${randomAd.img}" style="max-width:100%;border-radius:12px;display:block;">`;
-                    }
-                    
-                    if (randomAd.content) {
-                        adHtml += `<div style="padding:10px;font-size:14px;color:#333;text-align:center;">${randomAd.content}</div>`;
-                    }
-                    
-                    if (randomAd.advertAddr) {
-                        adHtml += `</a>`;
-                    }
-                    
-                    if (adHtml) {
-                        adSlot.innerHTML = adHtml;
-                    }
-                }
-            } catch (error) {
-                console.error('Load ads error:', error);
+{{define "index_layout_extra_scripts"}}
+<script>
+    let currentUserId = 0;
+    let profileUserId = 0;
+    let profileUser = null;
+    let isOwnProfile = false;
+    let isFollowed = false;
+    let currentTab = 'essay';
+    let adverts = [];
+    let currentAdIndex = 0;
+    let adTimer = null;
+
+    async function loadAds() {
+        try {
+            const response = await axios.get('/api/advert/all-time?position=3');
+            if (response.data.code === 0 && response.data.data.adverts && response.data.data.adverts.length > 0) {
+                adverts = response.data.data.adverts;
+                renderCarousel();
+                startAdAutoPlay();
             }
+        } catch (error) {
+            console.error('Load ads error:', error);
+        }
+    }
+
+    function renderCarousel() {
+        const carousel = document.getElementById('adCarousel');
+        const inner = document.getElementById('adCarouselInner');
+        const dots = document.getElementById('adCarouselDots');
+
+        if (adverts.length === 0) {
+            carousel.style.display = 'none';
+            return;
         }
 
-        function getQueryParam(name) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(name);
-        }
+        carousel.style.display = 'block';
 
-        async function loadUserInfo() {
-            try {
-                const response = await axios.get('/api/user/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentUserId = response.data.data.user.id;
-                } else {
-                    window.location.href = '/page/user/login';
-                }
-            } catch (error) {
+        inner.innerHTML = adverts.map(ad => {
+            let content = '';
+            if (ad.img) {
+                content = `<img src="${ad.img}" alt="${ad.content || ''}">`;
+            } else if (ad.content) {
+                content = `<div class="ad-carousel-item-text">${ad.content}</div>`;
+            } else {
+                return '';
+            }
+            if (ad.advertAddr) {
+                return `<a class="ad-carousel-item" href="${ad.advertAddr}" target="_blank">${content}</a>`;
+            }
+            return `<div class="ad-carousel-item">${content}</div>`;
+        }).join('');
+
+        dots.innerHTML = adverts.map((_, i) =>
+            `<span class="ad-carousel-dot${i === 0 ? ' active' : ''}" onclick="goToAd(${i})"></span>`
+        ).join('');
+
+        currentAdIndex = 0;
+    }
+
+    function goToAd(index) {
+        const inner = document.getElementById('adCarouselInner');
+        currentAdIndex = index;
+        inner.style.transform = `translateX(-${index * 100}%)`;
+
+        document.querySelectorAll('.ad-carousel-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+    }
+
+    function nextAd() {
+        goToAd((currentAdIndex + 1) % adverts.length);
+    }
+
+    function prevAd() {
+        goToAd((currentAdIndex - 1 + adverts.length) % adverts.length);
+    }
+
+    function startAdAutoPlay() {
+        stopAdAutoPlay();
+        if (adverts.length > 1) {
+            adTimer = setInterval(nextAd, 3000);
+        }
+    }
+
+    function stopAdAutoPlay() {
+        if (adTimer) {
+            clearInterval(adTimer);
+            adTimer = null;
+        }
+    }
+
+    function getQueryParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+
+    async function loadUserInfo() {
+        try {
+            const response = await axios.get('/api/user/get');
+            if (response.data.code === 0 && response.data.data) {
+                currentUserId = response.data.data.user.id;
+            } else {
                 window.location.href = '/page/user/login';
             }
-        }
-
-        async function loadProfileUser() {
-            const uid = getQueryParam('uid');
-
-            if (!uid) {
-                profileUserId = currentUserId;
-                isOwnProfile = true;
-            } else {
-                profileUserId = parseInt(uid);
-                isOwnProfile = (currentUserId === profileUserId);
-            }
-
-            try {
-                let user;
-                if (isOwnProfile) {
-                    const response = await axios.get('/api/user/get');
-                    if (response.data.code === 0 && response.data.data) {
-                        user = response.data.data.user;
-                    }
-                } else {
-                    const response = await axios.get('/api/user/get-by-id', { params: { uid: profileUserId } });
-                    if (response.data.code === 0 && response.data.data) {
-                        user = response.data.data.user;
-                    }
-                }
-
-                if (user) {
-                    profileUser = user;
-                    document.getElementById('userName').textContent = user.name;
-                    document.getElementById('userAge').textContent = user.age ? `年龄：${user.age}岁` : '';
-                    if (user.avatar) {
-                        document.getElementById('avatar').src = user.avatar;
-                    } else {
-                        document.getElementById('avatar').src = '/static/images/default-avatar.png';
-                    }
-                }
-            } catch (error) {
-                console.error('加载用户信息失败', error);
-            }
-        }
-
-        async function loadStats() {
-            try {
-                let response;
-                if (isOwnProfile) {
-                    response = await axios.get('/api/stat/map');
-                } else {
-                    response = await axios.get('/api/stat/map-by-uid', { params: { uid: profileUserId } });
-                }
-                console.log('stat response:', response.data);
-                if (response.data.code === 0 && response.data.data && response.data.data.userStatMap) {
-                    const statMap = response.data.data.userStatMap;
-                    document.getElementById('followCount').textContent = statMap['1'] || 0;
-                    document.getElementById('fanCount').textContent = statMap['6'] || 0;
-                }
-            } catch (error) {
-                console.error('加载统计数据失败', error);
-            }
-        }
-
-        async function loadFollowStatus() {
-            if (isOwnProfile) return;
-
-            try {
-                const response = await axios.get('/api/follow/get', { params: { followerId: profileUserId } });
-                if (response.data.code === 0) {
-                    isFollowed = response.data.data.isFollowed;
-                }
-            } catch (error) {
-                console.error('加载关注状态失败', error);
-            }
-        }
-
-        function renderActionButtons() {
-            const container = document.getElementById('actionButtons');
-
-            if (isOwnProfile) {
-                container.innerHTML = `
-                    <button class="action-btn primary" onclick="window.location.href='/page/user/edit'">编辑资料</button>
-                    <button class="action-btn primary" onclick="window.location.href='/page/user/edit-password'">修改密码</button>
-                    <button class="action-btn primary" onclick="window.location.href='/page/stat/index'">数据</button>
-                    <button class="action-btn primary" onclick="window.location.href='/page/orders/index'">订单</button>
-                    <button class="action-btn secondary" onclick="logout()">退出登录</button>
-                `;
-            } else {
-                const followBtnClass = isFollowed ? 'action-btn follow followed' : 'action-btn follow';
-                const followBtnText = isFollowed ? '已关注' : '关注';
-                container.innerHTML = `
-                    <button class="${followBtnClass}" id="followBtn" onclick="toggleFollow()">${followBtnText}</button>
-                    <button class="action-btn secondary" onclick="window.location.href='/page/chat/index?uid=${profileUserId}'">私信</button>
-                `;
-            }
-        }
-
-        async function logout() {
-            try {
-                await axios.get('/api/user/logout');
-            } catch (error) {
-                console.log('logout error');
-            }
+        } catch (error) {
             window.location.href = '/page/user/login';
         }
+    }
 
-        function toggleMore() {
-            const menu = document.getElementById('moreMenu');
-            const isHidden = menu.style.display === 'none';
-            menu.style.display = isHidden ? 'block' : 'none';
-            
-            if (isHidden && profileUser) {
-                renderUserDetails();
+    async function loadProfileUser() {
+        const uid = getQueryParam('uid');
+
+        if (!uid) {
+            profileUserId = currentUserId;
+            isOwnProfile = true;
+        } else {
+            profileUserId = parseInt(uid);
+            isOwnProfile = (currentUserId === profileUserId);
+        }
+
+        try {
+            let user;
+            if (isOwnProfile) {
+                const response = await axios.get('/api/user/get');
+                if (response.data.code === 0 && response.data.data) {
+                    user = response.data.data.user;
+                }
+            } else {
+                const response = await axios.get('/api/user/get-by-id', { params: { uid: profileUserId } });
+                if (response.data.code === 0 && response.data.data) {
+                    user = response.data.data.user;
+                }
             }
-        }
 
-        function renderUserDetails() {
-            const container = document.getElementById('userDetails');
-            const details = [
-                { label: '用户名', value: profileUser.name },
-                { label: '邮箱', value: profileUser.email || '未设置' },
-                { label: '年龄', value: profileUser.age ? `${profileUser.age}岁` : '未设置' },
-                { label: '电话', value: profileUser.phone || '未设置' },
-                { label: '注册时间', value: formatTime(profileUser.createAt) }
-            ];
-
-            container.innerHTML = details.map(item => `
-                <div class="detail-item">
-                    <div class="detail-label">${item.label}</div>
-                    <div class="detail-value">${item.value}</div>
-                </div>
-            `).join('');
-        }
-
-        async function toggleFollow() {
-            try {
-                if (isFollowed) {
-                    await axios.post('/api/follow/cancel', `followerId=${profileUserId}`);
-                    isFollowed = false;
+            if (user) {
+                profileUser = user;
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userAge').textContent = user.age ? `年龄：${user.age}岁` : '';
+                if (user.avatar) {
+                    document.getElementById('avatar').src = user.avatar;
                 } else {
-                    await axios.post('/api/follow/add', `followerId=${profileUserId}`);
-                    isFollowed = true;
+                    document.getElementById('avatar').src = '/static/images/default-avatar.png';
                 }
-                renderActionButtons();
-                loadStats();
-            } catch (error) {
-                console.error('关注操作失败', error);
-                alert('操作失败，请重试');
             }
+        } catch (error) {
+            console.error('加载用户信息失败', error);
         }
+    }
 
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.tab === tab);
-            });
-            loadTabContent();
-        }
-
-        async function loadTabContent() {
-            const container = document.getElementById('tabContent');
-            container.innerHTML = '<div class="loading-tip">加载中...</div>';
-
-            try {
-                let html = '';
-                switch (currentTab) {
-                    case 'essay':
-                        html = await loadEssayTab();
-                        break;
-                    case 'like':
-                        html = await loadLikeTab();
-                        break;
-                    case 'favorite':
-                        html = await loadFavoriteTab();
-                        break;
-                    case 'comment':
-                        html = await loadCommentTab();
-                        break;
-                    case 'follow':
-                        html = await loadFollowTab();
-                        break;
-                }
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('加载内容失败', error);
-                container.innerHTML = '<div class="empty-tip">加载失败，请重试</div>';
+    async function loadStats() {
+        try {
+            let response;
+            if (isOwnProfile) {
+                response = await axios.get('/api/stat/map');
+            } else {
+                response = await axios.get('/api/stat/map-by-uid', { params: { uid: profileUserId } });
             }
-        }
-
-        async function loadEssayTab() {
-            try {
-                const response = await axios.get('/api/essay/user-all-by-uid', { params: { uid: profileUserId, page: 1 } });
-                if (response.data.code === 0 && response.data.data && response.data.data.essays) {
-                    const essays = response.data.data.essays;
-                    if (essays.length === 0) {
-                        return '<div class="empty-tip">暂无发布的文章</div>';
-                    }
-                    return essays.map(essay => `
-                        <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}'">
-                            <div class="essay-title">${essay.title}</div>
-                            <div class="essay-meta">发布时间：${formatTime(essay.createAt)}</div>
-                        </div>
-                    `).join('');
-                }
-                return '<div class="empty-tip">暂无发布的文章</div>';
-            } catch (error) {
-                return '<div class="empty-tip">加载失败，请重试</div>';
+            console.log('stat response:', response.data);
+            if (response.data.code === 0 && response.data.data && response.data.data.userStatMap) {
+                const statMap = response.data.data.userStatMap;
+                document.getElementById('followCount').textContent = statMap['1'] || 0;
+                document.getElementById('fanCount').textContent = statMap['6'] || 0;
             }
+        } catch (error) {
+            console.error('加载统计数据失败', error);
         }
+    }
 
-        async function loadLikeTab() {
-            try {
-                const response = await axios.get('/api/like/all-by-uid', { params: { uid: profileUserId, page: 1 } });
-                console.log('like response:', response.data);
-                const data = response.data.data;
-                let essays = [];
-                if (data && data.essays) {
-                    essays = data.essays;
-                } else if (Array.isArray(data)) {
-                    essays = data;
-                }
-                console.log('essays:', essays);
+    async function loadFollowStatus() {
+        if (isOwnProfile) return;
+
+        try {
+            const response = await axios.get('/api/follow/get', { params: { followerId: profileUserId } });
+            if (response.data.code === 0) {
+                isFollowed = response.data.data.isFollowed;
+            }
+        } catch (error) {
+            console.error('加载关注状态失败', error);
+        }
+    }
+
+    function renderActionButtons() {
+        const container = document.getElementById('actionButtons');
+
+        if (isOwnProfile) {
+            container.innerHTML = `
+                <button class="action-btn primary" onclick="window.location.href='/page/user/edit'">编辑资料</button>
+                <button class="action-btn primary" onclick="window.location.href='/page/user/edit-password'">修改密码</button>
+                <button class="action-btn primary" onclick="window.location.href='/page/stat/index'">数据统计</button>
+                <button class="action-btn primary" onclick="window.location.href='/page/orders/index'">圈子订单</button>
+                <button class="action-btn primary" onclick="window.location.href='/page/purchase/index'">课程订单</button>
+            `;
+        } else {
+            const followBtnClass = isFollowed ? 'action-btn follow followed' : 'action-btn follow';
+            const followBtnText = isFollowed ? '已关注' : '关注';
+            container.innerHTML = `
+                <button class="${followBtnClass}" id="followBtn" onclick="toggleFollow()">${followBtnText}</button>
+                <button class="action-btn secondary" onclick="window.location.href='/page/chat/index?uid=${profileUserId}'">私信</button>
+            `;
+        }
+    }
+
+    async function toggleFollow() {
+        try {
+            if (isFollowed) {
+                await axios.post('/api/follow/cancel', `followerId=${profileUserId}`);
+                isFollowed = false;
+            } else {
+                await axios.post('/api/follow/add', `followerId=${profileUserId}`);
+                isFollowed = true;
+            }
+            renderActionButtons();
+            loadStats();
+        } catch (error) {
+            console.error('关注操作失败', error);
+            alert('操作失败，请重试');
+        }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.tab === tab);
+        });
+        loadTabContent();
+    }
+
+    async function loadTabContent() {
+        const container = document.getElementById('tabContent');
+        container.innerHTML = '<div class="loading-tip">加载中...</div>';
+
+        try {
+            let html = '';
+            switch (currentTab) {
+                case 'essay':
+                    html = await loadEssayTab();
+                    break;
+                case 'like':
+                    html = await loadLikeTab();
+                    break;
+                case 'favorite':
+                    html = await loadFavoriteTab();
+                    break;
+                case 'comment':
+                    html = await loadCommentTab();
+                    break;
+                case 'follow':
+                    html = await loadFollowTab();
+                    break;
+            }
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('加载内容失败', error);
+            container.innerHTML = '<div class="empty-tip">加载失败，请重试</div>';
+        }
+    }
+
+    async function loadEssayTab() {
+        try {
+            const response = await axios.get('/api/essay/user-all-by-uid', { params: { uid: profileUserId, page: 1 } });
+            if (response.data.code === 0 && response.data.data && response.data.data.essays) {
+                const essays = response.data.data.essays;
                 if (essays.length === 0) {
-                    return '<div class="empty-tip">暂无喜欢的文章</div>';
+                    return '<div class="empty-tip">暂无发布的文章</div>';
                 }
-                return essays.map(item => `
-                        <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
-                            <div class="essay-title">${item.essay.title}</div>
-                            <div class="essay-meta">作者：${item.author.name} | 发布时间：${formatTime(item.essay.createAt)}</div>
-                        </div>
-                    `).join('');
-            } catch (error) {
-                console.error('loadLikeTab error:', error);
-                return '<div class="empty-tip">加载失败，请重试</div>';
+                return essays.map(essay => `
+                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}'">
+                        <div class="essay-title">${essay.title}</div>
+                        <div class="essay-meta">发布时间：${formatTime(essay.createAt)}</div>
+                    </div>
+                `).join('');
             }
+            return '<div class="empty-tip">暂无发布的文章</div>';
+        } catch (error) {
+            return '<div class="empty-tip">加载失败，请重试</div>';
         }
+    }
 
-        async function loadFavoriteTab() {
-            try {
-                const response = await axios.get('/api/favorite/all-by-uid', { params: { uid: profileUserId, page: 1 } });
-                if (response.data.code === 0 && response.data.data && response.data.data.favorites) {
-                    const favorites = response.data.data.favorites;
-                    if (favorites.length === 0) {
-                        return '<div class="empty-tip">暂无收藏夹</div>';
-                    }
-                    return favorites.map(fav => `
-                        <div class="favorite-item" onclick="window.location.href='/page/favorite/detail?id=${fav.id}'">
-                            <div class="favorite-title">${fav.title}</div>
-                            <div class="favorite-meta">创建时间：${formatTime(fav.createAt)}</div>
-                        </div>
-                    `).join('');
+    async function loadLikeTab() {
+        try {
+            const response = await axios.get('/api/like/all-by-uid', { params: { uid: profileUserId, page: 1 } });
+            console.log('like response:', response.data);
+            const data = response.data.data;
+            let essays = [];
+            if (data && data.essays) {
+                essays = data.essays;
+            } else if (Array.isArray(data)) {
+                essays = data;
+            }
+            console.log('essays:', essays);
+            if (essays.length === 0) {
+                return '<div class="empty-tip">暂无喜欢的文章</div>';
+            }
+            return essays.map(item => `
+                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                        <div class="essay-title">${item.essay.title}</div>
+                        <div class="essay-meta">作者：${item.author.name} | 发布时间：${formatTime(item.essay.createAt)}</div>
+                    </div>
+                `).join('');
+        } catch (error) {
+            console.error('loadLikeTab error:', error);
+            return '<div class="empty-tip">加载失败，请重试</div>';
+        }
+    }
+
+    async function loadFavoriteTab() {
+        try {
+            const response = await axios.get('/api/favorite/all-by-uid', { params: { uid: profileUserId, page: 1 } });
+            if (response.data.code === 0 && response.data.data && response.data.data.favorites) {
+                const favorites = response.data.data.favorites;
+                if (favorites.length === 0) {
+                    return '<div class="empty-tip">暂无收藏夹</div>';
                 }
-                return '<div class="empty-tip">暂无收藏夹</div>';
-            } catch (error) {
-                return '<div class="empty-tip">加载失败，请重试</div>';
+                return favorites.map(fav => `
+                    <div class="favorite-item" onclick="window.location.href='/page/favorite/detail?id=${fav.id}'">
+                        <div class="favorite-title">${fav.title}</div>
+                        <div class="favorite-meta">创建时间：${formatTime(fav.createAt)}</div>
+                    </div>
+                `).join('');
             }
+            return '<div class="empty-tip">暂无收藏夹</div>';
+        } catch (error) {
+            return '<div class="empty-tip">加载失败，请重试</div>';
         }
+    }
 
-        async function loadCommentTab() {
-            try {
-                const response = await axios.get('/api/comment/user-by-uid', { params: { uid: profileUserId, page: 1 } });
-                if (response.data.code === 0 && response.data.data && response.data.data.commentEssays) {
-                    const commentEssays = response.data.data.commentEssays;
-                    if (commentEssays.length === 0) {
-                        return '<div class="empty-tip">暂无评论</div>';
-                    }
-                    return commentEssays.map(item => `
-                        <div class="comment-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
-                            <div class="comment-content">${item.comment.content}</div>
-                            <div class="comment-meta">文章：${item.essay.title} | 时间：${formatTime(item.comment.createAt)}</div>
-                        </div>
-                    `).join('');
+    async function loadCommentTab() {
+        try {
+            const response = await axios.get('/api/comment/user-by-uid', { params: { uid: profileUserId, page: 1 } });
+            if (response.data.code === 0 && response.data.data && response.data.data.commentEssays) {
+                const commentEssays = response.data.data.commentEssays;
+                if (commentEssays.length === 0) {
+                    return '<div class="empty-tip">暂无评论</div>';
                 }
-                return '<div class="empty-tip">暂无评论</div>';
-            } catch (error) {
-                return '<div class="empty-tip">加载失败，请重试</div>';
+                return commentEssays.map(item => `
+                    <div class="comment-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                        <div class="comment-content">${item.comment.content}</div>
+                        <div class="comment-meta">文章：${item.essay.title} | 时间：${formatTime(item.comment.createAt)}</div>
+                    </div>
+                `).join('');
             }
+            return '<div class="empty-tip">暂无评论</div>';
+        } catch (error) {
+            return '<div class="empty-tip">加载失败，请重试</div>';
         }
+    }
 
-        async function loadFollowTab() {
-            try {
-                const response = await axios.get('/api/follow/all', { params: { page: 1 } });
-                if (response.data.code === 0 && response.data.data && response.data.data.user) {
-                    const users = response.data.data.user;
-                    if (users.length === 0) {
-                        return '<div class="empty-tip">暂无关注</div>';
-                    }
-                    return users.map(user => `
-                        <div class="follow-user-item" onclick="window.location.href='/page/user/profile?uid=${user.id}'">
-                            <img class="follow-user-avatar" src="${user.avatar || '/static/images/default-avatar.png'}" alt="头像"/>
-                            <div class="follow-user-info">
-                                <div class="follow-user-name">${user.name}</div>
-                                <div class="follow-user-meta">${user.age ? '年龄：' + user.age + '岁' : '年龄：未设置'}</div>
-                            </div>
-                        </div>
-                    `).join('');
+    async function loadFollowTab() {
+        try {
+            const response = await axios.get('/api/follow/all', { params: { page: 1 } });
+            if (response.data.code === 0 && response.data.data && response.data.data.user) {
+                const users = response.data.data.user;
+                if (users.length === 0) {
+                    return '<div class="empty-tip">暂无关注</div>';
                 }
-                return '<div class="empty-tip">暂无关注</div>';
-            } catch (error) {
-                console.error('loadFollowTab error:', error);
-                return '<div class="empty-tip">加载失败，请重试</div>';
+                return users.map(user => `
+                    <div class="follow-user-item" onclick="window.location.href='/page/user/profile?uid=${user.id}'">
+                        <img class="follow-user-avatar" src="${user.avatar || '/static/images/default-avatar.png'}" alt="头像"/>
+                        <div class="follow-user-info">
+                            <div class="follow-user-name">${user.name}</div>
+                            <div class="follow-user-meta">${user.age ? '年龄：' + user.age + '岁' : '年龄：未设置'}</div>
+                        </div>
+                    </div>
+                `).join('');
             }
+            return '<div class="empty-tip">暂无关注</div>';
+        } catch (error) {
+            console.error('loadFollowTab error:', error);
+            return '<div class="empty-tip">加载失败，请重试</div>';
         }
+    }
 
-        function formatTime(timeStr) {
-            if (!timeStr) return '';
-            const date = new Date(timeStr);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        const date = new Date(timeStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    async function reloadProfile() {
+        await loadProfileUser();
+        await loadStats();
+        await loadFollowStatus();
+        renderActionButtons();
+        loadTabContent();
+    }
+
+    async function init() {
+        await loadUserInfo();
+        await loadProfileUser();
+        await loadStats();
+        await loadFollowStatus();
+        renderActionButtons();
+        loadTabContent();
+        await loadAds();
+    }
+
+    let lastUid = getQueryParam('uid');
+    setInterval(async () => {
+        const currentUid = getQueryParam('uid');
+        if (currentUid && currentUid !== lastUid) {
+            lastUid = currentUid;
+            profileUserId = parseInt(currentUid);
+            isOwnProfile = (currentUserId === profileUserId);
+            await reloadProfile();
         }
+    }, 500);
 
-        async function reloadProfile() {
-            await loadProfileUser();
-            await loadStats();
-            await loadFollowStatus();
-            renderActionButtons();
-            loadTabContent();
-        }
-
-        async function init() {
-            await loadUserInfo();
-            await loadProfileUser();
-            await loadStats();
-            await loadFollowStatus();
-            renderActionButtons();
-            loadTabContent();
-            await loadAds();
-        }
-
-        let lastUid = getQueryParam('uid');
-        setInterval(async () => {
-            const currentUid = getQueryParam('uid');
-            if (currentUid && currentUid !== lastUid) {
-                lastUid = currentUid;
-                profileUserId = parseInt(currentUid);
-                isOwnProfile = (currentUserId === profileUserId);
-                await reloadProfile();
-            }
-        }, 500);
-
-        init();
-    </script>
-</body>
-</html>
+    init();
+</script>
+{{end}}
