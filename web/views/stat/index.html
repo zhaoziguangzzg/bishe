@@ -1,515 +1,480 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户数据 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            font-size: 24px;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .section-card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
-        }
-        .section-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 24px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #667eea;
-        }
+{{template "index_layout_head" .}}
+
+{{define "index_layout_extra_head"}}
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+{{end}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #667eea;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        color: white;
+        transition: transform 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+    }
+    .stat-card.orange {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .stat-card.green {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-card.yellow {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    .stat-card.purple {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+    .stat-num {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    .time-filter {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .time-label {
+        font-size: 14px;
+        color: #666;
+    }
+    .time-select {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        cursor: pointer;
+    }
+    .time-select:focus {
+        border-color: #667eea;
+    }
+    .map-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    .map-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    .map-item:hover {
+        background: #f0f4ff;
+    }
+    .map-label {
+        font-size: 14px;
+        color: #666;
+    }
+    .map-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #667eea;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+    .loading-tip {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+    }
+    .chart-container {
+        width: 100%;
+        height: 400px;
+    }
+    .tab-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    .tab-btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .tab-btn:hover {
+        border-color: #667eea;
+    }
+    .tab-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    .chart-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    @media (max-width: 768px) {
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            color: white;
-            transition: transform 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-        }
-        .stat-card.orange {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .stat-card.green {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .stat-card.yellow {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        .stat-card.purple {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-        .stat-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-        .stat-num {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .stat-label {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .time-filter {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .time-label {
-            font-size: 14px;
-            color: #666;
-        }
-        .time-select {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            cursor: pointer;
-        }
-        .time-select:focus {
-            border-color: #667eea;
+            grid-template-columns: repeat(2, 1fr);
         }
         .map-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-        .map-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .map-item:hover {
-            background: #f0f4ff;
-        }
-        .map-label {
-            font-size: 14px;
-            color: #666;
-        }
-        .map-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #667eea;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .loading-tip {
-            text-align: center;
-            padding: 40px;
-            color: #667eea;
-        }
-        .chart-container {
-            width: 100%;
-            height: 400px;
-        }
-        .tab-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        .tab-btn {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .tab-btn:hover {
-            border-color: #667eea;
-        }
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        .chart-row {
-            display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
         }
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .map-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <a href="/">← 返回首页</a>
-        <h1>用户数据中心</h1>
-        <div></div>
-    </div>
+    }
+</style>
+{{end}}
 
-    <div class="container">
-        <div class="section-card">
-            <h2 class="section-title">📊 各类型数据总数</h2>
-            <div id="allStatsContent" class="chart-container"></div>
-        </div>
+<div class="section-card">
+    <h2 class="section-title">📊 各类型数据总数</h2>
+    <div id="allStatsContent" class="chart-container"></div>
+</div>
 
-        <div class="section-card">
-            <h2 class="section-title">📈 近期数据变化量</h2>
-            <div class="time-filter">
-                <span class="time-label">时间范围：</span>
-                <select class="time-select" id="timeSelect" onchange="loadRecentStats()">
-                    <option value="7">最近7天</option>
-                    <option value="30">最近30天</option>
-                    <option value="90">最近90天</option>
-                </select>
-                <div class="tab-buttons" style="margin-left: auto;">
-                    <button class="tab-btn active" onclick="switchTab('chart', this)">图表</button>
-                    <button class="tab-btn" onclick="switchTab('table', this)">数据表</button>
-                </div>
-            </div>
-            <div id="mapContent" class="chart-container"></div>
-            <div id="mapTableContainer" style="margin-top: 20px; display: none;">
-                <table id="mapTable" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr id="mapTableHeader"></tr>
-                    </thead>
-                    <tbody id="mapTableBody"></tbody>
-                </table>
-            </div>
+<div class="section-card">
+    <h2 class="section-title">📈 近期数据变化量</h2>
+    <div class="time-filter">
+        <span class="time-label">时间范围：</span>
+        <select class="time-select" id="timeSelect" onchange="loadRecentStats()">
+            <option value="7">最近7天</option>
+            <option value="30">最近30天</option>
+            <option value="90">最近90天</option>
+        </select>
+        <div class="tab-buttons" style="margin-left: auto;">
+            <button class="tab-btn active" onclick="switchTab('chart', this)">图表</button>
+            <button class="tab-btn" onclick="switchTab('table', this)">数据表</button>
         </div>
     </div>
+    <div id="mapContent" class="chart-container"></div>
+    <div id="mapTableContainer" style="margin-top: 20px; display: none;">
+        <table id="mapTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr id="mapTableHeader"></tr>
+            </thead>
+            <tbody id="mapTableBody"></tbody>
+        </table>
+    </div>
+</div>
 
-    <script>
-        const typeNames = {
-            0: '收藏',
-            1: '关注',
-            2: '点赞',
-            3: '评论',
-            4: '圈子人数',
-            5: '文章',
-            6: '粉丝',
-            7: '被点赞'
+{{template "index_layout_body_end" .}}
+
+{{define "index_layout_extra_scripts"}}
+<script>
+    const typeNames = {
+        0: '收藏',
+        1: '关注',
+        2: '点赞',
+        3: '评论',
+        4: '圈子人数',
+        5: '文章',
+        6: '粉丝',
+        7: '被点赞'
+    };
+
+    const typeColors = ['orange', 'green', 'yellow', 'purple', '', '', '', ''];
+
+    function getStatIcon(type) {
+        const icons = ['⭐', '👤', '❤️', '💬', '👥', '📝', '👥', '❤️'];
+        return icons[type] || '📊';
+    }
+
+    async function loadAllStats() {
+        try {
+            const response = await axios.get('/api/stat/map');
+
+            if (response.data.code === 0) {
+                const data = response.data.data;
+                renderAllStats(data);
+            }
+        } catch (error) {
+            console.error('加载数据失败', error);
+        }
+    }
+
+    async function loadRecentStats() {
+        const stime = document.getElementById('timeSelect').value;
+
+        try {
+            const response = await axios.get('/api/stat/by-time', {
+                params: { stime: stime }
+            });
+
+            if (response.data.code === 0) {
+                const data = response.data.data;
+                renderRecentStats(data);
+            }
+        } catch (error) {
+            console.error('加载数据失败', error);
+        }
+    }
+
+    function renderAllStats(data) {
+        const container = document.getElementById('allStatsContent');
+        const userStatMap = data.userStatMap || {};
+
+        const chart = echarts.init(container);
+
+        const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
+
+        const typeValues = typeNames.map((_, i) => userStatMap[i] || 0);
+
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: typeNames,
+                axisLabel: {
+                    interval: 0,
+                    rotate: 0,
+                    color: '#666'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                color: '#666'
+            },
+            series: [
+                {
+                    name: '数量',
+                    type: 'bar',
+                    data: typeValues,
+                    itemStyle: {
+                        color: function(params) {
+                            const colorList = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#00f2fe', '#fee140', '#f5576c'];
+                            return colorList[params.dataIndex % colorList.length];
+                        },
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: '#666'
+                    }
+                }
+            ]
         };
 
-        const typeColors = ['orange', 'green', 'yellow', 'purple', '', '', '', ''];
+        chart.setOption(option);
 
-        function getStatIcon(type) {
-            const icons = ['⭐', '👤', '❤️', '💬', '👥', '📝', '👥', '❤️'];
-            return icons[type] || '📊';
-        }
-
-        async function loadAllStats() {
-            try {
-                const response = await axios.get('/api/stat/map');
-
-                if (response.data.code === 0) {
-                    const data = response.data.data;
-                    renderAllStats(data);
-                }
-            } catch (error) {
-                console.error('加载数据失败', error);
-            }
-        }
-
-        async function loadRecentStats() {
-            const stime = document.getElementById('timeSelect').value;
-
-            try {
-                const response = await axios.get('/api/stat/by-time', {
-                    params: { stime: stime }
-                });
-
-                if (response.data.code === 0) {
-                    const data = response.data.data;
-                    renderRecentStats(data);
-                }
-            } catch (error) {
-                console.error('加载数据失败', error);
-            }
-        }
-
-        function renderAllStats(data) {
-            const container = document.getElementById('allStatsContent');
-            const userStatMap = data.userStatMap || {};
-
-            const chart = echarts.init(container);
-
-            const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
-
-            const typeValues = typeNames.map((_, i) => userStatMap[i] || 0);
-
-            const option = {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'shadow'
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'category',
-                    data: typeNames,
-                    axisLabel: {
-                        interval: 0,
-                        rotate: 0,
-                        color: '#666'
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    color: '#666'
-                },
-                series: [
-                    {
-                        name: '数量',
-                        type: 'bar',
-                        data: typeValues,
-                        itemStyle: {
-                            color: function(params) {
-                                const colorList = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#00f2fe', '#fee140', '#f5576c'];
-                                return colorList[params.dataIndex % colorList.length];
-                            },
-                            borderRadius: [4, 4, 0, 0]
-                        },
-                        label: {
-                            show: true,
-                            position: 'top',
-                            color: '#666'
-                        }
-                    }
-                ]
-            };
-
-            chart.setOption(option);
-
-            window.addEventListener('resize', function() {
-                chart.resize();
-            });
-
-            if (currentMapTab === 'chart') {
-                document.getElementById('mapContent').style.display = 'block';
-                document.getElementById('mapTableContainer').style.display = 'none';
-            } else {
-                document.getElementById('mapContent').style.display = 'none';
-                document.getElementById('mapTableContainer').style.display = 'block';
-                renderMapTable(data);
-            }
-        }
-
-        function renderMapTable(data) {
-            const table = document.getElementById('mapTable');
-            const thead = document.getElementById('mapTableHeader');
-            const tbody = document.getElementById('mapTableBody');
-            const results = data.results || [];
-            const container = document.getElementById('mapTableContainer');
-
-            if (!results || results.length === 0) {
-                table.style.display = 'none';
-                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">暂无数据</div>';
-                return;
-            }
-
-            const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
-            const dates = [...new Set(results.map(r => r.date))].sort();
-
-            const typeGroups = {};
-            typeNames.forEach(name => typeGroups[name] = []);
-            results.forEach(r => {
-                const name = typeNames[r.type] || '未知';
-                if (typeGroups[name]) {
-                    typeGroups[name].push({ date: r.date, total: r.total });
-                }
-            });
-
-            const types = typeNames.filter((_, i) => results.some(r => r.type === i));
-
-            let headerHtml = '<th style="padding: 12px; border: 1px solid #eee; background: #f8f9fa; font-weight: 600;">日期</th>';
-            types.forEach(type => {
-                headerHtml += `<th style="padding: 12px; border: 1px solid #eee; background: #f8f9fa; font-weight: 600;">${type}</th>`;
-            });
-            thead.innerHTML = headerHtml;
-
-            let tbodyHtml = '';
-            dates.forEach(date => {
-                tbodyHtml += `<tr><td style="padding: 12px; border: 1px solid #eee;">${date}</td>`;
-                types.forEach(type => {
-                    const item = typeGroups[type].find(v => v.date === date);
-                    tbodyHtml += `<td style="padding: 12px; border: 1px solid #eee; text-align: center;">${item ? item.total : 0}</td>`;
-                });
-                tbodyHtml += '</tr>';
-            });
-            tbody.innerHTML = tbodyHtml;
-
-            table.style.display = 'table';
-            container.style.display = 'block';
-        }
-
-        let currentMapTab = 'chart';
-        let recentStatsData = null;
-
-        function switchTab(tab, btn) {
-            currentMapTab = tab;
-            const chartContainer = document.getElementById('mapContent');
-            const tableContainer = document.getElementById('mapTableContainer');
-            const buttons = document.querySelectorAll('.tab-btn');
-
-            buttons.forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-
-            if (tab === 'chart') {
-                chartContainer.style.display = 'block';
-                tableContainer.style.display = 'none';
-            } else {
-                chartContainer.style.display = 'none';
-                tableContainer.style.display = 'block';
-                if (recentStatsData) {
-                    renderMapTable(recentStatsData);
-                }
-            }
-        }
-
-        function renderRecentStats(data) {
-            recentStatsData = data;
-            const container = document.getElementById('mapContent');
-            const results = data.results || [];
-
-            const chart = echarts.init(container);
-
-            const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
-
-            const dates = [...new Set(results.map(r => r.date))].sort();
-
-            const typeGroups = {};
-            typeNames.forEach(name => typeGroups[name] = []);
-
-            results.forEach(r => {
-                const name = typeNames[r.type] || '未知';
-                if (typeGroups[name]) {
-                    typeGroups[name].push(r.total);
-                }
-            });
-
-            Object.keys(typeGroups).forEach(name => {
-                while (typeGroups[name].length < dates.length) {
-                    typeGroups[name].unshift(0);
-                }
-            });
-
-            const legend = Object.keys(typeGroups).filter(name => typeGroups[name].some(v => v > 0));
-            const series = legend.map(name => ({
-                name: name,
-                type: 'line',
-                data: typeGroups[name],
-                smooth: true,
-                itemStyle: {
-                    color: legend.indexOf(name) % 2 === 0 ? '#667eea' : '#f093fb'
-                }
-            }));
-
-            const option = {
-                tooltip: {
-                    trigger: 'axis'
-                },
-                legend: {
-                    data: legend,
-                    bottom: 0
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    top: '10%',
-                    bottom: '15%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: dates,
-                    axisLabel: {
-                        color: '#666'
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLabel: {
-                        color: '#666'
-                    }
-                },
-                series: series
-            };
-
-            chart.setOption(option);
-
-            window.addEventListener('resize', function() {
-                chart.resize();
-            });
-        }
-
-        function getQueryParam(name) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(name);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAllStats();
-            loadRecentStats();
+        window.addEventListener('resize', function() {
+            chart.resize();
         });
-    </script>
-</body>
-</html>
+
+        if (currentMapTab === 'chart') {
+            document.getElementById('mapContent').style.display = 'block';
+            document.getElementById('mapTableContainer').style.display = 'none';
+        } else {
+            document.getElementById('mapContent').style.display = 'none';
+            document.getElementById('mapTableContainer').style.display = 'block';
+            renderMapTable(data);
+        }
+    }
+
+    function renderMapTable(data) {
+        const table = document.getElementById('mapTable');
+        const thead = document.getElementById('mapTableHeader');
+        const tbody = document.getElementById('mapTableBody');
+        const results = data.results || [];
+        const container = document.getElementById('mapTableContainer');
+
+        if (!results || results.length === 0) {
+            table.style.display = 'none';
+            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">暂无数据</div>';
+            return;
+        }
+
+        const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
+        const dates = [...new Set(results.map(r => r.date))].sort();
+
+        const typeGroups = {};
+        typeNames.forEach(name => typeGroups[name] = []);
+        results.forEach(r => {
+            const name = typeNames[r.type] || '未知';
+            if (typeGroups[name]) {
+                typeGroups[name].push({ date: r.date, total: r.total });
+            }
+        });
+
+        const types = typeNames.filter((_, i) => results.some(r => r.type === i));
+
+        let headerHtml = '<th style="padding: 12px; border: 1px solid #eee; background: #f8f9fa; font-weight: 600;">日期</th>';
+        types.forEach(type => {
+            headerHtml += `<th style="padding: 12px; border: 1px solid #eee; background: #f8f9fa; font-weight: 600;">${type}</th>`;
+        });
+        thead.innerHTML = headerHtml;
+
+        let tbodyHtml = '';
+        dates.forEach(date => {
+            tbodyHtml += `<tr><td style="padding: 12px; border: 1px solid #eee;">${date}</td>`;
+            types.forEach(type => {
+                const item = typeGroups[type].find(v => v.date === date);
+                tbodyHtml += `<td style="padding: 12px; border: 1px solid #eee; text-align: center;">${item ? item.total : 0}</td>`;
+            });
+            tbodyHtml += '</tr>';
+        });
+        tbody.innerHTML = tbodyHtml;
+
+        table.style.display = 'table';
+        container.style.display = 'block';
+    }
+
+    let currentMapTab = 'chart';
+    let recentStatsData = null;
+
+    function switchTab(tab, btn) {
+        currentMapTab = tab;
+        const chartContainer = document.getElementById('mapContent');
+        const tableContainer = document.getElementById('mapTableContainer');
+        const buttons = document.querySelectorAll('.tab-btn');
+
+        buttons.forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        if (tab === 'chart') {
+            chartContainer.style.display = 'block';
+            tableContainer.style.display = 'none';
+        } else {
+            chartContainer.style.display = 'none';
+            tableContainer.style.display = 'block';
+            if (recentStatsData) {
+                renderMapTable(recentStatsData);
+            }
+        }
+    }
+
+    function renderRecentStats(data) {
+        recentStatsData = data;
+        const container = document.getElementById('mapContent');
+        const results = data.results || [];
+
+        const chart = echarts.init(container);
+
+        const typeNames = ['收藏', '关注', '点赞', '评论', '圈子人数', '文章', '粉丝', '被点赞'];
+
+        const dates = [...new Set(results.map(r => r.date))].sort();
+
+        const typeGroups = {};
+        typeNames.forEach(name => typeGroups[name] = []);
+
+        results.forEach(r => {
+            const name = typeNames[r.type] || '未知';
+            if (typeGroups[name]) {
+                typeGroups[name].push(r.total);
+            }
+        });
+
+        Object.keys(typeGroups).forEach(name => {
+            while (typeGroups[name].length < dates.length) {
+                typeGroups[name].unshift(0);
+            }
+        });
+
+        const legend = Object.keys(typeGroups).filter(name => typeGroups[name].some(v => v > 0));
+        const series = legend.map(name => ({
+            name: name,
+            type: 'line',
+            data: typeGroups[name],
+            smooth: true,
+            itemStyle: {
+                color: legend.indexOf(name) % 2 === 0 ? '#667eea' : '#f093fb'
+            }
+        }));
+
+        const option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: legend,
+                bottom: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                top: '10%',
+                bottom: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: dates,
+                axisLabel: {
+                    color: '#666'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    color: '#666'
+                }
+            },
+            series: series
+        };
+
+        chart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    }
+
+    function getQueryParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAllStats();
+        loadRecentStats();
+    });
+</script>
+{{end}}

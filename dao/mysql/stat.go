@@ -118,9 +118,9 @@ func GetStatDetailsByType(uid int, stime time.Time) (results []model.StatDetails
 func GetStatDetailsByDateType(uid int, stime time.Time) (results []model.StatDetailsDateCount, err error) {
 
 	err = DB.Model(&model.StatDetails{}).
-		Select("type, DATE(create_at) as date, COUNT(*) AS total").
+		Select("type, DATE_FORMAT(create_at, '%Y-%m-%d') as date, COUNT(*) AS total").
 		Where("stat_uid = ? AND is_deleted = ? AND create_at > ?", uid, model.IS_DELETED_NO, stime).
-		Group("type, DATE(create_at)").
+		Group("type, DATE_FORMAT(create_at, '%Y-%m-%d')").
 		Order("date ASC").
 		Find(&results).Error
 	if err != nil {
