@@ -4,10 +4,8 @@ import (
 	"bishe/dao/mysql"
 	"bishe/model"
 	"errors"
-	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -17,9 +15,6 @@ const (
 
 	//管理员用户密钥
 	ADMIN_USER_JWT_KEY string = "yjtfcvkyt"
-
-	//管理员用户过期时间
-	ADMIN_USER_JWT_EXPIRES_DAYS int = 7
 )
 
 // 生成新密码
@@ -111,70 +106,4 @@ func UpdateAdminUserRoleId(uid int, roleId int) (int64, error) {
 // 更新IsDeleted删除
 func UpdateAdminUserIsDeleted(uid int) (int64, error) {
 	return mysql.UpdateAdminUserIsDeleted(uid)
-}
-
-/*
-// 将管理员用户信息设置到cookie
-func SetAdminUserCookie(c *gin.Context, uid int, name string) {
-	c.SetCookie("adminUserId", strconv.Itoa(uid), 7*86400, "/", "", true, true)
-	c.SetCookie("adminUserName", name, 7*86400, "/", "", true, true)
-}
-*/
-
-// 将管理员用户信息jwt设置到cookie
-func SetAdminUserJwtCookie(c *gin.Context, uid int, name string, now time.Time) (err error) {
-	t := now.AddDate(0, 0, ADMIN_USER_JWT_EXPIRES_DAYS)
-	adminUserJwtStr, err := MakeAdminUserJwt(uid, name, t)
-	if err != nil {
-		return
-	}
-
-	c.SetCookie("admin_user", adminUserJwtStr, ADMIN_USER_JWT_EXPIRES_DAYS*86400-10, "/", "", true, true)
-	return
-}
-
-// 获取用户信息
-func GetAdminUserJwtCookie(c *gin.Context) (uid int, name string, isExpired bool, err error) {
-	adminUserJwtStr, err := c.Cookie("admin_user")
-	if err != nil {
-		return
-	}
-
-	isExpired, claims, err := ParseAdminUserJwt(adminUserJwtStr)
-	if isExpired {
-		return
-	}
-
-	uid, name = claims.GetAdminUserIdNameFromJwt()
-
-	return
-}
-
-// 获取cookie管理员用户信息
-func GetAdminUserFromCookie(c *gin.Context) (uid int, name string) {
-	uidStr, err := c.Cookie("adminUserId")
-	if err != nil {
-		//0,""z
-		return
-	}
-
-	uid, err = strconv.Atoi(uidStr)
-	if err != nil {
-		//0,""
-		return
-	}
-
-	name, err = c.Cookie("adminUserName")
-	if err != nil {
-		//uid,""
-		return
-	}
-	//uid,name
-	return
-}
-
-// 清除cookie
-func DeleteAdminUserCookie(c *gin.Context) {
-	c.SetCookie("adminUserId", "", -1, "/", "", true, true)
-	c.SetCookie("adminUserName", "", -1, "/", "", true, true)
 }

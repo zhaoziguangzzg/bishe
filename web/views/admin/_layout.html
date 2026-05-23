@@ -167,8 +167,13 @@
         let currentAdmin = null;
         let userMenus = [];
 
-        function logout() {
-            window.location.href = '/api/adminuser/logout';
+        async function logout() {
+            try {
+                await axios.get('/api/adminuser/logout');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            window.location.href = '/page/user/login';
         }
 
         async function loadAdminInfo() {
