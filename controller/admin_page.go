@@ -48,8 +48,8 @@ func AdminUserDetailPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminuser/detail.html", nil)
 }
 
-func AdminUserEditPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "adminuser/edit.html", nil)
+func AdminMyselfEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "admin/myself_edit.html", nil)
 }
 
 func AdminUserRolePageHandler(c *gin.Context) {

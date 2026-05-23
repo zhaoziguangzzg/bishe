@@ -389,7 +389,7 @@ func main() {
 	adminApi.POST("/adminuser/add", controller.AddAdminUserHandler)
 
 	// 更新管理员页
-	adminPage.GET("/adminuser/edit", controller.AdminUserEditPageHandler)
+	adminPage.GET("/admin/myself-edit", controller.AdminMyselfEditPageHandler)
 	//更新管理员用户信息
 	adminApi.POST("/adminuser/update", controller.UpdateAdminUserHandler)
 	//修改管理员用户角色页
