@@ -1,0 +1,251 @@
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .ad-banner {
+        margin-bottom: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .ad-banner-item {
+        display: block;
+        width: 100%;
+        border-radius: 12px;
+    }
+    .ad-banner-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+    }
+    .rank-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        flex: 1;
+        min-width: 0;
+    }
+    .rank-section h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .rank-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .rankings-container {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    .rank-section {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .rank-section h2 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .more-link {
+        font-size: 13px;
+        color: #409eff;
+        text-decoration: none;
+        font-weight: normal;
+    }
+    .more-link:hover {
+        text-decoration: underline;
+    }
+    .rank-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .rank-item:hover {
+        background: #f0f4ff;
+        transform: translateY(-2px);
+    }
+    .rank-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        margin-right: 12px;
+    }
+    .rank-num.top-1 {
+        background: #ffd700;
+    }
+    .rank-num.top-2 {
+        background: #c0c0c0;
+    }
+    .rank-num.top-3 {
+        background: #cd7f32;
+    }
+    .rank-info {
+        flex: 1;
+    }
+    .rank-title {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    .rank-meta {
+        font-size: 12px;
+        color: #999;
+    }
+    .rank-price {
+        font-size: 14px;
+        color: #ff6b6b;
+        font-weight: bold;
+    }
+    .rank-price.free {
+        color: #52c41a;
+    }
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+        font-size: 14px;
+    }
+    .my-circles {
+        grid-template-columns: 1fr;
+    }
+    .my-circle-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border-radius: 8px;
+        background: #fafafa;
+        cursor: pointer;
+    }
+    .my-circle-item:hover {
+        background: #f0f4ff;
+    }
+</style>
+{{end}}
+
+    <div class="ad-banner" id="indexAdBanner"></div>
+    <div class="rankings-container">
+        <div class="rank-section">
+            <h2>💰 付费圈子排行榜 <a class="more-link" href="/page/circle/list?type=charge">更多</a></h2>
+            <div class="rank-list" id="chargeRank"></div>
+        </div>
+
+        <div class="rank-section">
+            <h2>🎁 免费圈子排行榜 <a class="more-link" href="/page/circle/list?type=free">更多</a></h2>
+            <div class="rank-list" id="freeRank"></div>
+        </div>
+
+        <div class="rank-section">
+            <h2>🔥 人气排行榜 <a class="more-link" href="/page/circle/list?type=hot">更多</a></h2>
+            <div class="rank-list" id="hotRank"></div>
+        </div>
+    </div>
+
+{{template "index_layout_body_end" .}}
+
+{{block "index_layout_extra_scripts" .}}
+<script>
+    async function loadIndexAds() {
+        const adBanner = document.getElementById('indexAdBanner');
+        if (!adBanner) return;
+
+        try {
+            const response = await axios.get('/api/advert/all-time?position=4');
+            if (response.data.code === 0 && response.data.data && response.data.data.adverts && response.data.data.adverts.length > 0) {
+                const adverts = response.data.data.adverts;
+                const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
+                
+                let adHtml = '';
+                
+                if (randomAd.advertAddr) {
+                    adHtml = '<a href="' + escapeHtml(randomAd.advertAddr) + '" class="ad-banner-item" target="_blank">';
+                }
+                
+                if (randomAd.img) {
+                    adHtml += '<img src="' + escapeHtml(randomAd.img) + '" alt="广告"/>';
+                }
+                
+                if (randomAd.content) {
+                    adHtml += '<div style="padding:10px;color:#333;text-align:center;">' + escapeHtml(randomAd.content) + '</div>';
+                }
+                
+                if (randomAd.advertAddr) {
+                    adHtml += '</a>';
+                } else {
+                    adHtml = '<div class="ad-banner-item">' + adHtml + '</div>';
+                }
+                
+                if (adHtml) {
+                    adBanner.innerHTML = adHtml;
+                }
+            }
+        } catch (error) {
+            console.error('Load index ads error:', error);
+        }
+    }
+
+    async function loadCircleRanks() {
+        try {
+            const response = await axios.get('/api/circle/list');
+            if (response.data.code === 0 && response.data.data) {
+                const typeLists = response.data.data.typeLists || [];
+                const chargeList = typeLists.find(t => t.listType === 2);
+                const freeList = typeLists.find(t => t.listType === 1);
+                const hotList = typeLists.find(t => t.listType === 0);
+
+                renderRankList('chargeRank', chargeList ? chargeList.rankCircles : [], true);
+                renderRankList('freeRank', freeList ? freeList.rankCircles : [], false);
+                renderRankList('hotRank', hotList ? hotList.rankCircles : [], false);
+            }
+        } catch (error) {
+            document.getElementById('chargeRank').innerHTML = '<div class="no-data">暂无数据</div>';
+            document.getElementById('freeRank').innerHTML = '<div class="no-data">暂无数据</div>';
+            document.getElementById('hotRank').innerHTML = '<div class="no-data">暂无数据</div>';
+        }
+    }
+
+    function renderRankList(containerId, data, isPaid) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = data.slice(0, 6).map((circle, index) => {
+            const isCirclePaid = circle.price > 0;
+            return `
+            <div class="rank-item" onclick="goToCircle(` + circle.id + `)">
+                <div class="rank-num top-` + (index + 1) + `">` + (index + 1) + `</div>
+                <div class="rank-info">
+                    <div class="rank-title">` + circle.title + `</div>
+                    <div class="rank-meta">圈主: ` + (circle.ownerName || '未知') + ` | ` + (circle.joinNum || 0) + `人加入</div>
+                </div>
+                <div class="rank-price ` + (isCirclePaid ? '' : 'free') + `">` + (isCirclePaid ? (circle.price || 0) + '元' : '免费') + `</div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function goToCircle(circleId) {
+        window.location.href = '/page/circle/detail?cid=' + circleId;
+    }
+
+    loadCircleRanks();
+    loadIndexAds();
+</script>
+{{end}}
