@@ -40,3 +40,7 @@ const (
 func (Role) TableName() string {
 	return "role"
 }
+
+func (r *Role) IsSysRole() bool {
+	return r.IsSys == ADMIN_ROLE_IS_SYS
+}

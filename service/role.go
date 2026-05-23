@@ -3,6 +3,8 @@ package service
 import (
 	"bishe/dao/mysql"
 	"bishe/model"
+	"strconv"
+	"strings"
 )
 
 // 创建权限角色
@@ -34,4 +36,44 @@ func GetAllRole(page int, pagesize int) (roles []model.Role, err error) {
 // 根据角色ID查询权限角色信息
 func GetRoleNotDeletedById(id int) (role *model.Role, err error) {
 	return mysql.GetRoleNotDeletedById(id)
+}
+
+func EncodeMids(menuIds []string) string {
+	if len(menuIds) == 0 {
+		return ""
+	}
+	return strings.Join(menuIds, ",")
+}
+
+func ParseMids(mids string) []int {
+	if mids == "" {
+		return []int{}
+	}
+	var result []int
+	for _, s := range strings.Split(mids, ",") {
+		if s == "" {
+			continue
+		}
+		if id, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
+func ParseMidsToMap(mids string) map[int]bool {
+	menuIds := ParseMids(mids)
+	var result = make(map[int]bool)
+	for _, v := range menuIds {
+		result[v] = true
+	}
+	return result
+}
+
+func GetRoleSysMenuIdMap(menus []model.Menu) map[int]bool {
+	var result = make(map[int]bool)
+	for _, v := range menus {
+		result[v.Id] = true
+	}
+	return result
 }

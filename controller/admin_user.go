@@ -5,7 +5,6 @@ import (
 	"bishe/service"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -176,25 +175,21 @@ func GetAdminUserHandler(c *gin.Context) {
 		return
 	}
 
-	var isSys bool
 	menuIdMap := make(map[int]bool)
 	if adminUser.RoleId > 0 {
 		role, err := service.GetRoleNotDeletedById(adminUser.RoleId)
 		if err == nil && role != nil {
-			isSys = role.IsSys == model.ADMIN_ROLE_IS_SYS
-
-			if len(role.Mids) > 0 {
-				menuIds := parseMids(role.Mids)
-				for _, v := range menuIds {
-					menuIdMap[v] = true
-				}
+			if role.IsSysRole() {
+				menuIdMap = service.GetRoleSysMenuIdMap(menuList)
+			} else {
+				menuIdMap = service.ParseMidsToMap(role.Mids)
 			}
 		}
 	}
 
 	userMenu := make([]model.Menu, 0)
 	for _, v := range menuList {
-		if isSys || menuIdMap[v.Id] {
+		if menuIdMap[v.Id] {
 			userMenu = append(userMenu, v)
 		}
 	}
@@ -205,22 +200,6 @@ func GetAdminUserHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
-}
-
-func parseMids(mids string) []int {
-	if mids == "" {
-		return []int{}
-	}
-	var result []int
-	for _, s := range strings.Split(mids, ",") {
-		if s == "" {
-			continue
-		}
-		if id, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
-			result = append(result, id)
-		}
-	}
-	return result
 }
 
 // 获取所有管理员用户

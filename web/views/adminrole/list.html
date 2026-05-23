@@ -1,505 +1,184 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>角色列表 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-        }
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-        .sidebar-header {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-        .sidebar-header h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-        .sidebar-header p {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-        .menu-item {
-            padding: 14px 24px;
-            color: rgba(255,255,255,0.85);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .menu-item:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .menu-item.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .submenu {
-            display: none;
-            background: rgba(0,0,0,0.1);
-        }
-        .submenu.show {
-            display: block;
-        }
-        .submenu-item {
-            padding: 12px 24px 12px 48px;
-            color: rgba(255,255,255,0.75);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: block;
-            font-size: 13px;
-            text-decoration: none;
-        }
-        .submenu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .submenu-item.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left: 3px solid white;
-        }
-        .arrow {
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-        .menu-item:hover .arrow, .menu-item.active .arrow {
-            transform: rotate(180deg);
-        }
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .top-bar {
-            background: white;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .top-bar h1 {
-            font-size: 20px;
-            color: #333;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .logout-btn {
-            padding: 8px 16px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .logout-btn:hover {
-            background: #e64545;
-        }
-        .content-area {
-            padding: 24px 32px;
-        }
-        .tool-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .tool-bar h2 {
-            font-size: 18px;
-            color: #333;
-        }
-        .add-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        .add-btn:hover {
-            opacity: 0.9;
-        }
-        .table-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th {
-            text-align: left;
-            padding: 14px 16px;
-            background: #f9fafb;
-            color: #606266;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .table td {
-            padding: 14px 16px;
-            color: #606266;
-            font-size: 14px;
-            border-bottom: 1px solid #eee;
-        }
-        .table tr:hover {
-            background: #f5f7fa;
-        }
-        .action-btns {
-            display: flex;
-            gap: 8px;
-        }
-        .btn-edit {
-            padding: 6px 12px;
-            background: #409eff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .btn-edit:hover {
-            background: #66b1ff;
-        }
-        .btn-delete {
-            padding: 6px 12px;
-            background: #f56c6c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .btn-delete:hover {
-            background: #f78989;
-        }
-        .btn-detail {
-            padding: 6px 12px;
-            background: #67c23a;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .btn-detail:hover {
-            background: #85ce61;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 40px;
-            color: #909399;
-        }
-    </style>
-    <script>
-        let currentPath = window.location.pathname;
-        let userMenuIds = [];
-        
-        async function loadDynamicMenus() {
-            try {
-                const [menuResponse, userResponse] = await Promise.all([
-                    axios.get('/api/adminmenu/all'),
-                    axios.get('/api/adminuser/get')
-                ]);
+{{define "admin_layout_extra_head"}}
+<style>
+    .tool-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .tool-bar h2 {
+        font-size: 18px;
+        color: #333;
+    }
+    .add-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: opacity 0.3s;
+        text-decoration: none;
+    }
+    .add-btn:hover {
+        opacity: 0.9;
+    }
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th {
+        text-align: left;
+        padding: 14px 16px;
+        background: #f9fafb;
+        color: #606266;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .table td {
+        padding: 14px 16px;
+        color: #606266;
+        font-size: 14px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+    }
+    .table tr:hover {
+        background: #f5f7fa;
+    }
+    .action-btns {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-edit {
+        padding: 6px 12px;
+        background: #409eff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .btn-edit:hover {
+        background: #66b1ff;
+    }
+    .btn-delete {
+        padding: 6px 12px;
+        background: #f56c6c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .btn-delete:hover {
+        background: #f78989;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 40px;
+        color: #909399;
+    }
+</style>
+{{end}}
+
+{{define "admin_layout_extra_script"}}
+<script>
+    async function loadRoles() {
+        try {
+            const response = await axios.get('/api/adminrole/all?page=1&pagesize=1000');
+            if (response.data.code === 0) {
+                const roles = response.data.data.roles;
+                const tbody = document.getElementById('roleTableBody');
                 
-                if (menuResponse.data.code === 0 && userResponse.data.code === 0) {
-                    const menus = menuResponse.data.data.menus || [];
-                    userMenuIds = userResponse.data.data.menuIds || [];
-                    renderDynamicMenus(menus);
-                    checkPermissions();
+                if (!roles || roles.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="empty-tip">暂无数据</td></tr>';
+                    return;
                 }
-            } catch (error) {
-                console.error('加载菜单失败', error);
+
+                tbody.innerHTML = roles.map(role => `
+                    <tr>
+                        <td>${role.id}</td>
+                        <td>${role.roleName}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-edit" onclick="editRole(${role.id})">编辑</button>
+                                <button class="btn-delete" onclick="deleteRole(${role.id})">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('roleTableBody').innerHTML = 
+                '<tr><td colspan="3" class="empty-tip">加载失败</td></tr>';
         }
-        
-        function renderDynamicMenus(menus) {
-            const container = document.getElementById('dynamic-menus');
-            const menuConfig = {
-                '反馈列表': { url: '/page/adminfeedback/list', group: 'feedback' },
-                '公告列表': { url: '/page/adminannounce/list', group: 'notice' },
-                '新增公告': { url: '/page/adminannounce/add', group: 'notice' },
-                '广告列表': { url: '/page/adminadvert/list', group: 'ad' },
-                '新增广告': { url: '/page/adminadvert/add', group: 'ad' },
-                '权限列表': { url: '/page/adminmenu/list', group: 'permission' },
-                '新增权限': { url: '/page/adminmenu/add', group: 'permission' },
-                '角色列表': { url: '/page/adminrole/list', group: 'role' },
-                '新增角色': { url: '/page/adminrole/add', group: 'role' },
-                '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
-                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
-                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
-            };
-            
-            const groups = {};
-            menus.forEach(function(menu) {
-                if (menu.isDeleted === 1) return;
-                const config = menuConfig[menu.menuName];
-                if (!config) return;
-                
-                if (!groups[config.group]) {
-                    groups[config.group] = [];
-                }
-                groups[config.group].push({
-                    id: menu.id,
-                    name: menu.menuName,
-                    url: config.url
-                });
-            });
-            
-            let html = '<a href="/page/admin/index" class="menu-item">首页</a>';
-            for (const groupKey in groups) {
-                const groupMenus = groups[groupKey];
-                const hasPermission = userMenuIds.length === 0 || groupMenus.some(item => userMenuIds.includes(item.id));
-                if (!hasPermission && userMenuIds.length > 0) continue;
-                
-                const firstItem = groupMenus.find(item => userMenuIds.length === 0 || userMenuIds.includes(item.id));
-                if (!firstItem) continue;
-                
-                const groupNames = {
-                    'feedback': '反馈',
-                    'notice': '公告',
-                    'ad': '广告',
-                    'permission': '权限管理',
-                    'role': '角色管理',
-                    'adminuser': '管理员管理',
-                    'accusation': '举报管理'
-                };
-                
-                const groupIcons = {
-                    'feedback': '💬',
-                    'notice': '📢',
-                    'ad': '📺',
-                    'permission': '🔐',
-                    'role': '👥',
-                    'adminuser': '👤',
-                    'accusation': '🚨'
-                };
-                
-                html += `
-                    <div class="menu-item" onclick="toggleSubmenu('${groupKey}')">
-                        <span class="icon">${groupIcons[groupKey]}</span>
-                        <span>${groupNames[groupKey]}</span>
-                        <span class="arrow">▼</span>
-                    </div>
-                    <div class="submenu" id="submenu-${groupKey}">
-                `;
-                
-                groupMenus.forEach(function(item) {
-                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
-                    if (!hasItemPermission && userMenuIds.length > 0) return;
-                    
-                    const active = currentPath === item.url ? 'active' : '';
-                    html += `<a href="${item.url}" class="submenu-item ${active}">${item.name}</a>`;
-                });
-                
-                html += '</div>';
+    }
+
+    function editRole(id) {
+        window.location.href = `/page/adminrole/edit?id=${id}`;
+    }
+
+    async function deleteRole(id) {
+        if (!confirm('确定要删除该角色吗？')) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('role_id', id);
+
+            const response = await axios.post('/api/adminrole/delete', formData);
+            if (response.data.code === 0) {
+                alert('删除成功');
+                loadRoles();
+            } else {
+                alert(response.data.msg || '删除失败');
             }
-            
-            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error:', error);
+            alert('请求失败，请稍后重试');
         }
-        
-        function toggleSubmenu(groupKey) {
-            const submenu = document.getElementById('submenu-' + groupKey);
-            if (submenu) {
-                const isShow = submenu.classList.contains('show');
-                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
-                if (!isShow) {
-                    submenu.classList.add('show');
-                }
-            }
-        }
-        
-        function checkPermissions() {
-            const currentPage = currentPath.split('/').pop();
-            if (currentPage === 'list') {
-                const addBtn = document.querySelector('.add-btn');
-                if (addBtn) {
-                    const addPagePath = currentPath.replace('list', 'add');
-                    const hasAddPermission = userMenuIds.length === 0 || 
-                        document.querySelector(`a[href="${addPagePath}"]`) !== null;
-                    if (!hasAddPermission && userMenuIds.length > 0) {
-                        addBtn.style.display = 'none';
-                    }
-                }
-            }
-        }
-        
-        loadDynamicMenus();
-    </script>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>管理后台</h2>
-            <p>知识分享平台</p>
-        </div>
-        <div id="dynamic-menus"></div>
-    </div>
+    }
 
-    <div class="main-content">
-        <div class="top-bar">
-            <h1>角色列表</h1>
-            <div class="user-info">
-                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
-            </div>
-        </div>
+    async function init() {
+        loadRoles();
+    }
 
-        <div class="content-area">
-            <div class="tool-bar">
-                <h2>角色管理</h2>
-                <a href="/page/adminrole/add" class="add-btn">添加角色</a>
-            </div>
+    init();
+</script>
+{{end}}
 
-            <div class="table-card">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>角色名称</th>
-                            <th>权限菜单</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="roleTableBody">
-                        <tr>
-                            <td colspan="4" class="empty-tip">加载中...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
 
-    <script>
-        let allMenus = [];
+<div class="tool-bar">
+    <h2>角色管理</h2>
+    <a href="/page/adminrole/add" class="add-btn">添加角色</a>
+</div>
 
-        async function loadMenus() {
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    allMenus = response.data.data.menus || [];
-                }
-            } catch (error) {
-                console.error('Error loading menus:', error);
-            }
-        }
+<div class="table-card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>角色名称</th>
+                <th style="width: 200px;">操作</th>
+            </tr>
+        </thead>
+        <tbody id="roleTableBody">
+            <tr>
+                <td colspan="3" class="empty-tip">加载中...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
-        function getMenuNames(midsStr) {
-            if (!midsStr) return '-';
-            const mids = midsStr.split('_');
-            const names = mids.map(id => {
-                const menu = allMenus.find(m => m.id == id);
-                return menu ? menu.menuName : '';
-            }).filter(n => n);
-            return names.join(', ') || '-';
-        }
-
-        async function loadRoles() {
-            try {
-                const response = await axios.get('/api/adminrole/all?page=1&pagesize=1000');
-                if (response.data.code === 0) {
-                    const roles = response.data.data.roles;
-                    const tbody = document.getElementById('roleTableBody');
-                    
-                    if (!roles || roles.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4" class="empty-tip">暂无数据</td></tr>';
-                        return;
-                    }
-
-                    tbody.innerHTML = roles.map(role => `
-                        <tr>
-                            <td>${role.id}</td>
-                            <td>${role.roleName}</td>
-                            <td>${getMenuNames(role.mids)}</td>
-                            <td>
-                                <div class="action-btns">
-                                    <button class="btn-detail" onclick="viewDetail(${role.id})">详情</button>
-                                    <button class="btn-delete" onclick="deleteRole(${role.id})">删除</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('roleTableBody').innerHTML = 
-                    '<tr><td colspan="4" class="empty-tip">加载失败</td></tr>';
-            }
-        }
-
-        function editRole(id) {
-            window.location.href = `/page/adminrole/edit?id=${id}`;
-        }
-
-        function viewDetail(id) {
-            window.location.href = `/page/adminrole/detail?role_id=${id}`;
-        }
-
-        async function deleteRole(id) {
-            if (!confirm('确定要删除该角色吗？')) {
-                return;
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('role_id', id);
-
-                const response = await axios.post('/api/adminrole/delete', formData);
-                if (response.data.code === 0) {
-                    alert('删除成功');
-                    loadRoles();
-                } else {
-                    alert(response.data.msg || '删除失败');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('请求失败，请稍后重试');
-            }
-        }
-
-        async function init() {
-            await loadMenus();
-            loadRoles();
-        }
-
-        init();
-    </script>
-</body>
-</html>
+{{template "admin_layout_body_end" .}}

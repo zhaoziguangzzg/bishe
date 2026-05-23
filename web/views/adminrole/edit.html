@@ -1,262 +1,250 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>编辑角色权限 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; display: flex; }
-        .sidebar { width: 240px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); height: 100vh; padding: 20px 0; position: fixed; left: 0; top: 0; overflow-y: auto; }
-        .sidebar-header { text-align: center; padding: 20px; color: white; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 20px; }
-        .sidebar-header h2 { font-size: 20px; margin-bottom: 4px; }
-        .sidebar-header p { font-size: 13px; opacity: 0.8; }
-        .menu-item { padding: 14px 24px; color: rgba(255,255,255,0.85); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
-        .menu-item:hover { background: rgba(255,255,255,0.15); color: white; }
-        .menu-item.active { background: rgba(255,255,255,0.2); color: white; border-left: 3px solid white; }
-        .submenu { display: none; background: rgba(0,0,0,0.1); }
-        .submenu.show { display: block; }
-        .submenu-item { padding: 12px 24px 12px 48px; color: rgba(255,255,255,0.75); cursor: pointer; transition: all 0.3s; display: block; font-size: 13px; text-decoration: none; }
-        .submenu-item:hover { background: rgba(255,255,255,0.1); color: white; }
-        .submenu-item.active { background: rgba(255,255,255,0.15); color: white; border-left: 3px solid white; }
-        .arrow { font-size: 10px; transition: transform 0.3s; }
-        .menu-item:hover .arrow, .menu-item.active .arrow { transform: rotate(180deg); }
-        .main-content { flex: 1; margin-left: 240px; background: #f5f7fa; min-height: 100vh; }
-        .top-bar { background: white; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .top-bar h1 { font-size: 20px; color: #333; }
-        .user-info { display: flex; align-items: center; gap: 16px; }
-        .logout-btn { padding: 8px 16px; background: #f56c6c; color: white; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; transition: background 0.3s; text-decoration: none; }
-        .logout-btn:hover { background: #e64545; }
-        .content-area { padding: 24px 32px; }
-        .edit-card { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); max-width: 600px; }
-        .edit-card h2 { font-size: 20px; color: #333; margin-bottom: 24px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; color: #333; font-size: 14px; margin-bottom: 8px; font-weight: 500; }
-        .form-group input { width: 100%; padding: 12px 16px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.3s; }
-        .form-group input:focus { border-color: #667eea; }
-        .permission-checkbox { max-height: 300px; overflow-y: auto; border: 1px solid #dcdfe6; border-radius: 6px; padding: 12px; }
-        .permission-item { margin-bottom: 12px; }
-        .permission-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; }
-        .permission-item input[type="checkbox"] { width: 16px; height: 16px; }
-        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn:hover { opacity: 0.9; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .error-tip { color: #ff4d4f; font-size: 13px; margin-top: 8px; display: none; }
-        .error-tip.show { display: block; }
-        .success-tip { color: #52c41a; font-size: 14px; margin-top: 16px; text-align: center; display: none; }
-        .success-tip.show { display: block; }
-        .loading-state { text-align: center; padding: 40px; color: #909399; }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>管理后台</h2>
-            <p>知识分享平台</p>
-        </div>
-        <div id="dynamic-menus"></div>
-    </div>
-    
-    <div class="main-content">
-        <div class="top-bar">
-            <h1>编辑角色权限</h1>
-            <div class="user-info">
-                <a href="/api/adminuser/logout" class="logout-btn">退出登录</a>
-            </div>
-        </div>
-        
-        <div class="content-area">
-            <div class="edit-card">
-                <h2>修改角色权限</h2>
+{{define "admin_layout_extra_head"}}
+<style>
+    .edit-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .edit-card h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 24px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .form-group input:focus {
+        border-color: #667eea;
+    }
+    .permission-checkbox {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        padding: 12px;
+    }
+    .permission-item {
+        margin-bottom: 12px;
+    }
+    .permission-item label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: normal;
+    }
+    .permission-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+        margin-top: 10px;
+    }
+    .btn-secondary:hover {
+        background: #ebeef5;
+    }
+    .error-tip {
+        color: #ff4d4f;
+        font-size: 13px;
+        margin-top: 8px;
+        display: none;
+    }
+    .error-tip.show {
+        display: block;
+    }
+    .success-tip {
+        color: #52c41a;
+        font-size: 14px;
+        margin-top: 16px;
+        text-align: center;
+        display: none;
+    }
+    .success-tip.show {
+        display: block;
+    }
+    .loading-state {
+        text-align: center;
+        padding: 40px;
+        color: #909399;
+    }
+</style>
+{{end}}
 
-                <div class="form-group">
-                    <label>角色名称</label>
-                    <input id="roleName" type="text" placeholder="请输入角色名称"/>
+{{define "admin_layout_extra_script"}}
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const roleId = urlParams.get('id');
+    let currentRole = null;
+
+    if (!roleId) {
+        alert('缺少角色ID参数');
+        window.location.href = '/page/adminrole/list';
+    }
+
+    async function loadRoleDetail() {
+        try {
+            const response = await axios.get('/api/adminrole/get', { params: { role_id: roleId } });
+            if (response.data.code === 0) {
+                currentRole = response.data.data.role;
+                document.getElementById('roleName').value = currentRole.roleName || '';
+                const menus = response.data.data.menus || [];
+                const menuMap = response.data.data.menuMap || {};
+                renderPermissionCheckboxes(menus, menuMap);
+            } else {
+                showError(response.data.message || '获取角色信息失败');
+            }
+        } catch (error) {
+            showError('网络错误，请稍后重试');
+        }
+    }
+
+    function renderPermissionCheckboxes(menus, menuMap) {
+        const container = document.getElementById('permissionCheckboxes');
+        if (!menus || menus.length === 0) {
+            container.innerHTML = '<div class="loading-state">暂无权限</div>';
+            return;
+        }
+        const activeMenus = menus.filter(m => m.isDeleted === 0);
+        if (activeMenus.length === 0) {
+            container.innerHTML = '<div class="loading-state">暂无权限</div>';
+            return;
+        }
+        let html = '';
+        activeMenus.forEach(menu => {
+            const checked = menuMap[menu.id] ? 'checked' : '';
+            html += `
+                <div class="permission-item">
+                    <label>
+                        <input type="checkbox" name="permission" value="${menu.id}" ${checked}/>
+                        <span>${menu.menuName || '--'}</span>
+                        <span style="color: #909399; font-size: 12px;">(${menu.path || '--'})</span>
+                    </label>
                 </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
 
-                <div class="form-group">
-                    <label>选择权限</label>
-                    <div id="permissionCheckboxes" class="permission-checkbox">
-                        <div class="loading-state">加载中...</div>
-                    </div>
-                </div>
+    async function submitUpdateRole() {
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        errorMsg.classList.remove('show');
+        successMsg.classList.remove('show');
 
-                <p id="errorMsg" class="error-tip"></p>
-                <p id="successMsg" class="success-tip"></p>
+        const roleName = document.getElementById('roleName').value.trim();
+        if (!roleName) {
+            showError('请输入角色名称');
+            return;
+        }
 
-                <button type="button" id="saveBtn" class="btn" onclick="submitUpdateRole()">保存修改</button>
-            </div>
+        const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
+        if (checkboxes.length === 0) {
+            showError('请至少选择一个权限');
+            return;
+        }
+
+        const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.textContent = '保存中...';
+
+        try {
+            const formData = new FormData();
+            formData.append('role_id', roleId);
+            formData.append('role_name', roleName);
+            mids.forEach(mid => formData.append('mids', mid));
+
+            const response = await axios.post('/api/adminrole/update', formData);
+            if (response.data.code === 0) {
+                successMsg.textContent = '更新成功';
+                successMsg.classList.add('show');
+                setTimeout(() => { window.location.href = '/page/adminrole/list'; }, 1500);
+            } else {
+                showError(response.data.message || '更新失败');
+            }
+        } catch (error) {
+            showError('网络错误，请稍后重试');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '保存修改';
+        }
+    }
+
+    function showError(msg) {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.textContent = msg;
+        errorMsg.classList.add('show');
+    }
+
+    function goBack() {
+        window.location.href = '/page/adminrole/list';
+    }
+
+    loadRoleDetail();
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="edit-card">
+    <h2>编辑角色权限</h2>
+
+    <div class="form-group">
+        <label>角色名称</label>
+        <input id="roleName" type="text" placeholder="请输入角色名称"/>
+    </div>
+
+    <div class="form-group">
+        <label>选择权限</label>
+        <div id="permissionCheckboxes" class="permission-checkbox">
+            <div class="loading-state">加载中...</div>
         </div>
     </div>
 
-    <script>
-        let currentPath = window.location.pathname;
-        let userMenuIds = [];
-        
-        async function loadDynamicMenus() {
-            try {
-                const [menuResponse, userResponse] = await Promise.all([
-                    axios.get('/api/adminmenu/all'),
-                    axios.get('/api/adminuser/get')
-                ]);
-                if (menuResponse.data.code === 0 && userResponse.data.code === 0) {
-                    const menus = menuResponse.data.data.menus || [];
-                    userMenuIds = userResponse.data.data.menuIds || [];
-                    renderDynamicMenus(menus);
-                }
-            } catch (error) { console.error('加载菜单失败', error); }
-        }
-        
-        function renderDynamicMenus(menus) {
-            const container = document.getElementById('dynamic-menus');
-            const menuConfig = {
-                '反馈列表': { url: '/page/adminfeedback/list', group: 'feedback' },
-                '公告列表': { url: '/page/adminannounce/list', group: 'notice' },
-                '新增公告': { url: '/page/adminannounce/add', group: 'notice' },
-                '广告列表': { url: '/page/adminadvert/list', group: 'ad' },
-                '新增广告': { url: '/page/adminadvert/add', group: 'ad' },
-                '权限列表': { url: '/page/adminmenu/list', group: 'permission' },
-                '新增权限': { url: '/page/adminmenu/add', group: 'permission' },
-                '角色列表': { url: '/page/adminrole/list', group: 'role' },
-                '新增角色': { url: '/page/adminrole/add', group: 'role' },
-                '管理员列表': { url: '/page/adminuser/list', group: 'adminuser' },
-                '新增管理员': { url: '/page/adminuser/add', group: 'adminuser' },
-                '举报列表': { url: '/page/adminaccusation/list', group: 'accusation' }
-            };
-            const groups = {};
-            menus.forEach(function(menu) {
-                if (menu.isDeleted === 1) return;
-                const config = menuConfig[menu.menuName];
-                if (!config) return;
-                if (!groups[config.group]) { groups[config.group] = []; }
-                groups[config.group].push({ id: menu.id, name: menu.menuName, url: config.url });
-            });
-            const groupNames = { 'feedback': '反馈', 'notice': '公告', 'ad': '广告', 'permission': '权限管理', 'role': '角色管理', 'adminuser': '管理员管理', 'accusation': '举报管理' };
-            const groupIcons = { 'feedback': '💬', 'notice': '📢', 'ad': '📺', 'permission': '🔐', 'role': '👥', 'adminuser': '👤', 'accusation': '🚨' };
-            let html = '<a href="/page/admin/index" class="menu-item">首页</a>';
-            for (const groupKey in groups) {
-                const groupMenus = groups[groupKey];
-                const hasPermission = userMenuIds.length === 0 || groupMenus.some(item => userMenuIds.includes(item.id));
-                if (!hasPermission && userMenuIds.length > 0) continue;
-                html += `<div class="menu-item" onclick="toggleSubmenu('${groupKey}')"><span class="icon">${groupIcons[groupKey]}</span><span>${groupNames[groupKey]}</span><span class="arrow">▼</span></div><div class="submenu" id="submenu-${groupKey}">`;
-                groupMenus.forEach(function(item) {
-                    const hasItemPermission = userMenuIds.length === 0 || userMenuIds.includes(item.id);
-                    if (!hasItemPermission && userMenuIds.length > 0) return;
-                    const active = currentPath === item.url ? 'active' : '';
-                    html += `<a href="${item.url}" class="submenu-item ${active}">${item.name}</a>`;
-                });
-                html += '</div>';
-            }
-            container.innerHTML = html;
-        }
-        
-        function toggleSubmenu(groupKey) {
-            const submenu = document.getElementById('submenu-' + groupKey);
-            if (submenu) {
-                const isShow = submenu.classList.contains('show');
-                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
-                if (!isShow) { submenu.classList.add('show'); }
-            }
-        }
-        
-        loadDynamicMenus();
+    <p id="errorMsg" class="error-tip"></p>
+    <p id="successMsg" class="success-tip"></p>
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const roleId = urlParams.get('id');
-        let currentRole = null;
+    <button type="button" id="saveBtn" class="btn" onclick="submitUpdateRole()">保存修改</button>
+    <button type="button" class="btn btn-secondary" onclick="goBack()">返回</button>
+</div>
 
-        async function loadRoleDetail() {
-            try {
-                const response = await axios.get('/api/adminrole/get', { params: { role_id: roleId } });
-                if (response.data.code === 0) {
-                    currentRole = response.data.data.role;
-                    document.getElementById('roleName').value = currentRole.roleName || '';
-                    loadPermissions();
-                } else {
-                    showError(response.data.message || '获取角色信息失败');
-                }
-            } catch (error) { showError('网络错误，请稍后重试'); }
-        }
-
-        async function loadPermissions() {
-            try {
-                const response = await axios.get('/api/adminmenu/all');
-                if (response.data.code === 0) {
-                    const menus = response.data.data.menus || [];
-                    renderPermissionCheckboxes(menus);
-                } else {
-                    showError('获取权限列表失败');
-                }
-            } catch (error) { showError('网络错误，请稍后重试'); }
-        }
-
-        function renderPermissionCheckboxes(menus) {
-            const container = document.getElementById('permissionCheckboxes');
-            if (!menus || menus.length === 0) {
-                container.innerHTML = '<div class="loading-state">暂无权限</div>';
-                return;
-            }
-            const activeMenus = menus.filter(m => m.isDeleted === 0);
-            if (activeMenus.length === 0) {
-                container.innerHTML = '<div class="loading-state">暂无权限</div>';
-                return;
-            }
-            const currentMids = currentRole && currentRole.mids ? currentRole.mids.split('_') : [];
-            let html = '';
-            activeMenus.forEach(menu => {
-                const checked = currentMids.includes(String(menu.id)) ? 'checked' : '';
-                html += `
-                    <div class="permission-item">
-                        <label>
-                            <input type="checkbox" name="permission" value="${menu.id}" ${checked}/>
-                            <span>${menu.menuName || '--'}</span>
-                            <span style="color: #909399; font-size: 12px;">(${menu.path || '--'})</span>
-                        </label>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        async function submitUpdateRole() {
-            const errorMsg = document.getElementById('errorMsg');
-            const successMsg = document.getElementById('successMsg');
-            errorMsg.classList.remove('show');
-            successMsg.classList.remove('show');
-
-            const roleName = document.getElementById('roleName').value.trim();
-            if (!roleName) { showError('请输入角色名称'); return; }
-
-            const checkboxes = document.querySelectorAll('input[name="permission"]:checked');
-            if (checkboxes.length === 0) { showError('请至少选择一个权限'); return; }
-
-            const mids = Array.from(checkboxes).map(cb => parseInt(cb.value));
-
-            try {
-                const formData = new FormData();
-                formData.append('role_id', roleId);
-                formData.append('role_name', roleName);
-                mids.forEach(mid => formData.append('mids', mid));
-
-                const response = await axios.post('/api/adminrole/update', formData);
-                if (response.data.code === 0) {
-                    successMsg.textContent = '更新成功';
-                    successMsg.classList.add('show');
-                    setTimeout(() => { window.location.href = '/page/adminrole/list'; }, 1500);
-                } else {
-                    showError(response.data.message || '更新失败');
-                }
-            } catch (error) { showError('网络错误，请稍后重试'); }
-        }
-
-        function showError(msg) {
-            const errorMsg = document.getElementById('errorMsg');
-            errorMsg.textContent = msg;
-            errorMsg.classList.add('show');
-        }
-
-        loadRoleDetail();
-    </script>
-</body>
-</html>
+{{template "admin_layout_body_end" .}}

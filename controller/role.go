@@ -4,7 +4,6 @@ import (
 	"bishe/model"
 	"bishe/service"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,14 +25,7 @@ func AddRoleHandler(c *gin.Context) {
 		return
 	}
 
-	var midsStr string
-	for i, mid := range mids {
-		if i == 0 {
-			midsStr += mid
-		} else {
-			midsStr += "_" + mid
-		}
-	}
+	midsStr := service.EncodeMids(mids)
 
 	//查询name是否存在
 	role, err := service.GetRoleByName(name)
@@ -115,14 +107,7 @@ func UpdateRoleHandler(c *gin.Context) {
 		return
 	}
 
-	var midsStr string
-	for i, mid := range mids {
-		if i == 0 {
-			midsStr += mid
-		} else {
-			midsStr += "_" + mid
-		}
-	}
+	midsStr := service.EncodeMids(mids)
 
 	//查询角色是否存在
 	role, err := service.GetRoleByName(name)
@@ -205,21 +190,25 @@ func GetRoleHandler(c *gin.Context) {
 		return
 	}
 
-	//将mids字符串转换为int切片
-	midsSlice := strings.Split(role.Mids, "_")
-	midsInt := make([]int, 0)
-	for _, midStr := range midsSlice {
-		midInt, err := strconv.Atoi(midStr)
-		if err != nil {
-			MakeApiResponseErrorParams(c)
-			return
-		}
-		midsInt = append(midsInt, midInt)
+	//取出所有menu
+	menus, err := service.GetAllMenu()
+	if err != nil {
+		service.Logger.Error("GetAllMenu err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	var menuIdMap map[int]bool
+	if role.IsSysRole() {
+		menuIdMap = service.GetRoleSysMenuIdMap(menus)
+	} else {
+		menuIdMap = service.ParseMidsToMap(role.Mids)
 	}
 
 	data := map[string]interface{}{
-		"role": role,
-		"mids": midsInt,
+		"role":    role,
+		"menus":   menus,
+		"menuMap": menuIdMap,
 	}
 
 	MakeApiResponseSuccess(c, data)
