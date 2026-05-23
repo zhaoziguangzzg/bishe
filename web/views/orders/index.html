@@ -1,321 +1,282 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的订单 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            font-size: 24px;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .orders-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .section-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #667eea;
-        }
-        .tab-container {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .tab-item {
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #666;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        .tab-item:hover {
-            color: #667eea;
-        }
-        .tab-item.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            font-weight: 600;
-        }
-        .orders-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .orders-table th {
-            background: #f8f9fa;
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 14px;
-            color: #666;
-            font-weight: 600;
-        }
-        .orders-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            color: #333;
-        }
-        .orders-table tr:hover {
-            background: #fafafa;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .status-badge.wait {
-            background: #fff3e0;
-            color: #ff9800;
-        }
-        .status-badge.paid {
-            background: #e8f5e9;
-            color: #4caf50;
-        }
-        .status-badge.cancel {
-            background: #ffebee;
-            color: #f44336;
-        }
-        .status-badge.end {
-            background: #e3f2fd;
-            color: #2196f3;
-        }
-        .price {
-            color: #f44336;
-            font-weight: 600;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .loading-tip {
-            text-align: center;
-            padding: 40px;
-            color: #667eea;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-        .pagination-btn {
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: white;
-            color: #666;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .pagination-btn:hover:not(:disabled) {
-            border-color: #667eea;
-            color: #667eea;
-        }
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <a href="/">← 返回首页</a>
-        <h1>我的订单</h1>
-        <div></div>
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .orders-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .section-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #667eea;
+    }
+    .tab-container {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .tab-item {
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+    }
+    .tab-item:hover {
+        color: #667eea;
+    }
+    .tab-item.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        font-weight: 600;
+    }
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .orders-table th {
+        background: #f8f9fa;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 14px;
+        color: #666;
+        font-weight: 600;
+    }
+    .orders-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 14px;
+        color: #333;
+    }
+    .orders-table tr:hover {
+        background: #fafafa;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .status-badge.wait {
+        background: #fff3e0;
+        color: #ff9800;
+    }
+    .status-badge.paid {
+        background: #e8f5e9;
+        color: #4caf50;
+    }
+    .status-badge.cancel {
+        background: #ffebee;
+        color: #f44336;
+    }
+    .status-badge.end {
+        background: #e3f2fd;
+        color: #2196f3;
+    }
+    .price {
+        color: #f44336;
+        font-weight: 600;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+    .loading-tip {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+    }
+    .pagination-btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        color: #666;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .pagination-btn:hover:not(:disabled) {
+        border-color: #667eea;
+        color: #667eea;
+    }
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+{{end}}
+
+<div class="orders-card">
+    <h2 class="section-title"> 订单列表</h2>
+    <div class="tab-container" id="tabContainer">
+        <div class="tab-item active" data-status="-1" onclick="switchTab(-1)">全部</div>
+        <div class="tab-item" data-status="0" onclick="switchTab(0)">待支付</div>
+        <div class="tab-item" data-status="1" onclick="switchTab(1)">已支付</div>
+        <div class="tab-item" data-status="2" onclick="switchTab(2)">已取消</div>
+        <div class="tab-item" data-status="3" onclick="switchTab(3)">已结束</div>
     </div>
+    <div id="ordersContent" class="loading-tip">加载中...</div>
+</div>
 
-    <div class="container">
-        <div class="orders-card">
-            <h2 class="section-title">📋 订单列表</h2>
-            <div class="tab-container" id="tabContainer">
-                <div class="tab-item active" data-status="-1" onclick="switchTab(-1)">全部</div>
-                <div class="tab-item" data-status="0" onclick="switchTab(0)">待支付</div>
-                <div class="tab-item" data-status="1" onclick="switchTab(1)">已支付</div>
-                <div class="tab-item" data-status="2" onclick="switchTab(2)">已取消</div>
-                <div class="tab-item" data-status="3" onclick="switchTab(3)">已结束</div>
-            </div>
-            <div id="ordersContent" class="loading-tip">加载中...</div>
-        </div>
-    </div>
+{{template "index_layout_body_end" .}}
 
-    <script>
-        const orderStatusMap = {
-            0: { text: '待支付', class: 'wait' },
-            1: { text: '已支付', class: 'paid' },
-            2: { text: '已取消', class: 'cancel' },
-            3: { text: '已结束', class: 'end' }
-        };
+{{define "index_layout_extra_scripts"}}
+<script>
+    const orderStatusMap = {
+        0: { text: '待支付', class: 'wait' },
+        1: { text: '已支付', class: 'paid' },
+        2: { text: '已取消', class: 'cancel' },
+        3: { text: '已结束', class: 'end' }
+    };
 
-        let allOrders = [];
-        let currentStatus = -1;
-        let currentPage = 1;
-        const pageSize = 10;
+    let allOrders = [];
+    let currentStatus = -1;
+    let currentPage = 1;
+    const pageSize = 10;
 
-        function switchTab(status) {
-            currentStatus = status;
-            currentPage = 1;
+    function switchTab(status) {
+        currentStatus = status;
+        currentPage = 1;
 
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelector(`.tab-item[data-status="${status}"]`).classList.add('active');
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`.tab-item[data-status="${status}"]`).classList.add('active');
 
+        renderOrders();
+    }
+
+    function getFilteredOrders() {
+        if (currentStatus === -1) {
+            return allOrders;
+        }
+        return allOrders.filter(order => order.orderStatus === currentStatus);
+    }
+
+    function getPagedOrders(filteredOrders) {
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredOrders.slice(start, end);
+    }
+
+    function renderOrders() {
+        const content = document.getElementById('ordersContent');
+        const filteredOrders = getFilteredOrders();
+
+        if (filteredOrders.length === 0) {
+            content.innerHTML = '<div class="empty-tip">暂无订单数据</div>';
+            return;
+        }
+
+        const pagedOrders = getPagedOrders(filteredOrders);
+
+        let html = `
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>订单ID</th>
+                        <th>圈子ID</th>
+                        <th>支付金额</th>
+                        <th>折扣金额</th>
+                        <th>订单状态</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        pagedOrders.forEach(order => {
+            const status = orderStatusMap[order.orderStatus] || { text: '未知', class: '' };
+            const createTime = order.createAt || '-';
+
+            html += `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${order.cid}</td>
+                    <td class="price">¥${(order.price / 100).toFixed(2)}</td>
+                    <td>${order.discount > 0 ? '¥' + order.discount.toFixed(2) : '-'}</td>
+                    <td><span class="status-badge ${status.class}">${status.text}</span></td>
+                    <td>${createTime}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+
+        const totalPages = Math.ceil(filteredOrders.length / pageSize);
+        if (totalPages > 1) {
+            html += `
+                <div class="pagination">
+                    <button class="pagination-btn" onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+                    <span class="pagination-info">第 ${currentPage} / ${totalPages} 页</span>
+                    <button class="pagination-btn" onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
             renderOrders();
         }
+    }
 
-        function getFilteredOrders() {
-            if (currentStatus === -1) {
-                return allOrders;
-            }
-            return allOrders.filter(order => order.orderStatus === currentStatus);
+    function nextPage() {
+        const filteredOrders = getFilteredOrders();
+        const totalPages = Math.ceil(filteredOrders.length / pageSize);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderOrders();
         }
+    }
 
-        function getPagedOrders(filteredOrders) {
-            const start = (currentPage - 1) * pageSize;
-            const end = start + pageSize;
-            return filteredOrders.slice(start, end);
-        }
+    async function loadOrders() {
+        const content = document.getElementById('ordersContent');
 
-        function renderOrders() {
-            const content = document.getElementById('ordersContent');
-            const filteredOrders = getFilteredOrders();
+        try {
+            content.innerHTML = '<div class="loading-tip">加载中...</div>';
 
-            if (filteredOrders.length === 0) {
-                content.innerHTML = '<div class="empty-tip">暂无订单数据</div>';
-                return;
-            }
-
-            const pagedOrders = getPagedOrders(filteredOrders);
-
-            let html = `
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th>订单ID</th>
-                            <th>圈子ID</th>
-                            <th>支付金额</th>
-                            <th>折扣金额</th>
-                            <th>订单状态</th>
-                            <th>创建时间</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            pagedOrders.forEach(order => {
-                const status = orderStatusMap[order.orderStatus] || { text: '未知', class: '' };
-                const createTime = order.createAt || '-';
-
-                html += `
-                    <tr>
-                        <td>${order.id}</td>
-                        <td>${order.cid}</td>
-                        <td class="price">¥${(order.price / 100).toFixed(2)}</td>
-                        <td>${order.discount > 0 ? '¥' + order.discount.toFixed(2) : '-'}</td>
-                        <td><span class="status-badge ${status.class}">${status.text}</span></td>
-                        <td>${createTime}</td>
-                    </tr>
-                `;
+            const response = await axios.get('/api/orders/all', {
+                params: { page: 1 }
             });
 
-            html += '</tbody></table>';
-
-            const totalPages = Math.ceil(filteredOrders.length / pageSize);
-            if (totalPages > 1) {
-                html += `
-                    <div class="pagination">
-                        <button class="pagination-btn" onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
-                        <span class="pagination-info">第 ${currentPage} / ${totalPages} 页</span>
-                        <button class="pagination-btn" onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
-                    </div>
-                `;
-            }
-
-            content.innerHTML = html;
-        }
-
-        function prevPage() {
-            if (currentPage > 1) {
-                currentPage--;
+            if (response.data.code === 0) {
+                const data = response.data.data;
+                allOrders = data.orderss || [];
                 renderOrders();
+            } else {
+                content.innerHTML = '<div class="empty-tip">加载失败: ' + (response.data.msg || '未知错误') + '</div>';
             }
+        } catch (error) {
+            content.innerHTML = '<div class="empty-tip">加载失败，请稍后重试</div>';
         }
+    }
 
-        function nextPage() {
-            const filteredOrders = getFilteredOrders();
-            const totalPages = Math.ceil(filteredOrders.length / pageSize);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderOrders();
-            }
-        }
-
-        async function loadOrders() {
-            const content = document.getElementById('ordersContent');
-
-            try {
-                content.innerHTML = '<div class="loading-tip">加载中...</div>';
-
-                const response = await axios.get('/api/orders/all', {
-                    params: { page: 1 }
-                });
-
-                if (response.data.code === 0) {
-                    const data = response.data.data;
-                    allOrders = data.orderss || [];
-                    renderOrders();
-                } else {
-                    content.innerHTML = '<div class="empty-tip">加载失败: ' + (response.data.msg || '未知错误') + '</div>';
-                }
-            } catch (error) {
-                content.innerHTML = '<div class="empty-tip">加载失败，请稍后重试</div>';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadOrders();
-        });
-    </script>
-</body>
-</html>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadOrders();
+    });
+</script>
+{{end}}

@@ -15,8 +15,12 @@ func CreateOrders(orders *model.Orders) (err error) {
 // 获取用户全部支付
 func GetUserAllOrdersByUid(uid int, page int, pagesize int) (orderss []model.Orders, err error) {
 	offset := (page - 1) * pagesize
-	err = DB.Model(&model.Orders{}).Where("uid=? ", uid).
-		Order("id DESC").Offset(offset).Limit(pagesize).Find(&orderss).Error
+	err = DB.Model(&model.Orders{}).
+		Where("uid=? ", uid).
+		Order("id DESC").
+		Offset(offset).
+		Limit(pagesize).
+		Find(&orderss).Error
 	if err != nil {
 		return
 	}
