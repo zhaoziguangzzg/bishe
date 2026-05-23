@@ -33,6 +33,11 @@
             color: white;
             border-bottom: 1px solid rgba(255,255,255,0.2);
             margin-bottom: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .sidebar-header:hover {
+            background: rgba(255,255,255,0.1);
         }
         .sidebar-header h2 {
             font-size: 20px;
@@ -151,7 +156,7 @@
 {{define "admin_layout_body_start"}}
 <body>
     <div class="sidebar">
-        <div class="sidebar-header">
+        <div class="sidebar-header" onclick="window.location.href='/page/admin/index'">
             <h2>后台管理</h2>
             <p>知识分享平台</p>
         </div>
