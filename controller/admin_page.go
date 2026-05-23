@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,11 +9,7 @@ func AdminIndexPageHandler(c *gin.Context) {
 }
 
 func AdminEditPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin/edit.html", nil)
-}
-
-func AdminRoleEditPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "adminrole/edit.html", nil)
+	RenderAdminPage(c, "admin/edit.html", nil)
 }
 
 func MenuAddPageHandler(c *gin.Context) {
@@ -34,54 +28,74 @@ func RoleAddPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminrole/add.html", nil)
 }
 
-func RoleListPageHandler(c *gin.Context) {
-	RenderAdminPage(c, "adminrole/list.html", nil)
-}
-
 func RoleDetailPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminrole/detail.html", nil)
 }
 
+func AdminRoleEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminrole/edit.html", nil)
+}
+
+func RoleListPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminrole/list.html", nil)
+}
+
 func AdminUserAddPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminuser/add.html", nil)
+	RenderAdminPage(c, "adminuser/add.html", nil)
 }
 
 func AdminUserListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminuser/list.html", nil)
+	RenderAdminPage(c, "adminuser/list.html", nil)
 }
 
 func AdminUserDetailPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminuser/detail.html", nil)
+	RenderAdminPage(c, "adminuser/detail.html", nil)
 }
 
 func AdminUserRolePageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminuser/role.html", nil)
+	RenderAdminPage(c, "adminuser/role.html", nil)
 }
 
 func AdminAccusationListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminaccusation/list.html", nil)
 }
 
-func AdminFeedbackListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminfeedback/list.html", nil)
-}
-
-func AdminAnnounceAddPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminannounce/add.html", nil)
-}
-
-func AdminAnnounceListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminannounce/list.html", nil)
-}
-
-func AdminAdvertAddPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminadvert/add.html", nil)
-}
-
-func AdminAdvertListPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "adminadvert/list.html", nil)
-}
-
 func AdminAccusationEditPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminaccusation/edit.html", nil)
 }
+
+func AdminFeedbackListPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminfeedback/list.html", nil)
+}
+
+func AdminAdvertListPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminadvert/list.html", nil)
+}
+
+func AdminAdvertAddPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminadvert/add.html", nil)
+}
+
+func AdvertEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminadvert/edit.html", nil)
+}
+
+func AdminAnnounceAddPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminannounce/add.html", nil)
+}
+
+func AdminAnnounceListPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminannounce/list.html", nil)
+}
+
+// func AnnounceListPageHandler(c *gin.Context) {
+// 	RenderAdminPage(c, "announce/list.html", nil)
+// }
+
+func AnnounceEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "announce/edit.html", nil)
+}
+
+// func AnnounceDetailPageHandler(c *gin.Context) {
+// 	RenderAdminPage(c, "announce/detail.html", nil)
+// }
