@@ -68,6 +68,10 @@ func AdminFeedbackListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminfeedback/list.html", nil)
 }
 
+func FeedbackEditPageHandler(c *gin.Context) {
+	RenderAdminPage(c, "adminfeedback/edit.html", nil)
+}
+
 func AdminAdvertListPageHandler(c *gin.Context) {
 	RenderAdminPage(c, "adminadvert/list.html", nil)
 }

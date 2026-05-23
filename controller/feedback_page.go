@@ -13,7 +13,3 @@ func FeedbackIndexPageHandler(c *gin.Context) {
 func FeedbackDetailPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "feedback/detail.html", nil)
 }
-
-func FeedbackEditPageHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "feedback/edit.html", nil)
-}

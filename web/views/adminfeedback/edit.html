@@ -1,0 +1,248 @@
+{{define "admin_layout_extra_head"}}
+<style>
+    .container {
+        max-width: 900px;
+    }
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .detail-card h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 24px;
+    }
+    .section {
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    .info-item {
+        padding: 12px 16px;
+        background: #f9fafb;
+        border-radius: 6px;
+    }
+    .info-item .label {
+        color: #909399;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+    .info-item .value {
+        color: #333;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .content-box {
+        background: #f9fafb;
+        border-radius: 6px;
+        padding: 16px;
+        line-height: 1.8;
+        color: #333;
+        font-size: 14px;
+    }
+    .reply-section {
+        margin-top: 24px;
+    }
+    .reply-section textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 120px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .reply-section textarea:focus {
+        border-color: #667eea;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #eee;
+    }
+    .btn {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: opacity 0.3s;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-reply {
+        background: #67c23a;
+        color: white;
+    }
+    .btn-back {
+        background: #909399;
+        color: white;
+    }
+    .loading-state {
+        text-align: center;
+        padding: 60px;
+        color: #909399;
+    }
+    .error-state {
+        text-align: center;
+        padding: 60px;
+        color: #f56c6c;
+    }
+</style>
+{{end}}
+
+{{define "admin_layout_extra_script"}}
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const feedbackId = urlParams.get('id');
+
+    async function loadFeedbackDetail() {
+        const detailCard = document.getElementById('detailCard');
+
+        if (!feedbackId) {
+            detailCard.innerHTML = '<div class="error-state">缺少反馈ID参数</div>';
+            return;
+        }
+
+        try {
+            const response = await axios.get('/api/feedback/get', {
+                params: { id: feedbackId }
+            });
+
+            if (response.data.code === 0 && response.data.data) {
+                renderDetail(response.data.data);
+            } else {
+                detailCard.innerHTML = '<div class="error-state">加载失败: ' + (response.data.message || '未知错误') + '</div>';
+            }
+        } catch (error) {
+            console.error('加载反馈详情失败', error);
+            detailCard.innerHTML = '<div class="error-state">网络错误，请稍后重试</div>';
+        }
+    }
+
+    function renderDetail(data) {
+        const feedback = data.feedback;
+        const detailCard = document.getElementById('detailCard');
+
+        if (!feedback) {
+            detailCard.innerHTML = '<div class="error-state">反馈信息不存在</div>';
+            return;
+        }
+
+        const feedbackTime = feedback.feedbackTime ? new Date(feedback.feedbackTime).toLocaleString() : '--';
+        const replyTime = feedback.replyTime ? new Date(feedback.replyTime).toLocaleString() : '--';
+
+        const statusText = feedback.feedbackStatus === 0 ? '待处理' : '已处理';
+
+        let html = `
+
+            <div class="section">
+                <div class="section-title">反馈信息</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">反馈ID</div>
+                        <div class="value">${feedback.id}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">用户ID</div>
+                        <div class="value">${feedback.userId}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">反馈时间</div>
+                        <div class="value">${feedbackTime}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">处理状态</div>
+                        <div class="value">${statusText}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">反馈内容</div>
+                <div class="content-box">${feedback.content || '无'}</div>
+            </div>
+        `;
+
+        html += `
+            <div class="reply-section">
+                <div class="section-title">${feedback.feedbackStatus === 1 ? '编辑回复' : '回复反馈'}</div>
+                <textarea id="replyContent" placeholder="请输入回复内容...">${feedback.reply || ''}</textarea>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-back" onclick="window.location.href='/page/adminfeedback/list'">返回</button>
+                <button class="btn btn-reply" onclick="submitReply()">${feedback.feedbackStatus === 1 ? '更新回复' : '提交回复'}</button>
+            </div>
+        `;
+
+        detailCard.innerHTML = html;
+    }
+
+    async function submitReply() {
+        const replyContent = document.getElementById('replyContent').value.trim();
+
+        if (!replyContent) {
+            alert('请输入回复内容');
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('id', feedbackId);
+            formData.append('reply', replyContent);
+
+            const response = await axios.post('/api/adminfeedback/update', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            if (response.data.code === 0) {
+                alert('回复成功');
+                window.location.href = '/page/adminfeedback/list';
+            } else {
+                alert('回复失败: ' + (response.data.message || '未知错误'));
+            }
+        } catch (error) {
+            console.error('回复失败', error);
+            alert('回复失败，请稍后重试');
+        }
+    }
+
+    loadFeedbackDetail();
+</script>
+{{end}}
+
+{{template "admin_layout_head" .}}
+{{template "admin_layout_body_start" .}}
+
+<div class="container">
+    <div class="detail-card" id="detailCard">
+        <div class="loading-state">加载中...</div>
+    </div>
+</div>
+
+{{template "admin_layout_body_end" .}}
