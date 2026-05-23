@@ -46,6 +46,46 @@ func AddCircleHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
+	timeNow := time.Now()
+
+	// 处理收费图片上传
+	payImgPath := ""
+	file, header, err := c.Request.FormFile("img")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile img err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && header.Size != 0 {
+		payImgPath, err = service.FileSave(file, header, service.FILE_TYPE_PAY_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
+	// 处理圈子图片上传
+	circleImgPath := ""
+	circleImgFile, circleImgHeader, err := c.Request.FormFile("circleImg")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile circleImg err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && circleImgHeader.Size != 0 {
+		circleImgPath, err = service.FileSave(circleImgFile, circleImgHeader, service.FILE_TYPE_CIRCLE_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+	}
+
 	lockKey := "circle-add-" + title
 	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
 	if err != nil {
@@ -89,6 +129,8 @@ func AddCircleHandler(c *gin.Context) {
 		UpdateAt:      &createTime,
 		CircleStatus:  model.CIRCLE_STATUS_NORMAL,
 		IsDeleted:     model.CIRCLE_NOT_DELETED,
+		PayImg:        payImgPath,
+		Img:           circleImgPath,
 	}
 
 	err = service.CreateCircle(newCircle)
@@ -159,27 +201,46 @@ func UpdateCircleHandler(c *gin.Context) {
 		"introduction": introduction,
 	}
 
-	fileType := service.FILE_TYPE_PAY_IMG
 	timeNow := time.Now()
 
 	// 处理收费图片上传
-	imgPath := ""
+	payImgPath := ""
 	file, header, err := c.Request.FormFile("img")
 	//判断错误不等于无文件
 	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile err", zap.Error(err))
+		service.Logger.Error("FormFile img err", zap.Error(err))
 		MakeApiResponseErrorParams(c)
 		return
 	}
 
 	//判断size不是空
 	if err == nil && header.Size != 0 {
-		imgPath, err = service.FileSave(file, header, fileType, timeNow)
+		payImgPath, err = service.FileSave(file, header, service.FILE_TYPE_PAY_IMG, timeNow)
 		if err != nil {
 			MakeApiResponseErrorDefault(c)
 			return
 		}
-		updateMap["pay_img"] = imgPath
+		updateMap["pay_img"] = payImgPath
+	}
+
+	// 处理圈子图片上传
+	circleImgPath := ""
+	circleImgFile, circleImgHeader, err := c.Request.FormFile("circleImg")
+	//判断错误不等于无文件
+	if err != nil && err != http.ErrMissingFile {
+		service.Logger.Error("FormFile circleImg err", zap.Error(err))
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	//判断size不是空
+	if err == nil && circleImgHeader.Size != 0 {
+		circleImgPath, err = service.FileSave(circleImgFile, circleImgHeader, service.FILE_TYPE_CIRCLE_IMG, timeNow)
+		if err != nil {
+			MakeApiResponseErrorDefault(c)
+			return
+		}
+		updateMap["img"] = circleImgPath
 	}
 
 	//更新圈子信息
@@ -196,14 +257,13 @@ func UpdateCircleHandler(c *gin.Context) {
 	MakeApiResponseSuccess(c, data)
 }
 
-// TODO 返回值 圈子排名，是否付费，价格
 // 获取圈子列表
 func GetAllCircleHandler(c *gin.Context) {
 	var wg sync.WaitGroup
 
 	errCh := make(chan error, 3)
-	typeListCh := make(chan model.TypeList, 3)
 
+	var rankList model.TypeList
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -215,13 +275,15 @@ func GetAllCircleHandler(c *gin.Context) {
 			return
 		}
 
-		typeListCh <- model.TypeList{
+		rankList = model.TypeList{
+			TypeName:    "人气榜",
 			ListType:    listType,
 			RankCircles: circleList,
 		}
 
 	}()
 
+	var chargeRankList model.TypeList
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -233,13 +295,15 @@ func GetAllCircleHandler(c *gin.Context) {
 			return
 		}
 
-		typeListCh <- model.TypeList{
+		chargeRankList = model.TypeList{
+			TypeName:    "收费榜",
 			ListType:    listType,
 			RankCircles: circleList,
 		}
 
 	}()
 
+	var freeRankList model.TypeList
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -251,7 +315,8 @@ func GetAllCircleHandler(c *gin.Context) {
 			return
 		}
 
-		typeListCh <- model.TypeList{
+		freeRankList = model.TypeList{
+			TypeName:    "免费榜",
 			ListType:    listType,
 			RankCircles: circleList,
 		}
@@ -260,7 +325,6 @@ func GetAllCircleHandler(c *gin.Context) {
 
 	wg.Wait()
 	close(errCh)
-	close(typeListCh)
 
 	for err := range errCh {
 		if err != nil {
@@ -270,10 +334,9 @@ func GetAllCircleHandler(c *gin.Context) {
 	}
 
 	typeLists := make([]model.TypeList, 0)
-
-	for typeList := range typeListCh {
-		typeLists = append(typeLists, typeList)
-	}
+	typeLists = append(typeLists, rankList)
+	typeLists = append(typeLists, chargeRankList)
+	typeLists = append(typeLists, freeRankList)
 
 	data := map[string]interface{}{
 		"typeLists": typeLists,

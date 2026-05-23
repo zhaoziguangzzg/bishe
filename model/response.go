@@ -9,8 +9,10 @@ type APIResponse struct {
 // 榜单中的圈子
 type RankCircle struct {
 	Id            int    `json:"id"`
+	Rank          int    `json:"rank"`
 	Title         string `json:"title"`
 	Price         int    `json:"price"`
+	PriceText     string `json:"priceText"`
 	CircleOwnerId int    `json:"circleOwnerId"`
 	OwnerName     string `json:"ownerName"`
 	JoinNum       int    `json:"joinNum"`
@@ -18,6 +20,7 @@ type RankCircle struct {
 
 // 榜单
 type TypeList struct {
+	TypeName    string       `json:"typeName"`
 	ListType    int          `json:"listType"`
 	RankCircles []RankCircle `json:"rankCircles"`
 }

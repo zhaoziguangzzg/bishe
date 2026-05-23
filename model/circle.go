@@ -13,6 +13,8 @@ type Circle struct {
 	CircleOwnerId int `json:"circleOwnerId" gorm:"column:circle_owner_id" mapstructure:"circleOwnerId"`
 	//圈子简介
 	Introduction string `json:"introduction" gorm:"column:introduction" mapstructure:"introduction"`
+	//圈子图片
+	Img string `json:"img" gorm:"column:img" mapstructure:"img"`
 	//圈子收款码
 	PayImg string `json:"payImg" gorm:"column:pay_img" mapstructure:"payImg"`
 
@@ -38,7 +40,7 @@ const (
 	CIRCLE_MAX_INTRODUCTION int = 100   //圈子简介最长100字
 	CIRCLE_MAX_PRICE        int = 10000 //圈子价格最大1w
 
-	CIRCLE_RANK_LEN = 10 //榜单只取前十名
+	CIRCLE_RANK_LEN = 50 //榜单只取前50名
 )
 
 // 指定Circle对应的表名

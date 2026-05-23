@@ -1,42 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修改圈子 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+{{template "index_layout_head" .}}
+
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
         .edit-card {
             background: white;
             border-radius: 12px;
@@ -177,54 +144,62 @@
             font-size: 12px;
         }
     </style>
-</head>
-<body>
-    <div class="header">
-        <span>知识分享平台</span>
-        <a href="/page/index">返回首页</a>
-    </div>
+{{end}}
 
-    <div class="container">
-        <div class="edit-card">
-            <h2>修改圈子</h2>
-            <div id="loadingTip" class="loading">加载中...</div>
-            <form id="editCircleForm" style="display: none;">
-                <input type="hidden" id="cid" name="cid">
-                <div class="form-group">
-                    <label for="title">圈子名称</label>
-                    <input type="text" id="title" name="title" placeholder="请输入圈子名称" maxlength="100">
-                    <div class="hint">最多100个字符</div>
-                    <div class="error-tip" id="titleError"></div>
+<div class="container">
+    <div class="edit-card">
+        <h2>修改圈子</h2>
+        <div id="loadingTip" class="loading">加载中...</div>
+        <form id="editCircleForm" style="display: none;">
+            <input type="hidden" id="cid" name="cid">
+            <div class="form-group">
+                <label for="title">圈子名称</label>
+                <input type="text" id="title" name="title" placeholder="请输入圈子名称" maxlength="100">
+                <div class="hint">最多100个字符</div>
+                <div class="error-tip" id="titleError"></div>
+            </div>
+            <div class="form-group">
+                <label for="price">圈子价格（元）</label>
+                <input type="number" id="price" name="price" placeholder="请输入圈子价格" min="0" max="10000">
+                <div class="hint">价格范围：0 - 10000元</div>
+                <div class="error-tip" id="priceError"></div>
+            </div>
+            <div class="form-group">
+                <label for="introduction">圈子简介</label>
+                <textarea id="introduction" name="introduction" placeholder="请输入圈子简介" maxlength="100"></textarea>
+                <div class="hint">最多100个字符</div>
+                <div class="error-tip" id="introductionError"></div>
+            </div>
+            <div class="upload-section">
+                <label>圈子图片</label>
+                <div class="upload-area">
+                    <input type="file" id="circleImgInput" accept="image/*" onchange="previewCircleImg(event)">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('circleImgInput').click()">选择图片</button>
+                    <img id="circleImgPreview" class="preview-img" style="display: none;">
+                    <span class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
-                <div class="form-group">
-                    <label for="price">圈子价格（元）</label>
-                    <input type="number" id="price" name="price" placeholder="请输入圈子价格" min="0" max="10000">
-                    <div class="hint">价格范围：0 - 10000元</div>
-                    <div class="error-tip" id="priceError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="introduction">圈子简介</label>
-                    <textarea id="introduction" name="introduction" placeholder="请输入圈子简介" maxlength="100"></textarea>
-                    <div class="hint">最多100个字符</div>
-                    <div class="error-tip" id="introductionError"></div>
-                </div>
-                <div class="upload-section">
-                    <label>收款码图片</label>
-                    <div class="upload-area">
-                        <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
-                        <button type="button" class="upload-btn" onclick="document.getElementById('avatarInput').click()">选择图片</button>
-                        <img id="avatarPreview" class="preview-img" style="display: none;">
-                        <span class="img-hint">支持 JPG、PNG 格式</span>
-                    </div>
-                </div>
-                <button type="button" class="btn" id="submitBtn" onclick="submitForm()">保存修改</button>
-                <div class="success-tip" id="successTip"></div>
-            </form>
-            <div class="error-tip" id="pageError"></div>
-        </div>
-    </div>
+            </div>
 
-    <script>
+            <div class="upload-section">
+                <label>收款码图片</label>
+                <div class="upload-area">
+                    <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('avatarInput').click()">选择图片</button>
+                    <img id="avatarPreview" class="preview-img" style="display: none;">
+                    <span class="img-hint">支持 JPG、PNG 格式</span>
+                </div>
+            </div>
+            <button type="button" class="btn" id="submitBtn" onclick="submitForm()">保存修改</button>
+            <div class="success-tip" id="successTip"></div>
+        </form>
+        <div class="error-tip" id="pageError"></div>
+    </div>
+</div>
+
+{{template "index_layout_body_end" .}}
+
+{{define "index_layout_extra_scripts"}}
+<script>
         const urlParams = new URLSearchParams(window.location.search);
         const cid = urlParams.get('cid');
 
@@ -248,6 +223,10 @@
                     document.getElementById('title').value = circle.title || '';
                     document.getElementById('price').value = circle.price || 0;
                     document.getElementById('introduction').value = circle.introduction || '';
+                    if (circle.img) {
+                        document.getElementById('circleImgPreview').src = circle.img;
+                        document.getElementById('circleImgPreview').style.display = 'block';
+                    }
                     if (circle.payImg) {
                         document.getElementById('avatarPreview').src = circle.payImg;
                         document.getElementById('avatarPreview').style.display = 'block';
@@ -280,6 +259,18 @@
                 reader.onload = function(e) {
                     document.getElementById('avatarPreview').src = e.target.result;
                     document.getElementById('avatarPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewCircleImg(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('circleImgPreview').src = e.target.result;
+                    document.getElementById('circleImgPreview').style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
@@ -341,6 +332,11 @@
                 formData.append('price', document.getElementById('price').value);
                 formData.append('introduction', document.getElementById('introduction').value.trim());
 
+                const circleImgInput = document.getElementById('circleImgInput');
+                if (circleImgInput.files.length > 0) {
+                    formData.append('circleImg', circleImgInput.files[0]);
+                }
+
                 const avatarInput = document.getElementById('avatarInput');
                 if (avatarInput.files.length > 0) {
                     formData.append('img', avatarInput.files[0]);
@@ -368,5 +364,4 @@
             }
         }
     </script>
-</body>
-</html>
+{{end}}

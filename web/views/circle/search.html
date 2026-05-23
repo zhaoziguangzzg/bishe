@@ -1,292 +1,208 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>搜索圈子 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 16px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .nav {
-            display: flex;
-            gap: 24px;
-        }
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        .nav a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        .header-search {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            padding: 0 20px;
-        }
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            padding: 6px 14px;
-            width: 400px;
-        }
-        .search-box:focus-within {
-            background: rgba(255,255,255,0.3);
-        }
-        .search-input {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 14px;
-        }
-        .search-input::placeholder {
-            color: rgba(255,255,255,0.7);
-        }
-        .search-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 4px;
-        }
-        .search-btn:hover {
-            opacity: 0.8;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .search-result-info {
-            background: white;
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            font-size: 14px;
-            color: #666;
-        }
-        .search-result-info .keyword {
-            color: #667eea;
-            font-weight: 600;
-        }
-        .circle-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .circle-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .circle-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-        .circle-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            margin-bottom: 16px;
-        }
-        .circle-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .circle-title .highlight {
-            color: #f56c6c;
-            background: #fef0f0;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-        .circle-intro {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 16px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .circle-intro .highlight {
-            color: #f56c6c;
-            background: #fef0f0;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-        .circle-stats {
-            display: flex;
-            gap: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #eee;
-        }
-        .stat-item {
-            font-size: 13px;
-            color: #909399;
-        }
-        .stat-item span {
-            color: #667eea;
-            font-weight: 600;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #909399;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/page/circle/index">知识圈子</a>
-        </div>
-        <div class="header-search">
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索圈子..." onkeypress="handleSearchKeyPress(event)"/>
-                <button class="search-btn" onclick="performSearch()">🔍</button>
-            </div>
-        </div>
-        <div class="user-nav">
-            <a href="/page/user/profile">我的</a>
-        </div>
-    </div>
+{{template "index_layout_head" .}}
 
-    <div class="main-container">
-        <div class="search-result-info" id="searchResultInfo">
-            正在加载...
-        </div>
-        <div class="circle-list" id="circleList">
-            <div class="loading">加载中...</div>
-        </div>
-    </div>
+{{template "index_layout_body_start" .}}
 
-    <script>
-        let keyword = '';
-        let circles = [];
+{{block "index_layout_extra_styles" .}}
+<style>
+    .search-result-info {
+        background: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        font-size: 14px;
+        color: #666;
+    }
+    .search-result-info .keyword {
+        color: #667eea;
+        font-weight: 600;
+    }
+    .circle-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    .circle-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .circle-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .circle-cover {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .circle-content {
+        padding: 20px;
+    }
+    .circle-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 16px;
+        margin-top: -48px;
+        position: relative;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .circle-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+    }
+    .circle-title .highlight {
+        color: #f56c6c;
+        background: #fef0f0;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    .circle-intro {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .circle-intro .highlight {
+        color: #f56c6c;
+        background: #fef0f0;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    .circle-stats {
+        display: flex;
+        gap: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+    }
+    .stat-item {
+        font-size: 13px;
+        color: #909399;
+    }
+    .stat-item span {
+        color: #667eea;
+        font-weight: 600;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+    .loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: #909399;
+    }
+</style>
+{{end}}
 
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            keyword = urlParams.get('keyword') || '';
+<div class="search-result-info" id="searchResultInfo">
+    正在加载...
+</div>
+<div class="circle-list" id="circleList">
+    <div class="loading">加载中...</div>
+</div>
 
-            document.getElementById('searchInput').value = keyword;
-            updateSearchResultInfo();
-            loadSearchResults();
-        };
+{{template "index_layout_body_end" .}}
 
-        function updateSearchResultInfo() {
-            const infoEl = document.getElementById('searchResultInfo');
-            if (keyword) {
-                infoEl.innerHTML = '搜索关键词: <span class="keyword">' + escapeHtml(keyword) + '</span> 的结果';
+{{define "index_layout_extra_scripts"}}
+<script>
+    let keyword = '';
+    let circles = [];
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        keyword = urlParams.get('keyword') || '';
+
+        document.getElementById('searchInput').value = keyword;
+        updateSearchResultInfo();
+        loadSearchResults();
+    };
+
+    function updateSearchResultInfo() {
+        const infoEl = document.getElementById('searchResultInfo');
+        if (keyword) {
+            infoEl.innerHTML = '搜索关键词: <span class="keyword">' + escapeHtml(keyword) + '</span> 的结果';
+        } else {
+            infoEl.innerHTML = '请输入搜索关键词';
+        }
+    }
+
+    function highlightText(text, keyword) {
+        if (!keyword) return escapeHtml(text);
+        const escaped = escapeHtml(text);
+        const regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        return escaped.replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    async function loadSearchResults() {
+        const container = document.getElementById('circleList');
+
+        if (!keyword) {
+            container.innerHTML = '<div class="empty-state">请输入搜索关键词</div>';
+            return;
+        }
+
+        container.innerHTML = '<div class="loading">搜索中...</div>';
+
+        try {
+            const response = await axios.get(`/api/search/circle?title=${encodeURIComponent(keyword)}&page=1`);
+
+            if (response.data.code === 0 && response.data.data && response.data.data.userCircles) {
+                circles = response.data.data.userCircles;
+                renderCircles();
+            } else if (response.data.code === 401) {
+                container.innerHTML = '<div class="empty-state">请先登录后搜索</div>';
             } else {
-                infoEl.innerHTML = '请输入搜索关键词';
-            }
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function highlightText(text, keyword) {
-            if (!keyword) return escapeHtml(text);
-            const escaped = escapeHtml(text);
-            const regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-            return escaped.replace(regex, '<span class="highlight">$1</span>');
-        }
-
-        async function loadSearchResults() {
-            const container = document.getElementById('circleList');
-
-            if (!keyword) {
-                container.innerHTML = '<div class="empty-state">请输入搜索关键词</div>';
-                return;
-            }
-
-            container.innerHTML = '<div class="loading">搜索中...</div>';
-
-            try {
-                const response = await axios.get(`/api/search/circle?title=${encodeURIComponent(keyword)}&page=1`);
-
-                if (response.data.code === 0 && response.data.data && response.data.data.userCircles) {
-                    circles = response.data.data.userCircles;
-                    renderCircles();
-                } else if (response.data.code === 401) {
-                    container.innerHTML = '<div class="empty-state">请先登录后搜索</div>';
-                } else {
-                    container.innerHTML = '<div class="empty-state">未找到相关圈子</div>';
-                }
-            } catch (error) {
-                container.innerHTML = '<div class="empty-state">搜索失败，请重试</div>';
-            }
-        }
-
-        function renderCircles() {
-            const container = document.getElementById('circleList');
-
-            if (circles.length === 0) {
                 container.innerHTML = '<div class="empty-state">未找到相关圈子</div>';
-                return;
+            }
+        } catch (error) {
+            container.innerHTML = '<div class="empty-state">搜索失败，请重试</div>';
+        }
+    }
+
+    function renderCircles() {
+        const container = document.getElementById('circleList');
+
+        if (circles.length === 0) {
+            container.innerHTML = '<div class="empty-state">未找到相关圈子</div>';
+            return;
+        }
+
+        container.innerHTML = circles.map((uc) => {
+            const circle = uc.circle;
+            const coverImg = circle.img || '';
+            
+            let coverHtml = '';
+            if (coverImg) {
+                coverHtml = `<img class="circle-cover" src="${coverImg}" alt="${circle.title}"/>`;
+            } else {
+                coverHtml = `<div class="circle-cover" style="display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">圈</div>`;
             }
 
-            container.innerHTML = circles.map((uc) => {
-                const circle = uc.circle;
-                return `
-                    <div class="circle-card" onclick="goToCircleDetail(${circle.id})">
+            return `
+                <div class="circle-card" onclick="goToCircleDetail(${circle.id})">
+                    ${coverHtml}
+                    <div class="circle-content">
                         <div class="circle-icon">${circle.title ? circle.title.charAt(0).toUpperCase() : '圈'}</div>
                         <div class="circle-title">${highlightText(circle.title, keyword)}</div>
                         <div class="circle-intro">${highlightText(circle.introduction, keyword)}</div>
@@ -295,27 +211,21 @@
                             <div class="stat-item">文章 <span>${circle.essayNum || 0}</span></div>
                         </div>
                     </div>
-                `;
-            }).join('');
-        }
+                </div>
+            `;
+        }).join('');
+    }
 
-        function goToCircleDetail(cid) {
-            window.location.href = `/page/circle/detail?cid=${cid}`;
-        }
+    function goToCircleDetail(cid) {
+        window.location.href = `/page/circle/detail?cid=${cid}`;
+    }
 
-        function handleSearchKeyPress(event) {
-            if (event.key === 'Enter') {
-                performSearch();
-            }
+    function performSearch() {
+        const newKeyword = document.getElementById('searchInput').value.trim();
+        if (!newKeyword) {
+            return;
         }
-
-        function performSearch() {
-            const newKeyword = document.getElementById('searchInput').value.trim();
-            if (!newKeyword) {
-                return;
-            }
-            window.location.href = `/page/circle/search?keyword=${encodeURIComponent(newKeyword)}`;
-        }
-    </script>
-</body>
-</html>
+        window.location.href = `/page/circle/search?keyword=${encodeURIComponent(newKeyword)}`;
+    }
+</script>
+{{end}}

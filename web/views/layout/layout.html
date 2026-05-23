@@ -103,7 +103,6 @@
             opacity: 0.8;
         }
         .container {
-            max-width: 1200px;
             margin: 0 auto;
             padding: 24px;
         }
@@ -142,22 +141,6 @@
     </div>
     
     <script>
-        async function loadLatestAnnounce() {
-            try {
-                const response = await axios.get('/api/announce/all?page=1&pagesize=1');
-                if (response.data.code === 0 && response.data.data && response.data.data.announces && response.data.data.announces.length > 0) {
-                    const announce = response.data.data.announces[0];
-                    const announceLink = document.getElementById('headerAnnounce');
-                    if (announceLink) {
-                        announceLink.textContent = announce.title || '公告';
-                        announceLink.href = '/page/announce/list';
-                    }
-                }
-            } catch (error) {
-                console.error('Load announcement error:', error);
-            }
-        }
-
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -178,8 +161,6 @@
             }
             window.location.href = '/page/circle/search?keyword=' + encodeURIComponent(keyword);
         }
-
-        loadLatestAnnounce();
     </script>
     {{block "index_layout_extra_scripts" .}}{{end}}
 </body>

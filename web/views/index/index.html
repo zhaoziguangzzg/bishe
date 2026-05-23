@@ -56,6 +56,26 @@
         justify-content: space-between;
         align-items: center;
     }
+    .create-circle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        margin-bottom: 16px;
+    }
+    .create-circle-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
     .more-link {
         font-size: 13px;
         color: #409eff;
@@ -143,35 +163,22 @@
 </style>
 {{end}}
 
+    <a href="/page/circle/add" class="create-circle-btn">+ 创建圈子</a>
     <div class="ad-banner" id="indexAdBanner"></div>
-    <div class="rankings-container">
-        <div class="rank-section">
-            <h2>💰 付费圈子排行榜 <a class="more-link" href="/page/circle/list?type=charge">更多</a></h2>
-            <div class="rank-list" id="chargeRank"></div>
-        </div>
-
-        <div class="rank-section">
-            <h2>🎁 免费圈子排行榜 <a class="more-link" href="/page/circle/list?type=free">更多</a></h2>
-            <div class="rank-list" id="freeRank"></div>
-        </div>
-
-        <div class="rank-section">
-            <h2>🔥 人气排行榜 <a class="more-link" href="/page/circle/list?type=hot">更多</a></h2>
-            <div class="rank-list" id="hotRank"></div>
-        </div>
-    </div>
+    <div class="rankings-container" id="rankingsContainer"></div>
 
 {{template "index_layout_body_end" .}}
 
-{{block "index_layout_extra_scripts" .}}
+{{define "index_layout_extra_scripts"}}
 <script>
-    async function loadIndexAds() {
-        const adBanner = document.getElementById('indexAdBanner');
-        if (!adBanner) return;
+    (function() {
+        async function loadIndexAds() {
+            const adBanner = document.getElementById('indexAdBanner');
+            if (!adBanner) return;
 
-        try {
-            const response = await axios.get('/api/advert/all-time?position=4');
-            if (response.data.code === 0 && response.data.data && response.data.data.adverts && response.data.data.adverts.length > 0) {
+            try {
+                const response = await axios.get('/api/advert/all-time?position=4');
+                if (response.data.code === 0 && response.data.data && response.data.data.adverts && response.data.data.adverts.length > 0) {
                 const adverts = response.data.data.adverts;
                 const randomAd = adverts[Math.floor(Math.random() * adverts.length)];
                 
@@ -205,47 +212,70 @@
     }
 
     async function loadCircleRanks() {
+        const container = document.getElementById('rankingsContainer');
+        if (!container) {
+            return;
+        }
+        
         try {
             const response = await axios.get('/api/circle/list');
             if (response.data.code === 0 && response.data.data) {
                 const typeLists = response.data.data.typeLists || [];
-                const chargeList = typeLists.find(t => t.listType === 2);
-                const freeList = typeLists.find(t => t.listType === 1);
-                const hotList = typeLists.find(t => t.listType === 0);
-
-                renderRankList('chargeRank', chargeList ? chargeList.rankCircles : [], true);
-                renderRankList('freeRank', freeList ? freeList.rankCircles : [], false);
-                renderRankList('hotRank', hotList ? hotList.rankCircles : [], false);
+                
+                if (typeLists.length === 0) {
+                    container.innerHTML = '<div class="no-data">暂无数据</div>';
+                    return;
+                }
+                
+                container.innerHTML = typeLists.map(typeList => {
+                    const containerId = 'rank_' + typeList.listType;
+                    return `
+                    <div class="rank-section">
+                        <h2>${typeList.typeName}</h2>
+                        <div class="rank-list" id="${containerId}"></div>
+                    </div>
+                    `;
+                }).join('');
+                
+                typeLists.forEach(typeList => {
+                    const containerId = 'rank_' + typeList.listType;
+                    renderRankList(containerId, typeList.rankCircles || []);
+                });
             }
         } catch (error) {
-            document.getElementById('chargeRank').innerHTML = '<div class="no-data">暂无数据</div>';
-            document.getElementById('freeRank').innerHTML = '<div class="no-data">暂无数据</div>';
-            document.getElementById('hotRank').innerHTML = '<div class="no-data">暂无数据</div>';
+            container.innerHTML = '<div class="no-data">加载失败，请稍后重试</div>';
         }
     }
 
-    function renderRankList(containerId, data, isPaid) {
+    function renderRankList(containerId, data) {
         const container = document.getElementById(containerId);
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div class="no-data">暂无数据</div>';
+            return;
+        }
         container.innerHTML = data.slice(0, 6).map((circle, index) => {
             const isCirclePaid = circle.price > 0;
+            const rankNum = circle.rank || (index + 1);
             return `
             <div class="rank-item" onclick="goToCircle(` + circle.id + `)">
-                <div class="rank-num top-` + (index + 1) + `">` + (index + 1) + `</div>
+                <div class="rank-num top-` + rankNum + `">` + rankNum + `</div>
                 <div class="rank-info">
                     <div class="rank-title">` + circle.title + `</div>
                     <div class="rank-meta">圈主: ` + (circle.ownerName || '未知') + ` | ` + (circle.joinNum || 0) + `人加入</div>
                 </div>
-                <div class="rank-price ` + (isCirclePaid ? '' : 'free') + `">` + (isCirclePaid ? (circle.price || 0) + '元' : '免费') + `</div>
+                <div class="rank-price ` + (isCirclePaid ? '' : 'free') + `">` + circle.priceText + `</div>
             </div>
             `;
         }).join('');
     }
 
-    function goToCircle(circleId) {
-        window.location.href = '/page/circle/detail?cid=' + circleId;
-    }
+        function goToCircle(circleId) {
+            window.location.href = '/page/circle/detail?cid=' + circleId;
+        }
+        window.goToCircle = goToCircle;
 
-    loadCircleRanks();
-    loadIndexAds();
+        loadIndexAds();
+        loadCircleRanks();
+    })();
 </script>
 {{end}}

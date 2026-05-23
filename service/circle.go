@@ -5,6 +5,7 @@ import (
 	"bishe/dao/redis"
 	"bishe/model"
 	"context"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -144,6 +145,11 @@ func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList
 		return
 	}
 
+	// 只取前50名
+	if len(circleRank) > model.CIRCLE_RANK_LEN {
+		circleRank = circleRank[:model.CIRCLE_RANK_LEN]
+	}
+
 	circleList = make([]model.RankCircle, 0)
 	if len(circleRank) == 0 {
 		return
@@ -169,7 +175,7 @@ func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList
 		return
 	}
 
-	for _, v := range circleRank {
+	for k, v := range circleRank {
 		cid := v.Id
 		joinNum := v.JoinNum
 
@@ -184,10 +190,19 @@ func GetCircleRankByType(ctx context.Context, isFree, isCharge bool) (circleList
 			continue
 		}
 
+		priceText := ""
+		if circle.Price > 0 {
+			priceText = fmt.Sprintf("%d元", circle.Price)
+		} else {
+			priceText = "免费"
+		}
+
 		item := model.RankCircle{
 			Id:            cid,
+			Rank:          k + 1,
 			Title:         circle.Title,
 			Price:         circle.Price,
+			PriceText:     priceText,
 			CircleOwnerId: uid,
 			OwnerName:     user.Name,
 			JoinNum:       joinNum,

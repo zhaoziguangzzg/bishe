@@ -103,8 +103,7 @@ func main() {
 
 	//获取圈子详情页面
 	page.GET("/circle/detail", controller.CircleDetailPageHandler)
-	//搜索圈子页面
-	page.GET("/circle/search", controller.CircleSearchPageHandler)
+
 	//获取圈子详情
 	api.GET("/circle/get", controller.GetCircleHandler)
 	//获取是否需要续费
@@ -130,7 +129,7 @@ func main() {
 	api.GET("/circle/create", controller.GetUserCreateCircleHandler)
 
 	//圈子列表（排行榜更多）
-	r.GET("/page/circle/list", controller.CircleListPageHandler)
+	// r.GET("/page/circle/list", controller.CircleListPageHandler)
 	//获取全部圈子
 	api.GET("/circle/list", controller.GetAllCircleHandler)
 	//获取全部付费圈子
@@ -139,6 +138,7 @@ func main() {
 	//api.GET("/circle/free", controller.GetFreeCircleRankHandler)
 
 	//搜索圈子
+	page.GET("/circle/search", controller.CircleSearchPageHandler)
 	api.GET("/search/circle", controller.GetCircleByTitleHandler)
 
 	//获取全部广告
