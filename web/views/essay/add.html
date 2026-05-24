@@ -1,8 +1,9 @@
 {{template "index_layout_head" .}}
 
 {{block "index_layout_extra_head" .}}
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<link href="/css/quill.snow.css" rel="stylesheet">
+<script src="/js/quill.min.js"></script>
+<script src="/js/quill-config.js"></script>
 {{end}}
 
 {{template "index_layout_body_start" .}}
@@ -185,58 +186,7 @@
     let editor;
 
     function initEditor() {
-        if (typeof Quill === 'undefined') {
-            console.error('Quill未加载');
-            return;
-        }
-        editor = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: '请输入文章内容...',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    ['link', 'image', 'video'],
-
-                    [{ 'header': 1 }, { 'header': 2 }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    [{ 'direction': 'rtl' }],
-
-                    [{ 'size': ['small', false, 'large', 'huge'] }],
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'font': [] }],
-                    [{ 'align': [] }],
-
-                    ['clean']
-                ]
-
-            }
-        });
-
-        const imageHandler = function() {
-            const range = editor.getSelection();
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = function() {
-                const file = input.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const base64 = e.target.result;
-                        editor.insertEmbed(range.index, 'image', base64);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        };
-
-        editor.getModule('toolbar').addHandler('image', imageHandler);
+        editor = initQuillEditor('#editor', { placeholder: '请输入文章内容...' });
     }
 
     if (document.readyState === 'loading') {

@@ -28,6 +28,7 @@ func main() {
 	r.SetHTMLTemplate(tpl)
 	r.Static("/img", "web/img")
 	r.Static("/js", "web/js")
+	r.Static("/css", "web/css")
 
 	//页面路由
 	page := r.Group("/page")

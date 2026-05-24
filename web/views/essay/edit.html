@@ -1,8 +1,9 @@
 {{template "index_layout_head" .}}
 
 {{define "index_layout_extra_head"}}
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<link href="/css/quill.snow.css" rel="stylesheet">
+<script src="/js/quill.min.js"></script>
+<script src="/js/quill-config.js"></script>
 {{end}}
 
 {{template "index_layout_body_start" .}}
@@ -171,48 +172,7 @@
     }
 
     function initEditor(initialContent) {
-        if (typeof Quill === 'undefined') {
-            console.error('Quill未加载');
-            return;
-        }
-        editor = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: '请输入文章内容...',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'header': [1, 2, false] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    ['link', 'image'],
-                    ['clean']
-                ]
-            }
-        });
-
-        if (initialContent) {
-            editor.root.innerHTML = initialContent;
-        }
-
-        const imageHandler = function() {
-            const range = editor.getSelection();
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = function() {
-                const file = input.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const base64 = e.target.result;
-                        editor.insertEmbed(range.index, 'image', base64);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
-        };
-
-        editor.getModule('toolbar').addHandler('image', imageHandler);
+        editor = initQuillEditor('#editor', { placeholder: '请输入文章内容...', initialContent: initialContent });
     }
 
     async function loadEssayData() {
