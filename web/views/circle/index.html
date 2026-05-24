@@ -1798,9 +1798,8 @@
             }
             try {
                 const formData = new FormData();
-                formData.append('essay_id', currentReportEssayId);
-                formData.append('author_id', currentReportAuthorId);
-                formData.append('reason', reason);
+                formData.append('eid', currentReportEssayId);
+                formData.append('content', reason);
                 const response = await axios.post('/api/accusation/add', formData);
                 if (response.data.code === 0) {
                     alert('举报成功');

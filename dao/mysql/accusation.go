@@ -16,7 +16,7 @@ func CreateUserAccusation(newAccusation *model.Accusation) (err error) {
 func GetUserAccusationEssay(uid int, eid int) (accusation *model.Accusation, err error) {
 	accusation = new(model.Accusation)
 	err = DB.Model(&model.Accusation{}).
-		Where("user_id=? and essay_id=? and and is_deleted=?", uid, eid, model.ACCUSATION_NOT_DELETED).
+		Where("user_id=? and essay_id=? and is_deleted=?", uid, eid, model.ACCUSATION_NOT_DELETED).
 		First(&accusation).Error
 
 	if err != nil {
