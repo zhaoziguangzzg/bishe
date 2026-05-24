@@ -1,490 +1,612 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>私信 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .main-container {
-            display: flex;
-            height: calc(100vh - 80px);
-            max-width: 1200px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .left-panel {
-            width: 360px;
-            border-right: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
-            background: white;
-        }
-        .left-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .page-title {
-            font-size: 18px;
-            color: #333;
-            font-weight: 600;
-        }
-        .contact-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-        .contact-item {
-            display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .contact-item:hover {
-            background: #f8f9fa;
-        }
-        .contact-item.active {
-            background: #ecf5ff;
-            border-left: 3px solid #667eea;
-        }
-        .contact-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 12px;
-        }
-        .contact-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .contact-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .contact-name {
-            font-size: 15px;
-            color: #333;
-            font-weight: 500;
-        }
-        .contact-time {
-            font-size: 12px;
-            color: #909399;
-        }
-        .contact-content {
-            font-size: 13px;
-            color: #909399;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .right-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #f5f7fa;
-        }
-        .chat-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid #eee;
-            background: white;
-            display: flex;
-            align-items: center;
-        }
-        .chat-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 12px;
-        }
-        .chat-user-name {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-        }
-        .chat-user-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-user-desc {
-            font-size: 12px;
-            color: #909399;
-            margin-top: 2px;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            background: #f5f7fa;
-        }
-        .message-item {
-            display: flex;
-            flex-direction: column;
-            max-width: 70%;
-        }
-        .message-item.sent {
-            align-self: flex-end;
-        }
-        .message-item.received {
-            align-self: flex-start;
-        }
-        .message-content {
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-        .message-item.sent .message-content {
-            background: #667eea;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-        .message-item.received .message-content {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .message-time {
-            font-size: 11px;
-            color: #909399;
-            margin-top: 4px;
-            padding: 0 4px;
-        }
-        .message-item.sent .message-time {
-            text-align: right;
-        }
-        .chat-input-section {
-            padding: 16px 24px;
-            border-top: 1px solid #eee;
-            background: white;
-        }
-        .chat-input-form {
-            display: flex;
-            gap: 12px;
-        }
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #dcdfe6;
-            border-radius: 24px;
-            font-size: 14px;
-            outline: none;
-            font-family: inherit;
-        }
-        .chat-input:focus {
-            border-color: #667eea;
-        }
-        .send-btn {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 24px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .send-btn:hover {
-            opacity: 0.9;
-        }
-        .send-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #909399;
-            font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #667eea;
-        }
-        .error-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #f56c6c;
-        }
-        .no-chat-tip {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #909399;
-            font-size: 14px;
-            background: #f5f7fa;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <span>知识分享平台</span>
-        <a href="/page/index">返回首页</a>
-    </div>
+{{template "index_layout_head" .}}
 
-    <div class="main-container">
-        <div class="left-panel">
-            <div class="left-header">
-                <h1 class="page-title">我的私信</h1>
-            </div>
-            <div class="contact-list" id="contactList">
-                <div class="loading">加载中...</div>
-            </div>
+{{template "index_layout_body_start" .}}
+
+{{block "index_layout_extra_styles" .}}
+<style>
+    .main-container {
+        display: flex;
+        height: calc(100vh - 140px);
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .left-panel {
+        width: 360px;
+        border-right: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+    .left-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .page-title {
+        font-size: 18px;
+        color: #333;
+        font-weight: 600;
+    }
+    .contact-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+    .contact-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .contact-item:hover {
+        background: #f8f9fa;
+    }
+    .contact-item.active {
+        background: #ecf5ff;
+        border-left: 3px solid #667eea;
+    }
+    .contact-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 12px;
+    }
+    .contact-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .contact-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .contact-name {
+        font-size: 15px;
+        color: #333;
+        font-weight: 500;
+    }
+    .contact-time {
+        font-size: 12px;
+        color: #909399;
+    }
+    .contact-content {
+        font-size: 13px;
+        color: #909399;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .right-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f5f7fa;
+    }
+    .chat-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #eee;
+        background: white;
+        display: flex;
+        align-items: center;
+    }
+    .chat-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 12px;
+    }
+    .chat-user-name {
+        font-size: 16px;
+        color: #333;
+        font-weight: 500;
+    }
+    .chat-user-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-user-desc {
+        font-size: 12px;
+        color: #909399;
+        margin-top: 2px;
+    }
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: #f5f7fa;
+    }
+    .message-item {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+    .message-item.sent {
+        align-self: flex-end;
+    }
+    .message-item.received {
+        align-self: flex-start;
+    }
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+    .message-item.sent .message-content {
+        background: #667eea;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .message-item.received .message-content {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .message-time {
+        font-size: 11px;
+        color: #909399;
+        margin-top: 4px;
+        padding: 0 4px;
+    }
+    .message-item.sent .message-time {
+        text-align: right;
+    }
+    .chat-input-section {
+        padding: 16px 24px;
+        border-top: 1px solid #eee;
+        background: white;
+    }
+    .chat-input-form {
+        display: flex;
+        gap: 12px;
+    }
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #dcdfe6;
+        border-radius: 24px;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+    }
+    .chat-input:focus {
+        border-color: #667eea;
+    }
+    .send-btn {
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 24px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .send-btn:hover {
+        opacity: 0.9;
+    }
+    .send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #909399;
+        font-size: 14px;
+    }
+    .loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: #667eea;
+    }
+    .error-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #f56c6c;
+    }
+    .no-chat-tip {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #909399;
+        font-size: 14px;
+        background: #f5f7fa;
+    }
+    .load-more-tip {
+        text-align: center;
+        padding: 8px;
+        color: #909399;
+        font-size: 12px;
+    }
+</style>
+{{end}}
+
+<div class="main-container">
+    <div class="left-panel">
+        <div class="left-header">
+            <h1 class="page-title">我的私信</h1>
         </div>
-        <div class="right-panel" id="rightPanel">
-            <div class="no-chat-tip">请选择左侧联系人开始聊天</div>
+        <div class="contact-list" id="contactList">
+            <div class="loading">加载中...</div>
         </div>
     </div>
+    <div class="right-panel" id="rightPanel">
+        <div class="no-chat-tip">请选择左侧联系人开始聊天</div>
+    </div>
+</div>
 
-    <script>
-        let currentUserId = null;
-        let selectedUserId = null;
-        let contactData = [];
-        const urlParams = new URLSearchParams(window.location.search);
-        const initUid = urlParams.get('uid');
+{{template "index_layout_body_end" .}}
 
-        (async function init() {
-            await loadCurrentUser();
-            if (!currentUserId) {
-                document.getElementById('contactList').innerHTML = '<div class="error-tip">请先登录</div>';
-                return;
-            }
-            await loadContactList();
-            
-            if (initUid) {
-                const contact = contactData.find(c => c.chatUser && c.chatUser.id === parseInt(initUid));
-                if (contact && contact.chatUser) {
-                    selectedUserId = parseInt(initUid);
-                    renderChatPanel(
-                        contact.chatUser.id,
-                        contact.chatUser.name,
-                        contact.chatUser.avatar
-                    );
-                    renderContactList(contactData);
-                } else {
-                    await openNewChat(parseInt(initUid));
-                }
-            }
-        })();
+{{define "index_layout_extra_scripts"}}
+<script>
+    let currentUserId = null;
+    let selectedUserId = null;
+    let contactData = [];
+    let minId = null;
+    let maxId = null;
+    let hasMore = true;
+    let isLoadingMore = false;
+    let pollTimer = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const initUid = urlParams.get('uid');
 
-        async function openNewChat(uid) {
-            try {
-                const response = await axios.get('/api/user/get-by-id', {
-                    params: { uid: uid }
-                });
-                if (response.data.code === 0 && response.data.data && response.data.data.user) {
-                    const user = response.data.data.user;
-                    selectedUserId = uid;
-                    renderChatPanel(uid, user.name, user.avatar);
-                    renderContactList(contactData);
-                }
-            } catch (error) {
-                console.error('获取用户信息失败', error);
+    (async function init() {
+        await loadCurrentUser();
+        if (!currentUserId) {
+            document.getElementById('contactList').innerHTML = '<div class="error-tip">请先登录</div>';
+            return;
+        }
+        await loadContactList();
+
+        if (initUid) {
+            const contact = contactData.find(c => c.chatUser && c.chatUser.id === parseInt(initUid));
+            if (contact && contact.chatUser) {
+                selectedUserId = parseInt(initUid);
+                renderChatPanel(
+                    contact.chatUser.id,
+                    contact.chatUser.name,
+                    contact.chatUser.avatar
+                );
+                renderContactList(contactData);
+            } else {
+                await openNewChat(parseInt(initUid));
             }
         }
+    })();
 
-        async function loadCurrentUser() {
-            try {
-                const response = await axios.get('/api/user/get');
-                if (response.data.code === 0 && response.data.data) {
-                    currentUserId = response.data.data.user.id;
-                }
-            } catch (error) {
-                currentUserId = null;
+    async function openNewChat(uid) {
+        try {
+            const response = await axios.get('/api/user/get-by-id', {
+                params: { uid: uid }
+            });
+            if (response.data.code === 0 && response.data.data && response.data.data.user) {
+                const user = response.data.data.user;
+                selectedUserId = uid;
+                renderChatPanel(uid, user.name, user.avatar);
+                renderContactList(contactData);
             }
+        } catch (error) {
+            console.error('获取用户信息失败', error);
+        }
+    }
+
+    async function loadCurrentUser() {
+        try {
+            const response = await axios.get('/api/user/get');
+            if (response.data.code === 0 && response.data.data) {
+                currentUserId = response.data.data.user.id;
+            }
+        } catch (error) {
+            currentUserId = null;
+        }
+    }
+
+    async function loadContactList() {
+        try {
+            const response = await axios.get('/api/contact/all', {
+                params: { uid: currentUserId }
+            });
+            if (response.data.code === 0 && response.data.data) {
+                contactData = response.data.data.userChatContacts || [];
+                renderContactList(contactData);
+            } else {
+                document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败</div>';
+            }
+        } catch (error) {
+            document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
+        }
+    }
+
+    function renderContactList(data) {
+        if (data.length === 0) {
+            document.getElementById('contactList').innerHTML = '<div class="empty-tip">暂无私信联系人</div>';
+            return;
         }
 
-        async function loadContactList() {
-            try {
-                const response = await axios.get('/api/contact/all', {
-                    params: { uid: currentUserId }
-                });
-                if (response.data.code === 0 && response.data.data) {
-                    contactData = response.data.data.userChatContacts || [];
-                    renderContactList(contactData);
-                } else {
-                    document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败</div>';
-                }
-            } catch (error) {
-                document.getElementById('contactList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
-            }
-        }
+        const html = data.map((contact, index) => {
+            const avatarUrl = contact.chatUser && contact.chatUser.avatar ? contact.chatUser.avatar : '/img/default-avatar.png';
+            const userName = contact.chatUser && contact.chatUser.name ? contact.chatUser.name : '未知用户';
+            const userId = contact.chatUser && contact.chatUser.id ? contact.chatUser.id : 0;
+            const chatContent = contact.chatContact && contact.chatContact.content ? contact.chatContact.content : '暂无消息';
+            const updateAt = contact.chatContact && contact.chatContact.updateAt ? contact.chatContact.updateAt : '';
+            const activeClass = selectedUserId === userId ? 'active' : '';
 
-        function renderContactList(data) {
-            if (data.length === 0) {
-                document.getElementById('contactList').innerHTML = '<div class="empty-tip">暂无私信联系人</div>';
-                return;
-            }
-
-            const html = data.map((contact, index) => {
-                const avatarUrl = contact.chatUser && contact.chatUser.avatar ? contact.chatUser.avatar : '/img/default-avatar.png';
-                const userName = contact.chatUser && contact.chatUser.name ? contact.chatUser.name : '未知用户';
-                const userId = contact.chatUser && contact.chatUser.id ? contact.chatUser.id : 0;
-                const chatContent = contact.chatContact && contact.chatContact.content ? contact.chatContact.content : '暂无消息';
-                const updateAt = contact.chatContact && contact.chatContact.updateAt ? contact.chatContact.updateAt : '';
-                const activeClass = selectedUserId === userId ? 'active' : '';
-
-                return `
-                    <div class="contact-item ${activeClass}" onclick="selectContact(${userId}, '${escapeHtml(userName)}', '${avatarUrl}', ${index})">
-                        <img class="contact-avatar" src="${avatarUrl}" alt="头像">
-                        <div class="contact-info">
-                            <div class="contact-header">
-                                <span class="contact-name">${escapeHtml(userName)}</span>
-                                <span class="contact-time">${updateAt}</span>
-                            </div>
-                            <div class="contact-content">${escapeHtml(chatContent)}</div>
+            return `
+                <div class="contact-item ${activeClass}" onclick="selectContact(${userId}, '${escapeHtml(userName)}', '${avatarUrl}', ${index})">
+                    <img class="contact-avatar" src="${avatarUrl}" alt="头像">
+                    <div class="contact-info">
+                        <div class="contact-header">
+                            <span class="contact-name">${escapeHtml(userName)}</span>
+                            <span class="contact-time">${formatTime(updateAt)}</span>
                         </div>
+                        <div class="contact-content">${escapeHtml(chatContent)}</div>
                     </div>
-                `;
-            }).join('');
-
-            document.getElementById('contactList').innerHTML = html;
-        }
-
-        function selectContact(userId, userName, avatarUrl, index) {
-            selectedUserId = userId;
-            renderContactList(contactData);
-            renderChatPanel(userId, userName, avatarUrl);
-        }
-
-        function renderChatPanel(userId, userName, avatarUrl) {
-            document.getElementById('rightPanel').innerHTML = `
-                <div class="chat-header">
-                    <img class="chat-user-avatar" src="${avatarUrl}" alt="头像">
-                    <div class="chat-user-info">
-                        <div class="chat-user-name">${escapeHtml(userName)}</div>
-                    </div>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    <div class="loading">加载消息...</div>
-                </div>
-                <div class="chat-input-section">
-                    <form class="chat-input-form" id="chatForm">
-                        <input type="text" class="chat-input" id="messageInput" placeholder="输入消息..." maxlength="100">
-                        <button type="submit" class="send-btn" id="sendBtn">发送</button>
-                    </form>
                 </div>
             `;
+        }).join('');
 
-            loadChatHistory(userId);
+        document.getElementById('contactList').innerHTML = html;
+    }
 
-            document.getElementById('chatForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await sendMessage(userId);
-            });
-        }
+    function selectContact(userId, userName, avatarUrl, index) {
+        selectedUserId = userId;
+        renderContactList(contactData);
+        renderChatPanel(userId, userName, avatarUrl);
+    }
 
-        async function loadChatHistory(chatUid) {
+    function startPolling(chatUid) {
+        stopPolling();
+        pollTimer = setInterval(async () => {
+            if (maxId === null) return;
             try {
                 const response = await axios.get('/api/chat/get', {
-                    params: { chat_uid: chatUid }
+                    params: { chat_uid: chatUid, mode: 'after', base_id: maxId, limit: 10 }
                 });
                 if (response.data.code === 0 && response.data.data) {
-                    renderMessages(response.data.data);
-                } else {
-                    document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败</div>';
+                    const chats = response.data.data.chats || [];
+                    if (chats.length > 0) {
+                        appendMessages(chats);
+                    }
                 }
             } catch (error) {
-                document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
+                // 静默处理轮询错误
             }
+        }, 5000);
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
         }
+    }
 
-        function renderMessages(data) {
-            const chats = data.chats || [];
-            const messagesContainer = document.getElementById('chatMessages');
+    function renderChatPanel(userId, userName, avatarUrl) {
+        stopPolling();
+        minId = null;
+        maxId = null;
+        hasMore = true;
+        isLoadingMore = false;
 
-            if (chats.length === 0) {
-                messagesContainer.innerHTML = '<div class="empty-tip">暂无消息，开始聊天吧</div>';
-                return;
+        document.getElementById('rightPanel').innerHTML = `
+            <div class="chat-header">
+                <img class="chat-user-avatar" src="${avatarUrl}" alt="头像">
+                <div class="chat-user-info">
+                    <div class="chat-user-name">${escapeHtml(userName)}</div>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="loading">加载消息...</div>
+            </div>
+            <div class="chat-input-section">
+                <form class="chat-input-form" id="chatForm">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="输入消息..." maxlength="100">
+                    <button type="submit" class="send-btn" id="sendBtn">发送</button>
+                </form>
+            </div>
+        `;
+
+        loadChatHistory(userId);
+
+        const messagesContainer = document.getElementById('chatMessages');
+        messagesContainer.addEventListener('scroll', function() {
+            if (messagesContainer.scrollTop === 0 && hasMore && !isLoadingMore) {
+                loadMoreMessages(userId);
             }
+        });
 
-            const html = chats.map(chat => {
-                const isSent = chat.sendUid === currentUserId;
-                return `
-                    <div class="message-item ${isSent ? 'sent' : 'received'}">
-                        <div class="message-content">${escapeHtml(chat.content)}</div>
-                        <div class="message-time">${chat.createAt || ''}</div>
-                    </div>
-                `;
-            }).join('');
+        document.getElementById('chatForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await sendMessage(userId);
+        });
+    }
 
-            messagesContainer.innerHTML = html;
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        async function sendMessage(chatUid) {
-            const content = document.getElementById('messageInput').value.trim();
-            if (!content) return;
-
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
-
-            try {
-                const formData = new FormData();
-                formData.append('content', content);
-                formData.append('receive_uid', chatUid);
-
-                const response = await axios.post('/api/chat/add', formData);
-
-                if (response.data.code === 0) {
-                    document.getElementById('messageInput').value = '';
-                    await loadChatHistory(chatUid);
-                } else {
-                    alert(response.data.msg || '发送失败');
+    async function loadChatHistory(chatUid) {
+        try {
+            const response = await axios.get('/api/chat/get', {
+                params: { chat_uid: chatUid, mode: 'latest', limit: 10 }
+            });
+            if (response.data.code === 0 && response.data.data) {
+                const chats = response.data.data.chats || [];
+                renderMessages(chats);
+                if (chats.length > 0) {
+                    minId = chats[0].id;
+                    maxId = chats[chats.length - 1].id;
+                    hasMore = chats.length >= 10;
                 }
-            } catch (error) {
-                alert('发送失败，请稍后重试');
+                startPolling(chatUid);
+            } else {
+                document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败</div>';
             }
+        } catch (error) {
+            document.getElementById('chatMessages').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
+        }
+    }
 
-            sendBtn.disabled = false;
+    async function loadMoreMessages(chatUid) {
+        if (isLoadingMore || !hasMore || minId === null) return;
+        isLoadingMore = true;
+
+        const messagesContainer = document.getElementById('chatMessages');
+        const loadTip = document.createElement('div');
+        loadTip.className = 'load-more-tip';
+        loadTip.textContent = '加载中...';
+        loadTip.id = 'loadMoreTip';
+        if (messagesContainer.firstChild) {
+            messagesContainer.insertBefore(loadTip, messagesContainer.firstChild);
+        } else {
+            messagesContainer.appendChild(loadTip);
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        try {
+            const response = await axios.get('/api/chat/get', {
+                params: { chat_uid: chatUid, mode: 'before', base_id: minId, limit: 10 }
+            });
+            if (response.data.code === 0 && response.data.data) {
+                const chats = response.data.data.chats || [];
+                if (chats.length > 0) {
+                    const prevScrollHeight = messagesContainer.scrollHeight;
+                    prependMessages(chats);
+                    const newScrollHeight = messagesContainer.scrollHeight;
+                    messagesContainer.scrollTop = newScrollHeight - prevScrollHeight;
+                    minId = chats[0].id;
+                    if (chats.length < 10) {
+                        hasMore = false;
+                    }
+                } else {
+                    hasMore = false;
+                }
+            }
+        } catch (error) {
+            // 静默处理
         }
-    </script>
-</body>
-</html>
+
+        const tip = document.getElementById('loadMoreTip');
+        if (tip) tip.remove();
+        isLoadingMore = false;
+
+        if (!hasMore) {
+            const noMore = document.createElement('div');
+            noMore.className = 'load-more-tip';
+            noMore.textContent = '没有更多消息了';
+            noMore.id = 'noMoreTip';
+            if (messagesContainer.firstChild) {
+                messagesContainer.insertBefore(noMore, messagesContainer.firstChild);
+            }
+        }
+    }
+
+    function renderMessages(chats) {
+        const messagesContainer = document.getElementById('chatMessages');
+
+        if (chats.length === 0) {
+            messagesContainer.innerHTML = '<div class="empty-tip">暂无消息，开始聊天吧</div>';
+            return;
+        }
+
+        const html = chats.map(chat => buildMessageHtml(chat)).join('');
+        messagesContainer.innerHTML = html;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function prependMessages(chats) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const html = chats.map(chat => buildMessageHtml(chat)).join('');
+
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const fragments = document.createDocumentFragment();
+        while (temp.firstChild) {
+            fragments.appendChild(temp.firstChild);
+        }
+
+        const noMoreTip = document.getElementById('noMoreTip');
+        if (noMoreTip) {
+            noMoreTip.after(fragments);
+        } else if (messagesContainer.firstChild) {
+            messagesContainer.firstChild.before(fragments);
+        } else {
+            messagesContainer.appendChild(fragments);
+        }
+    }
+
+    function appendMessages(chats) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const html = chats.map(chat => buildMessageHtml(chat)).join('');
+
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        while (temp.firstChild) {
+            messagesContainer.appendChild(temp.firstChild);
+        }
+
+        if (chats.length > 0) {
+            maxId = chats[chats.length - 1].id;
+        }
+
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function buildMessageHtml(chat) {
+        const isSent = chat.sendUid === currentUserId;
+        return `
+            <div class="message-item ${isSent ? 'sent' : 'received'}">
+                <div class="message-content">${escapeHtml(chat.content)}</div>
+                <div class="message-time">${formatTime(chat.createAt)}</div>
+            </div>
+        `;
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        const d = new Date(timeStr);
+        if (isNaN(d.getTime())) return '';
+        const pad = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+            + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+
+    async function sendMessage(chatUid) {
+        const content = document.getElementById('messageInput').value.trim();
+        if (!content) return;
+
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('content', content);
+            formData.append('receive_uid', chatUid);
+
+            const response = await axios.post('/api/chat/add', formData);
+
+            if (response.data.code === 0) {
+                document.getElementById('messageInput').value = '';
+                const chat = response.data.data && response.data.data.chat;
+                if (chat) {
+                    appendMessages([chat]);
+                }
+                await loadContactList();
+            } else {
+                alert(response.data.msg || '发送失败');
+            }
+        } catch (error) {
+            alert('发送失败，请稍后重试');
+        }
+
+        sendBtn.disabled = false;
+    }
+</script>
+{{end}}

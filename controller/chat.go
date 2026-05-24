@@ -70,17 +70,15 @@ func AddChatHandler(c *gin.Context) {
 		return
 	}
 
-	// 返回成功响应
-	MakeApiResponseSuccessDefault(c)
+	// 返回成功响应，包含创建的私信记录
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"chat": chat,
+	})
 }
 
 // 获取私信记录
 func GetChatListHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
-
-	pageStr := c.Query("page")
-	page := GetPage(pageStr)
-	pageSize := 10
 
 	chatUidStr := c.Query("chat_uid")
 	if chatUidStr == "" {
@@ -94,7 +92,45 @@ func GetChatListHandler(c *gin.Context) {
 		return
 	}
 
-	chats, err := service.GetChatList(uid, chatUid, page, pageSize)
+	mode := c.DefaultQuery("mode", "latest")
+	limit := 10
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 50 {
+			limit = parsed
+		}
+	}
+
+	var chats []model.Chat
+
+	switch mode {
+	case "before":
+		baseIdStr := c.Query("base_id")
+		if baseIdStr == "" {
+			MakeApiResponseErrorParams(c)
+			return
+		}
+		baseId, err := strconv.Atoi(baseIdStr)
+		if err != nil {
+			MakeApiResponseErrorParams(c)
+			return
+		}
+		chats, err = service.GetChatListBefore(uid, chatUid, baseId, limit)
+	case "after":
+		baseIdStr := c.Query("base_id")
+		if baseIdStr == "" {
+			MakeApiResponseErrorParams(c)
+			return
+		}
+		baseId, err := strconv.Atoi(baseIdStr)
+		if err != nil {
+			MakeApiResponseErrorParams(c)
+			return
+		}
+		chats, err = service.GetChatListAfter(uid, chatUid, baseId, limit)
+	default:
+		chats, err = service.GetChatListLatest(uid, chatUid, limit)
+	}
+
 	if err != nil {
 		service.Logger.Error("GetChatList", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
@@ -111,5 +147,4 @@ func GetChatListHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccess(c, data)
-
 }
