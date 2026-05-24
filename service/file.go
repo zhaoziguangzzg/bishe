@@ -20,6 +20,37 @@ const (
 	FILE_TYPE_COURSE_PAY_IMG int = 6 //课程收款码图片
 )
 
+func ImageSave(file multipart.File, header *multipart.FileHeader, imgType string, timeNow time.Time) (imgPath string, err error) {
+	defer file.Close()
+
+	ext := filepath.Ext(header.Filename)
+	if ext == "" {
+		ext = ".jpg"
+	}
+
+	name := fmt.Sprintf("%d_%d%s", timeNow.Unix(), rand.IntN(1000), ext)
+
+	dirPath := filepath.Join("web", "img", imgType)
+	if err = os.MkdirAll(dirPath, 0755); err != nil {
+		return
+	}
+
+	uploadPath := filepath.Join(dirPath, name)
+
+	out, err := os.Create(uploadPath)
+	if err != nil {
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		return
+	}
+	imgPath = "/img/" + imgType + "/" + name
+	return
+}
+
 func FileSave(file multipart.File, header *multipart.FileHeader, fileType int, timeNow time.Time) (avatarPath string, err error) {
 	defer file.Close()
 
