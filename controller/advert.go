@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -74,25 +73,8 @@ func AddAdvertHandler(c *gin.Context) {
 		IsDeleted:  model.IS_DELETED_NO,
 	}
 
-	fileType := service.FILE_TYPE_ADVERT_IMG
-
-	// 处理广告图片上传
-	avatarPath := ""
-	file, header, err := c.Request.FormFile("avatar")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && header.Size != 0 {
-		avatarPath, err = service.FileSave(file, header, fileType, createTime)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	// 处理广告图片
+	if avatarPath := c.PostForm("avatar"); avatarPath != "" {
 		advert.Img = avatarPath
 	}
 
@@ -278,26 +260,8 @@ func UpdateAdvertHandler(c *gin.Context) {
 		"end_time":    endTime,
 	}
 
-	fileType := service.FILE_TYPE_ADVERT_IMG
-	nowTime := time.Now()
-
-	// 处理广告图片上传
-	avatarPath := ""
-	file, header, err := c.Request.FormFile("avatar")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && header.Size != 0 {
-		avatarPath, err = service.FileSave(file, header, fileType, nowTime)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	// 处理广告图片
+	if avatarPath := c.PostForm("avatar"); avatarPath != "" {
 		newAdvert["img"] = avatarPath
 	}
 

@@ -10,8 +10,10 @@ import (
 )
 
 func ImageUploadHandler(c *gin.Context) {
-	imgType := c.PostForm("type")
-	if imgType == "" {
+	var req struct {
+		Type int `form:"type"`
+	}
+	if c.ShouldBind(&req) != nil || req.Type == 0 {
 		MakeApiResponseErrorParams(c)
 		return
 	}
@@ -32,9 +34,9 @@ func ImageUploadHandler(c *gin.Context) {
 		return
 	}
 
-	imgPath, err := service.ImageSave(file, header, imgType, time.Now())
+	imgPath, err := service.ImgSave(file, header, req.Type, time.Now())
 	if err != nil {
-		service.Logger.Error("ImageSave err", zap.Error(err))
+		service.Logger.Error("ImgSave err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

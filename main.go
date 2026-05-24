@@ -337,7 +337,7 @@ func main() {
 	api.GET("/announce/get", controller.GetAnnounceHandler)
 
 	//图片上传
-	api.POST("/img/upload", controller.ImageUploadHandler)
+	r.POST("/api/img/upload", controller.ImageUploadHandler)
 
 	//管理员用户登录
 	r.POST("/api/adminuser/login", controller.AdminUserLoginHandler)
@@ -352,9 +352,6 @@ func main() {
 	adminApi.Use(middleware.ApiAdminUserLogin())
 
 	adminPage.GET("/admin/index", controller.AdminIndexPageHandler)
-
-	//图片上传
-	adminApi.POST("/img/upload", controller.ImageUploadHandler)
 
 	// 添加菜单页
 	adminPage.GET("/adminmenu/add", controller.MenuAddPageHandler)

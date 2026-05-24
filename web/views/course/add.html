@@ -180,20 +180,20 @@
         <div class="upload-section">
             <label>课程图片</label>
             <div class="upload-area">
-                <input type="file" id="courseImgInput" accept="image/*" onchange="previewCourseImg(event)">
+                <input type="file" id="courseImgInput" accept="image/*">
                 <button type="button" class="upload-btn" onclick="document.getElementById('courseImgInput').click()">选择图片</button>
                 <img id="courseImgPreview" class="preview-img" style="display: none;">
-                <span class="img-hint">支持 JPG、PNG 格式</span>
+                <span id="courseImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
             </div>
         </div>
 
         <div class="upload-section">
             <label>收款码图片</label>
             <div class="upload-area">
-                <input type="file" id="payImgInput" accept="image/*" onchange="previewPayImg(event)">
+                <input type="file" id="payImgInput" accept="image/*">
                 <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
                 <img id="payImgPreview" class="preview-img" style="display: none;">
-                <span class="img-hint">支持 JPG、PNG 格式</span>
+                <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
             </div>
         </div>
 
@@ -206,29 +206,24 @@
 
 {{define "index_layout_extra_scripts"}}
 <script>
-    function previewCourseImg(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('courseImgPreview').src = e.target.result;
-                document.getElementById('courseImgPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+    var courseImgUrl = '';
+    var payImgUrl = '';
 
-    function previewPayImg(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('payImgPreview').src = e.target.result;
-                document.getElementById('payImgPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+    setupImageUpload({
+        inputId: 'courseImgInput',
+        previewId: 'courseImgPreview',
+        statusId: 'courseImgStatus',
+        type: 5,
+        onSuccess: function(url) { courseImgUrl = url; }
+    });
+
+    setupImageUpload({
+        inputId: 'payImgInput',
+        previewId: 'payImgPreview',
+        statusId: 'payImgStatus',
+        type: 6,
+        onSuccess: function(url) { payImgUrl = url; }
+    });
 
     function showError(message) {
         const errorTip = document.getElementById('errorTip');
@@ -251,20 +246,9 @@
         const content = document.getElementById('content').value.trim();
         const price = document.getElementById('price').value.trim();
 
-        if (!title) {
-            showError('请输入课程标题');
-            return;
-        }
-
-        if (!content) {
-            showError('请输入课程简介');
-            return;
-        }
-
-        if (!price) {
-            showError('请输入课程价格');
-            return;
-        }
+        if (!title) { showError('请输入课程标题'); return; }
+        if (!content) { showError('请输入课程简介'); return; }
+        if (!price) { showError('请输入课程价格'); return; }
 
         const priceNum = parseInt(price);
         if (isNaN(priceNum) || priceNum < 0 || priceNum > 10000) {
@@ -282,15 +266,8 @@
             formData.append('content', content);
             formData.append('price', priceNum.toString());
 
-            const courseImgInput = document.getElementById('courseImgInput');
-            if (courseImgInput.files.length > 0) {
-                formData.append('img', courseImgInput.files[0]);
-            }
-
-            const payImgInput = document.getElementById('payImgInput');
-            if (payImgInput.files.length > 0) {
-                formData.append('pay_img', payImgInput.files[0]);
-            }
+            if (courseImgUrl) formData.append('img', courseImgUrl);
+            if (payImgUrl) formData.append('pay_img', payImgUrl);
 
             const response = await axios.post('/api/course/add', formData);
 

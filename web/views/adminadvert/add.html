@@ -96,11 +96,35 @@
     .btn-secondary:hover {
         background: #eef0f4;
     }
+    .upload-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .upload-area input[type="file"] {
+        display: none;
+    }
+    .preview-img {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 6px;
+        border: 1px solid #dcdfe6;
+    }
 </style>
 {{end}}
 
 {{define "admin_layout_extra_script"}}
 <script>
+    var advertImgUrl = '';
+
+    setupImageUpload({
+        inputId: 'imgFile',
+        previewId: 'imgPreview',
+        statusId: 'imgStatus',
+        type: 2,
+        onSuccess: function(url) { advertImgUrl = url; }
+    });
+
     function showError(elementId, message) {
         const element = document.getElementById(elementId);
         if (element) {
@@ -157,9 +181,7 @@
     }
 
     async function submitForm() {
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateForm()) return;
 
         try {
             const formData = new FormData();
@@ -167,11 +189,10 @@
             formData.append('content', document.getElementById('content').value.trim());
             formData.append('addvert_addr', document.getElementById('advertAddr').value.trim());
 
-            const imgFile = document.getElementById('img').files[0];
-            if (imgFile) {
-                formData.append('avatar', imgFile);
+            if (advertImgUrl) {
+                formData.append('avatar', advertImgUrl);
             }
-            
+
             const startTime = document.getElementById('startTime').value;
             if (startTime) {
                 const formattedStartTime = startTime.replace('T', ' ') + ':00';
@@ -212,7 +233,7 @@
 
 <div class="form-card">
     <h3 class="form-title">广告信息</h3>
-    
+
     <p id="successMsg" class="success-tip"></p>
 
     <form id="advertForm">
@@ -241,7 +262,12 @@
 
         <div class="form-group">
             <label>广告图片</label>
-            <input type="file" class="form-control" id="img" accept="image/*"/>
+            <div class="upload-area">
+                <input type="file" id="imgFile" accept="image/*" style="display:none;">
+                <button type="button" class="btn btn-secondary" style="width:auto;margin:0;padding:8px 16px;" onclick="document.getElementById('imgFile').click()">选择图片</button>
+                <img id="imgPreview" class="preview-img" style="display:none;">
+                <span id="imgStatus" style="font-size:12px;color:#999;">支持 JPG、PNG 格式</span>
+            </div>
         </div>
 
         <div class="form-group">

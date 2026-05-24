@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
-	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -46,45 +45,8 @@ func AddCircleHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
-	timeNow := time.Now()
-
-	// 处理收费图片上传
-	payImgPath := ""
-	file, header, err := c.Request.FormFile("img")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && header.Size != 0 {
-		payImgPath, err = service.FileSave(file, header, service.FILE_TYPE_PAY_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
-
-	// 处理圈子图片上传
-	circleImgPath := ""
-	circleImgFile, circleImgHeader, err := c.Request.FormFile("circleImg")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile circleImg err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && circleImgHeader.Size != 0 {
-		circleImgPath, err = service.FileSave(circleImgFile, circleImgHeader, service.FILE_TYPE_CIRCLE_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
+	payImgPath := c.PostForm("img")
+	circleImgPath := c.PostForm("circleImg")
 
 	lockKey := "circle-add-" + title
 	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
@@ -201,45 +163,11 @@ func UpdateCircleHandler(c *gin.Context) {
 		"introduction": introduction,
 	}
 
-	timeNow := time.Now()
-
-	// 处理收费图片上传
-	payImgPath := ""
-	file, header, err := c.Request.FormFile("img")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && header.Size != 0 {
-		payImgPath, err = service.FileSave(file, header, service.FILE_TYPE_PAY_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	// 处理图片
+	if payImgPath := c.PostForm("img"); payImgPath != "" {
 		updateMap["pay_img"] = payImgPath
 	}
-
-	// 处理圈子图片上传
-	circleImgPath := ""
-	circleImgFile, circleImgHeader, err := c.Request.FormFile("circleImg")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile circleImg err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && circleImgHeader.Size != 0 {
-		circleImgPath, err = service.FileSave(circleImgFile, circleImgHeader, service.FILE_TYPE_CIRCLE_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
+	if circleImgPath := c.PostForm("circleImg"); circleImgPath != "" {
 		updateMap["img"] = circleImgPath
 	}
 

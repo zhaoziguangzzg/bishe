@@ -98,6 +98,15 @@
     let currentUser = null;
     let allRoles = [];
     let isEditingSelf = false;
+    let avatarUrl = '';
+
+    setupImageUpload({
+        inputId: 'avatarFile',
+        previewId: 'avatarPreview',
+        statusId: 'uploadStatus',
+        type: 1,
+        onSuccess: function(url) { avatarUrl = url; }
+    });
 
     async function loadRoles() {
         try {
@@ -105,13 +114,13 @@
             if (response.data.code === 0) {
                 allRoles = response.data.data.roles || [];
                 const select = document.getElementById('role_id');
-                
+
                 if (allRoles.length === 0) {
                     select.innerHTML = '<option value="">暂无角色</option>';
                     return;
                 }
 
-                select.innerHTML = '<option value="">请选择角色</option>' + 
+                select.innerHTML = '<option value="">请选择角色</option>' +
                     allRoles.map(role => `<option value="${role.id}">${role.roleName}</option>`).join('');
             }
         } catch (error) {
@@ -132,7 +141,7 @@
                 if (response.data.code === 0) {
                     const users = response.data.data.users || [];
                     currentUser = users.find(u => u.id == userId);
-                    
+
                     if (!currentUser) {
                         document.getElementById('errorMsg').textContent = '用户不存在';
                         document.getElementById('errorMsg').classList.add('show');
@@ -154,7 +163,14 @@
             document.getElementById('name').value = currentUser.name || '';
             document.getElementById('email').value = currentUser.email || '';
             document.getElementById('phone').value = currentUser.phone || '';
-            
+
+            if (currentUser.avatar) {
+                avatarUrl = currentUser.avatar;
+                var preview = document.getElementById('avatarPreview');
+                preview.src = currentUser.avatar;
+                preview.style.display = 'block';
+            }
+
             if (isEditingSelf) {
                 document.getElementById('roleGroup').style.display = 'none';
             } else {
@@ -199,6 +215,10 @@
                 formData.append('id', userId);
             }
 
+            if (avatarUrl) {
+                formData.append('avatar', avatarUrl);
+            }
+
             const response = await axios.post('/api/adminuser/update', formData);
 
             if (response.data.code === 0) {
@@ -208,7 +228,7 @@
                         const roleFormData = new FormData();
                         roleFormData.append('uid', userId);
                         roleFormData.append('role_id', roleId);
-                        
+
                         const roleResponse = await axios.post('/api/adminuser/update-role', roleFormData);
                         if (roleResponse.data.code !== 0) {
                             errorMsg.textContent = '角色更新失败: ' + (roleResponse.data.msg || '');
@@ -261,6 +281,18 @@
     <div class="success-tip" id="successMsg"></div>
 
     <form id="editForm">
+        <div class="form-group">
+            <label>头像</label>
+            <div style="display:flex;align-items:center;gap:16px;">
+                <img id="avatarPreview" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #eee;display:none;" />
+                <div>
+                    <input type="file" id="avatarFile" accept="image/*" style="display:none;" />
+                    <button type="button" class="btn btn-secondary" style="width:auto;margin:0;padding:8px 16px;" onclick="document.getElementById('avatarFile').click()">选择图片</button>
+                    <span id="uploadStatus" style="font-size:12px;color:#999;margin-left:8px;"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>用户名</label>
             <input type="text" id="name" name="name" placeholder="请输入用户名" required>

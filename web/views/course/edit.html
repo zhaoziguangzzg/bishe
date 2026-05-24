@@ -164,6 +164,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get('course_id');
     let courseData = null;
+    var courseImgUrl = '';
+    var payImgUrl = '';
 
     if (!cid) {
         document.getElementById('editForm').innerHTML = '<div class="error-tip">缺少课程ID参数</div>';
@@ -195,6 +197,9 @@
         const img = course.img || '';
         const payImg = course.payImg || '';
 
+        if (img) courseImgUrl = img;
+        if (payImg) payImgUrl = payImg;
+
         document.getElementById('editForm').innerHTML = `
             <div class="success-tip" id="successMsg" style="display: none;"></div>
             <div class="form-group">
@@ -209,19 +214,19 @@
             <div class="upload-section">
                 <label>课程图片</label>
                 <div class="upload-area">
-                    <input type="file" id="courseImgInput" accept="image/*" onchange="previewCourseImg(event)">
+                    <input type="file" id="courseImgInput" accept="image/*">
                     <button type="button" class="upload-btn" onclick="document.getElementById('courseImgInput').click()">选择图片</button>
                     <img id="courseImgPreview" class="preview-img" src="${escapeHtml(img)}" style="${img ? '' : 'display: none;'}">
-                    <span class="img-hint">支持 JPG、PNG 格式</span>
+                    <span id="courseImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
             <div class="upload-section">
                 <label>收款码图片</label>
                 <div class="upload-area">
-                    <input type="file" id="payImgInput" accept="image/*" onchange="previewPayImg(event)">
+                    <input type="file" id="payImgInput" accept="image/*">
                     <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
                     <img id="payImgPreview" class="preview-img" src="${escapeHtml(payImg)}" style="${payImg ? '' : 'display: none;'}">
-                    <span class="img-hint">支持 JPG、PNG 格式</span>
+                    <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
             <div class="btn-group">
@@ -229,45 +234,30 @@
                 <button type="button" class="btn btn-secondary" onclick="window.location.href='/page/course/detail?course_id=${cid}'">取消</button>
             </div>
         `;
-    }
 
-    function previewCourseImg(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('courseImgPreview').src = e.target.result;
-                document.getElementById('courseImgPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+        setupImageUpload({
+            inputId: 'courseImgInput',
+            previewId: 'courseImgPreview',
+            statusId: 'courseImgStatus',
+            type: 5,
+            onSuccess: function(url) { courseImgUrl = url; }
+        });
 
-    function previewPayImg(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('payImgPreview').src = e.target.result;
-                document.getElementById('payImgPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
+        setupImageUpload({
+            inputId: 'payImgInput',
+            previewId: 'payImgPreview',
+            statusId: 'payImgStatus',
+            type: 6,
+            onSuccess: function(url) { payImgUrl = url; }
+        });
     }
 
     async function saveCourse() {
         const title = document.getElementById('courseTitle').value.trim();
         const description = document.getElementById('courseDescription').value.trim();
 
-        if (!title) {
-            alert('请输入课程标题');
-            return;
-        }
-
-        if (!description) {
-            alert('请输入课程简介');
-            return;
-        }
+        if (!title) { alert('请输入课程标题'); return; }
+        if (!description) { alert('请输入课程简介'); return; }
 
         const saveBtn = document.getElementById('saveBtn');
         saveBtn.disabled = true;
@@ -280,15 +270,8 @@
             formData.append('content', description);
             formData.append('price', '0');
 
-            const courseImgInput = document.getElementById('courseImgInput');
-            if (courseImgInput.files.length > 0) {
-                formData.append('img', courseImgInput.files[0]);
-            }
-
-            const payImgInput = document.getElementById('payImgInput');
-            if (payImgInput.files.length > 0) {
-                formData.append('pay_img', payImgInput.files[0]);
-            }
+            if (courseImgUrl) formData.append('img', courseImgUrl);
+            if (payImgUrl) formData.append('pay_img', payImgUrl);
 
             const response = await axios.post('/api/course/update', formData);
 

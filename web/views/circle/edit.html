@@ -173,20 +173,19 @@
             <div class="upload-section">
                 <label>圈子图片</label>
                 <div class="upload-area">
-                    <input type="file" id="circleImgInput" accept="image/*" onchange="previewCircleImg(event)">
+                    <input type="file" id="circleImgInput" accept="image/*">
                     <button type="button" class="upload-btn" onclick="document.getElementById('circleImgInput').click()">选择图片</button>
                     <img id="circleImgPreview" class="preview-img" style="display: none;">
-                    <span class="img-hint">支持 JPG、PNG 格式</span>
+                    <span id="circleImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
-
             <div class="upload-section">
                 <label>收款码图片</label>
                 <div class="upload-area">
-                    <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
-                    <button type="button" class="upload-btn" onclick="document.getElementById('avatarInput').click()">选择图片</button>
-                    <img id="avatarPreview" class="preview-img" style="display: none;">
-                    <span class="img-hint">支持 JPG、PNG 格式</span>
+                    <input type="file" id="payImgInput" accept="image/*">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
+                    <img id="payImgPreview" class="preview-img" style="display: none;">
+                    <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
             <button type="button" class="btn" id="submitBtn" onclick="submitForm()">保存修改</button>
@@ -202,6 +201,24 @@
 <script>
         const urlParams = new URLSearchParams(window.location.search);
         const cid = urlParams.get('cid');
+        var circleImgUrl = '';
+        var payImgUrl = '';
+
+        setupImageUpload({
+            inputId: 'circleImgInput',
+            previewId: 'circleImgPreview',
+            statusId: 'circleImgStatus',
+            type: 4,
+            onSuccess: function(url) { circleImgUrl = url; }
+        });
+
+        setupImageUpload({
+            inputId: 'payImgInput',
+            previewId: 'payImgPreview',
+            statusId: 'payImgStatus',
+            type: 3,
+            onSuccess: function(url) { payImgUrl = url; }
+        });
 
         if (!cid) {
             document.getElementById('loadingTip').style.display = 'none';
@@ -224,12 +241,14 @@
                     document.getElementById('price').value = circle.price || 0;
                     document.getElementById('introduction').value = circle.introduction || '';
                     if (circle.img) {
+                        circleImgUrl = circle.img;
                         document.getElementById('circleImgPreview').src = circle.img;
                         document.getElementById('circleImgPreview').style.display = 'block';
                     }
                     if (circle.payImg) {
-                        document.getElementById('avatarPreview').src = circle.payImg;
-                        document.getElementById('avatarPreview').style.display = 'block';
+                        payImgUrl = circle.payImg;
+                        document.getElementById('payImgPreview').src = circle.payImg;
+                        document.getElementById('payImgPreview').style.display = 'block';
                     }
                     document.getElementById('loadingTip').style.display = 'none';
                     document.getElementById('editCircleForm').style.display = 'block';
@@ -252,30 +271,6 @@
             document.getElementById('successTip').classList.remove('show');
         }
 
-        function previewAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('avatarPreview').src = e.target.result;
-                    document.getElementById('avatarPreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function previewCircleImg(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('circleImgPreview').src = e.target.result;
-                    document.getElementById('circleImgPreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
         function showError(elementId, message) {
             const element = document.getElementById(elementId);
             element.textContent = message;
@@ -287,39 +282,22 @@
             let isValid = true;
 
             const title = document.getElementById('title').value.trim();
-            if (!title) {
-                showError('titleError', '请输入圈子名称');
-                isValid = false;
-            } else if (title.length > 100) {
-                showError('titleError', '圈子名称最多100个字符');
-                isValid = false;
-            }
+            if (!title) { showError('titleError', '请输入圈子名称'); isValid = false; }
+            else if (title.length > 100) { showError('titleError', '圈子名称最多100个字符'); isValid = false; }
 
             const price = document.getElementById('price').value;
-            if (price === '' || isNaN(parseInt(price))) {
-                showError('priceError', '请输入有效的价格');
-                isValid = false;
-            } else if (parseInt(price) < 0 || parseInt(price) > 10000) {
-                showError('priceError', '价格范围：0 - 10000元');
-                isValid = false;
-            }
+            if (price === '' || isNaN(parseInt(price))) { showError('priceError', '请输入有效的价格'); isValid = false; }
+            else if (parseInt(price) < 0 || parseInt(price) > 10000) { showError('priceError', '价格范围：0 - 10000元'); isValid = false; }
 
             const introduction = document.getElementById('introduction').value.trim();
-            if (!introduction) {
-                showError('introductionError', '请输入圈子简介');
-                isValid = false;
-            } else if (introduction.length > 100) {
-                showError('introductionError', '圈子简介最多100个字符');
-                isValid = false;
-            }
+            if (!introduction) { showError('introductionError', '请输入圈子简介'); isValid = false; }
+            else if (introduction.length > 100) { showError('introductionError', '圈子简介最多100个字符'); isValid = false; }
 
             return isValid;
         }
 
         async function submitForm() {
-            if (!validateForm()) {
-                return;
-            }
+            if (!validateForm()) return;
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -332,15 +310,8 @@
                 formData.append('price', document.getElementById('price').value);
                 formData.append('introduction', document.getElementById('introduction').value.trim());
 
-                const circleImgInput = document.getElementById('circleImgInput');
-                if (circleImgInput.files.length > 0) {
-                    formData.append('circleImg', circleImgInput.files[0]);
-                }
-
-                const avatarInput = document.getElementById('avatarInput');
-                if (avatarInput.files.length > 0) {
-                    formData.append('img', avatarInput.files[0]);
-                }
+                if (circleImgUrl) formData.append('circleImg', circleImgUrl);
+                if (payImgUrl) formData.append('img', payImgUrl);
 
                 const response = await axios.post('/api/circle/update', formData);
 

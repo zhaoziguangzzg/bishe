@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -297,27 +296,9 @@ func UpdateUserHandler(c *gin.Context) {
 		"phone": phone,
 	}
 
-	fileType := service.FILE_TYPE_UAER_AVATAR
-	timeNow := time.Now()
-
-	// 处理头像上传
-	avatarPath := ""
-	file, header, err := c.Request.FormFile("avatar")
-	//判断错误不等于无文件
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	//判断size不是空
-	if err == nil && header.Size != 0 {
-		avatarPath, err = service.FileSave(file, header, fileType, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-		updateMap["avatar"] = avatarPath
+	// 处理头像
+	if avatarStr := c.PostForm("avatar"); avatarStr != "" {
+		updateMap["avatar"] = avatarStr
 	}
 
 	//更新用户信息
@@ -329,7 +310,7 @@ func UpdateUserHandler(c *gin.Context) {
 	}
 
 	//修改cookie中的用户名
-	service.SetUserJwtCookie(c, uid, userName, timeNow)
+	service.SetUserJwtCookie(c, uid, userName, time.Now())
 
 	MakeApiResponseSuccessDefault(c)
 

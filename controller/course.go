@@ -3,7 +3,6 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -43,37 +42,8 @@ func AddCourseHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
-	timeNow := time.Now()
-
-	courseImgPath := ""
-	courseImgFile, courseImgHeader, err := c.Request.FormFile("img")
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-	if err == nil && courseImgHeader.Size != 0 {
-		courseImgPath, err = service.FileSave(courseImgFile, courseImgHeader, service.FILE_TYPE_COURSE_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
-
-	payImgPath := ""
-	payImgFile, payImgHeader, err := c.Request.FormFile("pay_img")
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile pay_img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-	if err == nil && payImgHeader.Size != 0 {
-		payImgPath, err = service.FileSave(payImgFile, payImgHeader, service.FILE_TYPE_COURSE_PAY_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
+	courseImgPath := c.PostForm("img")
+	payImgPath := c.PostForm("pay_img")
 
 	lockKey := "course-add-" + title
 	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
@@ -302,37 +272,8 @@ func UpdateCourseHandler(c *gin.Context) {
 		return
 	}
 
-	timeNow := time.Now()
-
-	courseImgPath := ""
-	courseImgFile, courseImgHeader, err := c.Request.FormFile("img")
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-	if err == nil && courseImgHeader.Size != 0 {
-		courseImgPath, err = service.FileSave(courseImgFile, courseImgHeader, service.FILE_TYPE_COURSE_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
-
-	payImgPath := ""
-	payImgFile, payImgHeader, err := c.Request.FormFile("pay_img")
-	if err != nil && err != http.ErrMissingFile {
-		service.Logger.Error("FormFile pay_img err", zap.Error(err))
-		MakeApiResponseErrorParams(c)
-		return
-	}
-	if err == nil && payImgHeader.Size != 0 {
-		payImgPath, err = service.FileSave(payImgFile, payImgHeader, service.FILE_TYPE_COURSE_PAY_IMG, timeNow)
-		if err != nil {
-			MakeApiResponseErrorDefault(c)
-			return
-		}
-	}
+	courseImgPath := c.PostForm("img")
+	payImgPath := c.PostForm("pay_img")
 
 	courseMap := map[string]interface{}{
 		"title":   title,
