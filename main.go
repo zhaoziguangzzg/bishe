@@ -27,6 +27,7 @@ func main() {
 	// 给 Gin 设置自定义模板引擎
 	r.SetHTMLTemplate(tpl)
 	r.Static("/img", "web/img")
+	r.Static("/js", "web/js")
 
 	//页面路由
 	page := r.Group("/page")
