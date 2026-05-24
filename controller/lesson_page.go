@@ -9,9 +9,9 @@ func AddLessonPageHandler(c *gin.Context) {
 	RenderIndexPage(c, "lesson/add.html", nil)
 }
 
-// LessonDetailPageHandler 课时详情页面
-func LessonDetailPageHandler(c *gin.Context) {
-	RenderIndexPage(c, "lesson/detail.html", nil)
+// LessonIndexPageHandler 课时列表页面
+func LessonIndexPageHandler(c *gin.Context) {
+	RenderIndexPage(c, "lesson/index.html", nil)
 }
 
 // EditLessonPageHandler 课时修改页面

@@ -17,7 +17,7 @@ func UserAddLevelScore(uid int, cid int, createAt time.Time) (err error) {
 		UpdateAt:  &createAt,
 		IsDeleted: model.IS_DELETED_NO,
 	}
-	err = DB.Model(&model.LevelScore{}).Create(levelScore).Error
+	err = DB.Model(&model.LevelScore{}).Clauses(clause.OnConflict{DoNothing: true}).Create(levelScore).Error
 	return
 }
 

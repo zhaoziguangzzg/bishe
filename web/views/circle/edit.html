@@ -179,14 +179,10 @@
                     <span id="circleImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
-            <div class="upload-section">
-                <label>收款码图片</label>
-                <div class="upload-area">
-                    <input type="file" id="payImgInput" accept="image/*">
-                    <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
-                    <img id="payImgPreview" class="preview-img" style="display: none;">
-                    <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
-                </div>
+            <div class="form-group">
+                <label for="payAccount">收款账户</label>
+                <input type="text" id="payAccount" name="pay_account" placeholder="请输入收款账户">
+                <div class="hint">用于接收付款的账户信息</div>
             </div>
             <button type="button" class="btn" id="submitBtn" onclick="submitForm()">保存修改</button>
             <div class="success-tip" id="successTip"></div>
@@ -202,7 +198,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const cid = urlParams.get('cid');
         var circleImgUrl = '';
-        var payImgUrl = '';
+        var payAccountValue = '';
 
         setupImageUpload({
             inputId: 'circleImgInput',
@@ -210,14 +206,6 @@
             statusId: 'circleImgStatus',
             type: 4,
             onSuccess: function(url) { circleImgUrl = url; }
-        });
-
-        setupImageUpload({
-            inputId: 'payImgInput',
-            previewId: 'payImgPreview',
-            statusId: 'payImgStatus',
-            type: 3,
-            onSuccess: function(url) { payImgUrl = url; }
         });
 
         if (!cid) {
@@ -245,10 +233,9 @@
                         document.getElementById('circleImgPreview').src = circle.img;
                         document.getElementById('circleImgPreview').style.display = 'block';
                     }
-                    if (circle.payImg) {
-                        payImgUrl = circle.payImg;
-                        document.getElementById('payImgPreview').src = circle.payImg;
-                        document.getElementById('payImgPreview').style.display = 'block';
+                    if (circle.payAccount) {
+                        payAccountValue = circle.payAccount;
+                        document.getElementById('payAccount').value = circle.payAccount;
                     }
                     document.getElementById('loadingTip').style.display = 'none';
                     document.getElementById('editCircleForm').style.display = 'block';
@@ -311,7 +298,7 @@
                 formData.append('introduction', document.getElementById('introduction').value.trim());
 
                 if (circleImgUrl) formData.append('circleImg', circleImgUrl);
-                if (payImgUrl) formData.append('img', payImgUrl);
+                if (payAccountValue) formData.append('pay_account', payAccountValue);
 
                 const response = await axios.post('/api/circle/update', formData);
 

@@ -44,6 +44,9 @@ func main() {
 	//用户登录页面
 	r.GET("/page/user/login", controller.LoginPageHandler)
 	r.POST("/api/user/login", controller.UserLoginHandler)
+	//模拟微信扫码支付页面，无需登录
+	r.GET("/page/orders/pay", controller.OrdersPayPageHandler)
+	r.GET("/page/purchase/pay", controller.PurchasePayPageHandler)
 
 	//用户退出登录
 	api.GET("/user/logout", controller.UserLogoutHandler)
@@ -112,10 +115,14 @@ func main() {
 	api.GET("/circle/need-new", controller.GetUserOrdersCircleHandler)
 	//用户加入圈子
 	api.POST("/usercircle/add", controller.AddUserCircleJoinHandle)
+	//获取订单支付二维码
+	api.GET("/orders/qrcode", controller.GetOrdersQrcodeHandler)
 	//创建圈子订单
 	api.POST("/orders/add", controller.AddOrdersHandler)
-	//更新订单状态
-	api.POST("/orders/update", controller.UpdateUserOrdersHandler)
+	//取消未支付订单
+	api.POST("/orders/cancel", controller.CancelOrdersHandler)
+	//更新订单状态，微信或支付宝调此接口，不需要登录
+	r.POST("/api/orders/update", controller.UpdateUserOrdersHandler)
 
 	//用户退出圈子
 	api.POST("/usercircle/quit",
@@ -269,6 +276,8 @@ func main() {
 	api.GET("/orders/all", controller.GetUserAllOrdersHandler)
 	//查看支付
 	api.GET("/orders/get", controller.GetOrdersHandler)
+	//查看课程购买
+	api.GET("/purchase/get-by-id", controller.GetPurchaseByPayIdHandler)
 
 	//等级
 	//api.GET("/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler)
@@ -299,8 +308,12 @@ func main() {
 	api.GET("/purchase/get", controller.GetPurchaseHandler)
 	//购买课程
 	api.POST("/purchase/add", controller.AddPurchaseHandler)
+	//取消未支付购买
+	api.POST("/purchase/cancel", controller.CancelPurchaseHandler)
+	//获取购买二维码
+	api.GET("/purchase/qrcode", controller.GetPurchaseQrcodeHandler)
 	//更新购买记录状态购买课程
-	api.POST("/purchase/pay", controller.UpdatePurchaseStatusHandler)
+	r.POST("/api/purchase/pay", controller.UpdatePurchaseStatusHandler)
 
 	//修改课程页面
 	page.GET("/course/edit", controller.EditCoursePageHandler)
@@ -316,7 +329,7 @@ func main() {
 	api.POST("/lesson/add", controller.AddLessonHandler)
 
 	//课时详情 页面
-	page.GET("/lesson/detail", controller.LessonDetailPageHandler)
+	page.GET("/lesson/index", controller.LessonIndexPageHandler)
 	//获取课程全部课时
 	api.GET("/lesson/all", controller.GetCourseAllLessonHandler)
 	//获取课时详情

@@ -94,7 +94,6 @@
         font-size: 14px;
     }
     .loading-tip {
-        text-align: center;
         padding: 40px;
         color: #667eea;
     }
@@ -123,6 +122,64 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal.show {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        text-align: center;
+    }
+    .modal-content h3 {
+        margin-bottom: 16px;
+        color: #333;
+    }
+    .modal-content img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .modal-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+    .btn {
+        padding: 14px 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+    .btn-secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+    }
+    .btn-secondary:hover {
+        background: #ebeef5;
+    }
 </style>
 {{end}}
 
@@ -141,6 +198,7 @@
 {{template "index_layout_body_end" .}}
 
 {{define "index_layout_extra_scripts"}}
+<script src="/js/pay-qrcode.js"></script>
 <script>
     const orderStatusMap = {
         0: { text: '待支付', class: 'wait' },
@@ -200,6 +258,7 @@
                         <th>折扣金额</th>
                         <th>订单状态</th>
                         <th>创建时间</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -208,6 +267,10 @@
         pagedOrders.forEach(order => {
             const status = orderStatusMap[order.orderStatus] || { text: '未知', class: '' };
             const createTime = order.createAt || '-';
+            const payBtn = order.orderStatus === 0
+                ? `<button class="pagination-btn" style="padding:4px 12px;font-size:12px;color:#07c160;border-color:#07c160;" onclick="goPay(${order.id}, ${order.cid}, ${order.price})">支付</button>
+                   <button class="pagination-btn" style="padding:4px 12px;font-size:12px;color:#f56c6c;border-color:#f56c6c;" onclick="cancelOrder(${order.id})">取消</button>`
+                : '-';
 
             html += `
                 <tr>
@@ -217,6 +280,7 @@
                     <td>${order.discount > 0 ? '¥' + order.discount.toFixed(2) : '-'}</td>
                     <td><span class="status-badge ${status.class}">${status.text}</span></td>
                     <td>${createTime}</td>
+                    <td>${payBtn}</td>
                 </tr>
             `;
         });
@@ -272,6 +336,40 @@
             }
         } catch (error) {
             content.innerHTML = '<div class="empty-tip">加载失败，请稍后重试</div>';
+        }
+    }
+
+    function goPay(ordersId, cid, price) {
+        PayQRCode.open({
+            existingOrder: { orderId: ordersId, getQrcode: '/api/orders/qrcode' },
+            poll: {
+                url: '/api/orders/get',
+                getParams: function(orderId) { return { orders_id: orderId }; },
+                isPaid: function(data) { return data.orders && data.orders.orderStatus === 1; }
+            },
+            price: price,
+            modalTitle: '扫码支付',
+            onSuccess: function() {
+                loadOrders();
+            }
+        });
+    }
+
+    async function cancelOrder(ordersId) {
+        if (!confirm('确认取消该订单？')) return;
+
+        try {
+            var formData = new FormData();
+            formData.append('orders_id', ordersId);
+
+            var response = await axios.post('/api/orders/cancel', formData);
+            if (response.data.code === 0) {
+                loadOrders();
+            } else {
+                alert(response.data.msg || '取消失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
         }
     }
 

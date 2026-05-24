@@ -43,15 +43,9 @@ func GetOrdersById(ordersId int) (orders *model.Orders, err error) {
 	return orders, nil
 }
 
-// 根据uid，cid获取最后支付
-func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
-	err = DB.Model(&model.Orders{}).Where("uid=? and cid=? ", uid, cid).
-		Where("order_status=? or order_status=?", model.ORDER_STATUS_PAID, model.ORDER_STATUS_EXPIRED).
-		Order("id DESC").Limit(1).Find(&orders).Error
-	if err != nil {
-		return
-	}
-
+// 根据uid，cid获取所有订单
+func GetUserOrdersByUidCid(uid int, cid int) (orderss []model.Orders, err error) {
+	err = DB.Model(&model.Orders{}).Where("uid=? and cid=?", uid, cid).Order("id DESC").Find(&orderss).Error
 	return
 }
 

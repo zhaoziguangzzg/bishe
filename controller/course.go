@@ -3,7 +3,9 @@ package controller
 import (
 	"bishe/model"
 	"bishe/service"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,7 +45,7 @@ func AddCourseHandler(c *gin.Context) {
 	uid := service.GetUidFromContext(c)
 
 	courseImgPath := c.PostForm("img")
-	payImgPath := c.PostForm("pay_img")
+	payAccount := c.PostForm("pay_account")
 
 	lockKey := "course-add-" + title
 	lockValue, locked, err := service.Lock(c, lockKey, 5*time.Second)
@@ -64,15 +66,15 @@ func AddCourseHandler(c *gin.Context) {
 
 	// 构造课程
 	course := &model.Course{
-		Title:     title,
-		Content:   content,
-		Img:       courseImgPath,
-		PayImg:    payImgPath,
-		Uid:       uid,
-		Price:     price,
-		CreateAt:  &createTime,
-		UpdateAt:  &createTime,
-		IsDeleted: model.IS_DELETED_NO,
+		Title:      title,
+		Content:    content,
+		Img:        courseImgPath,
+		PayAccount: payAccount,
+		Uid:        uid,
+		Price:      price,
+		CreateAt:   &createTime,
+		UpdateAt:   &createTime,
+		IsDeleted:  model.IS_DELETED_NO,
 	}
 
 	err = service.CreateCourse(course)
@@ -273,7 +275,7 @@ func UpdateCourseHandler(c *gin.Context) {
 	}
 
 	courseImgPath := c.PostForm("img")
-	payImgPath := c.PostForm("pay_img")
+	payAccount := c.PostForm("pay_account")
 
 	courseMap := map[string]interface{}{
 		"title":   title,
@@ -283,8 +285,8 @@ func UpdateCourseHandler(c *gin.Context) {
 	if courseImgPath != "" {
 		courseMap["img"] = courseImgPath
 	}
-	if payImgPath != "" {
-		courseMap["pay_img"] = payImgPath
+	if payAccount != "" {
+		courseMap["pay_account"] = payAccount
 	}
 
 	rowsAffected, err := service.UpdateCourse(cid, courseMap)
@@ -407,15 +409,9 @@ func AddLessonHandler(c *gin.Context) {
 // 获取课时详情
 func GetLessonHandler(c *gin.Context) {
 	lessonIdStr := c.Query("lesson_id")
-	if lessonIdStr == "" {
-		MakeApiResponseErrorParams(c)
-		return
-	}
-
-	lessonId, err := strconv.Atoi(lessonIdStr)
-	if err != nil {
-		MakeApiResponseErrorDefault(c)
-		return
+	lessonId, _ := strconv.Atoi(lessonIdStr)
+	if lessonId == 0 {
+		lessonId = 1
 	}
 
 	lesson, err := service.GetLessonById(lessonId)
@@ -541,7 +537,7 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	// 获取用户购买未支付记录
+	// 获取用户该课程的购买记录
 	purchases, err := service.GetPurchaseByUidCid(uid, cid)
 	if err != nil {
 		service.Logger.Error("GetPurchaseByUidCid err", zap.Error(err))
@@ -549,9 +545,18 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
+	// 获取课程信息
+	course, err := service.GetCourseById(cid)
+	if err != nil || course == nil {
+		service.Logger.Error("GetCourseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
 	if len(purchases) > 0 {
 		for _, v := range purchases {
 			if v.PurchaseStatus == model.PURCHASE_STATUS_UNPAID {
+				// 已有该课程未支付订单，提示前端跳转到购买订单页
 				MakeApiResponseError(c, CODE_HAS_UNPAY_ORDER)
 				return
 			}
@@ -580,12 +585,20 @@ func AddPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"purchase": purchase,
+	payUrl := getCoursePayUrl(c, purchase.Id, cid, course.Price, course.Title)
+	qrCodeUrl, err := service.QrcodeImgSave(payUrl, 200, service.FileTypeCoursePayImg, createTime)
+	if err != nil {
+		service.Logger.Error("QrcodeImgSave err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
 	}
 
-	MakeApiResponseSuccess(c, data)
-
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"purchase_id": purchase.Id,
+		"pay_url":     payUrl,
+		"qr_code_url": qrCodeUrl,
+		"price":       course.Price,
+	})
 }
 
 // 获取购买记录
@@ -604,22 +617,28 @@ func GetPurchaseHandler(c *gin.Context) {
 		return
 	}
 
-	// 获取用户购买记录
-	purchase, err := service.GetUserPurchaseByUidCid(uid, cid)
+	// 获取用户该课程所有购买记录
+	purchases, err := service.GetPurchaseByUidCid(uid, cid)
 	if err != nil {
-		service.Logger.Error("GetUserPurchaseByUidCid", zap.Error(err))
+		service.Logger.Error("GetPurchaseByUidCid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	isPurchased := true
+	isPurchased := false
 
-	if purchase == nil {
-		isPurchased = false
+	for _, v := range purchases {
+		if v.PurchaseStatus == model.PURCHASE_STATUS_UNPAID {
+			MakeApiResponseError(c, CODE_HAS_UNPAY_ORDER)
+			return
+		}
+		if v.PurchaseStatus == model.PURCHASE_STATUS_PAID {
+			isPurchased = true
+		}
 	}
 
 	data := map[string]interface{}{
-		"purchase":    purchase,
+		"purchase":    nil,
 		"isPurchased": isPurchased,
 	}
 
@@ -748,4 +767,161 @@ func UpdatePurchaseStatusHandler(c *gin.Context) {
 	}
 
 	MakeApiResponseSuccessDefault(c)
+}
+
+// GetPurchaseByPayIdHandler 通过购买id获取购买记录（无需登录，供扫码支付轮询）
+func GetPurchaseByPayIdHandler(c *gin.Context) {
+	purchaseIdStr := c.Query("purchase_id")
+	if purchaseIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchaseId, err := strconv.Atoi(purchaseIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchase, err := service.GetPurchaseById(purchaseId)
+	if err != nil {
+		service.Logger.Error("GetPurchaseById", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if purchase == nil {
+		MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"purchase": purchase,
+	})
+}
+
+func getCoursePayUrl(c *gin.Context, purchaseId int, courseId int, price int, title string) string {
+	port := c.Request.Host
+	if idx := strings.LastIndex(port, ":"); idx != -1 {
+		port = port[idx+1:]
+	} else {
+		port = "8080"
+	}
+
+	ip := getLanIP()
+	if ip == "" {
+		ip = "127.0.0.1"
+	}
+
+	return "http://" + ip + ":" + port + "/page/purchase/pay?purchase_id=" + strconv.Itoa(purchaseId) +
+		"&course_id=" + strconv.Itoa(courseId) + "&price=" + strconv.Itoa(price) +
+		"&title=" + url.QueryEscape(title)
+}
+
+// 取消未支付购买
+func CancelPurchaseHandler(c *gin.Context) {
+	uid := service.GetUidFromContext(c)
+
+	idStr := c.PostForm("purchase_id")
+	if idStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchase, err := service.GetPurchaseById(id)
+	if err != nil {
+		service.Logger.Error("GetPurchaseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if purchase == nil {
+		MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
+		return
+	}
+
+	if purchase.UserId != uid {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	if purchase.PurchaseStatus != model.PURCHASE_STATUS_UNPAID {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	statusNew, err := service.MakePurchaseStatus(purchase.PurchaseStatus, model.PURCHASE_ACTION_CANCEL)
+	if err != nil {
+		service.Logger.Error("MakePurchaseStatus err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	affectRows, err := service.UpdatePurchaseStatusById(id, purchase.PurchaseStatus, statusNew)
+	if err != nil || affectRows == 0 {
+		service.Logger.Error("UpdatePurchaseStatusById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccessDefault(c)
+}
+
+// 获取购买二维码
+func GetPurchaseQrcodeHandler(c *gin.Context) {
+	purchaseIdStr := c.Query("purchase_id")
+	if purchaseIdStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchaseId, err := strconv.Atoi(purchaseIdStr)
+	if err != nil {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	purchase, err := service.GetPurchaseById(purchaseId)
+	if err != nil {
+		service.Logger.Error("GetPurchaseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if purchase == nil {
+		MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
+		return
+	}
+
+	if purchase.PurchaseStatus != model.PURCHASE_STATUS_UNPAID {
+		MakeApiResponseError(c, CODE_HAS_UNPAY_ORDER)
+		return
+	}
+
+	course, err := service.GetCourseById(purchase.CourseId)
+	if err != nil || course == nil {
+		service.Logger.Error("GetCourseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	payUrl := getCoursePayUrl(c, purchase.Id, purchase.CourseId, course.Price, course.Title)
+	qrCodeUrl, err := service.QrcodeImgSave(payUrl, 200, service.FileTypeCoursePayImg, *purchase.CreateAt)
+	if err != nil {
+		service.Logger.Error("QrcodeImgSave err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"purchase_id": purchase.Id,
+		"pay_url":     payUrl,
+		"qr_code_url": qrCodeUrl,
+	})
 }

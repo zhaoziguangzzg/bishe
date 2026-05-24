@@ -45,7 +45,7 @@ func AddCircleHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 
-	payImgPath := c.PostForm("img")
+	payAccount := c.PostForm("pay_account")
 	circleImgPath := c.PostForm("circleImg")
 
 	lockKey := "circle-add-" + title
@@ -91,7 +91,7 @@ func AddCircleHandler(c *gin.Context) {
 		UpdateAt:      &createTime,
 		CircleStatus:  model.CIRCLE_STATUS_NORMAL,
 		IsDeleted:     model.CIRCLE_NOT_DELETED,
-		PayImg:        payImgPath,
+		PayAccount:    payAccount,
 		Img:           circleImgPath,
 	}
 
@@ -163,9 +163,9 @@ func UpdateCircleHandler(c *gin.Context) {
 		"introduction": introduction,
 	}
 
-	// 处理图片
-	if payImgPath := c.PostForm("img"); payImgPath != "" {
-		updateMap["pay_img"] = payImgPath
+	// 处理收款账户
+	if payAccount := c.PostForm("pay_account"); payAccount != "" {
+		updateMap["pay_account"] = payAccount
 	}
 	if circleImgPath := c.PostForm("circleImg"); circleImgPath != "" {
 		updateMap["img"] = circleImgPath

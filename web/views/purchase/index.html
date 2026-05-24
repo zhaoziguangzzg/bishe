@@ -79,6 +79,89 @@
         color: #999;
         font-size: 14px;
     }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal.show {
+        display: flex;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        text-align: center;
+    }
+    .modal-content h3 {
+        margin-bottom: 16px;
+        color: #333;
+    }
+    .modal-content img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .modal-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+    .modal-btns .btn {
+        padding: 14px 40px;
+        font-size: 16px;
+    }
+    .modal-btns .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .modal-btns .btn-primary:hover {
+        opacity: 0.9;
+    }
+    .modal-btns .btn-secondary {
+        background: #f5f7fa;
+        color: #666;
+        border: 1px solid #dcdfe6;
+    }
+    .modal-btns .btn-secondary:hover {
+        background: #ebeef5;
+    }
+    .btn {
+        padding: 4px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .btn-pay {
+        color: #07c160;
+        border: 1px solid #07c160;
+        background: white;
+    }
+    .btn-pay:hover {
+        background: #e8f5e9;
+    }
+    .btn-cancel {
+        color: #f56c6c;
+        border: 1px solid #f56c6c;
+        background: white;
+        margin-left: 4px;
+    }
+    .btn-cancel:hover {
+        background: #ffebee;
+    }
+    .price {
+        color: #f44336;
+        font-weight: 600;
+    }
 </style>
 {{end}}
 
@@ -92,6 +175,7 @@
 {{template "index_layout_body_end" .}}
 
 {{define "index_layout_extra_scripts"}}
+<script src="/js/pay-qrcode.js"></script>
 <script>
     const purchaseStatusMap = {
         0: { text: '待支付', class: 'unpaid' },
@@ -103,6 +187,40 @@
 
     function goToCourse(courseId) {
         window.location.href = '/page/course/detail?course_id=' + courseId;
+    }
+
+    function goPay(purchaseId, courseId, price) {
+        PayQRCode.open({
+            existingOrder: { orderId: purchaseId, getQrcode: '/api/purchase/qrcode', qrcodeParam: 'purchase_id' },
+            poll: {
+                url: '/api/purchase/get-by-id',
+                getParams: function(orderId) { return { purchase_id: orderId }; },
+                isPaid: function(data) { return data.purchase && data.purchase.purchaseStatus === 1; }
+            },
+            price: price,
+            modalTitle: '扫码支付课程',
+            onSuccess: function() {
+                loadPurchases();
+            }
+        });
+    }
+
+    async function cancelPurchase(purchaseId) {
+        if (!confirm('确认取消该订单？')) return;
+
+        try {
+            var formData = new FormData();
+            formData.append('purchase_id', purchaseId);
+
+            var response = await axios.post('/api/purchase/cancel', formData);
+            if (response.data.code === 0) {
+                loadPurchases();
+            } else {
+                alert(response.data.msg || '取消失败');
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+        }
     }
 
     async function loadPurchases() {
@@ -128,8 +246,10 @@
                     <tr>
                         <th>购买ID</th>
                         <th>课程名称</th>
+                        <th>金额</th>
                         <th>购买时间</th>
                         <th>状态</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,13 +262,22 @@
 
                     const statusInfo = purchaseStatusMap[purchase.purchaseStatus] || { text: '未知', class: '' };
                     const purchaseTime = purchase.createAt || '-';
+                    const price = course.price || 0;
+
+                    let actionHtml = '-';
+                    if (purchase.purchaseStatus === 0) {
+                        actionHtml = `<button class="btn btn-pay" onclick="goPay(${purchase.id}, ${course.id}, ${price})">支付</button>
+                            <button class="btn btn-cancel" onclick="cancelPurchase(${purchase.id})">取消</button>`;
+                    }
 
                     html += `
                     <tr>
                         <td>${purchase.id}</td>
                         <td><span class="course-link" onclick="goToCourse(${course.id})">${escapeHtml(course.title)}</span></td>
+                        <td class="price">¥${(price / 100).toFixed(2)}</td>
                         <td>${purchaseTime}</td>
                         <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
+                        <td>${actionHtml}</td>
                     </tr>
                 `;
                 });

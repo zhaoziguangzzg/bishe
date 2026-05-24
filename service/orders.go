@@ -20,8 +20,8 @@ func GetOrdersById(ordersId int) (orders *model.Orders, err error) {
 	return mysql.GetOrdersById(ordersId)
 }
 
-// 根据uid，cid获取最后支付
-func GetUserOrdersByUidCid(uid int, cid int) (orders *model.Orders, err error) {
+// 根据uid，cid获取所有订单
+func GetUserOrdersByUidCid(uid int, cid int) (orderss []model.Orders, err error) {
 	return mysql.GetUserOrdersByUidCid(uid, cid)
 }
 

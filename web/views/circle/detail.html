@@ -204,20 +204,10 @@
     </div>
 </div>
 
-<div class="modal" id="payModal">
-    <div class="modal-content">
-        <h3>请扫码支付</h3>
-        <img id="payImg" src="" alt="支付二维码">
-        <div class="modal-btns">
-            <button class="btn btn-primary" onclick="goToCircleIndex()">已加入</button>
-            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-        </div>
-    </div>
-</div>
-
 {{template "index_layout_body_end" .}}
 
 {{define "index_layout_extra_scripts"}}
+<script src="/js/pay-qrcode.js"></script>
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get('cid');
@@ -324,13 +314,13 @@
             if (response.data.code === 0) {
                 const circle = response.data.data.circle;
                 const price = circle.price || 0;
-                
+
                 if (price === 0) {
                     const formData = new FormData();
                     formData.append('cid', cid);
-                    
+
                     const joinResponse = await axios.post('/api/usercircle/add', formData);
-                    
+
                     if (joinResponse.data.code === 0) {
                         successTip.textContent = '加入成功！';
                         successTip.classList.add('show');
@@ -341,12 +331,27 @@
                         errorTip.textContent = joinResponse.data.msg || '加入失败';
                         errorTip.classList.add('show');
                     }
-                } else if (circle.payImg) {
-                    document.getElementById('payImg').src = circle.payImg;
-                    document.getElementById('payModal').classList.add('show');
                 } else {
-                    errorTip.textContent = '暂无支付信息，请稍后重试';
-                    errorTip.classList.add('show');
+                    PayQRCode.open({
+                        createOrder: {
+                            url: '/api/orders/add',
+                            params: { cid: cid, level: '0', price: price }
+                        },
+                        poll: {
+                            url: '/api/orders/get',
+                            getParams: function(orderId) { return { orders_id: orderId }; },
+                            isPaid: function(data) { return data.orders && data.orders.orderStatus === 1; }
+                        },
+                        price: price,
+                        modalTitle: '扫码支付',
+                        onSuccess: function() {
+                            window.location.href = '/page/circle/index?cid=' + cid;
+                        },
+                        onError: function(msg) {
+                            errorTip.textContent = msg;
+                            errorTip.classList.add('show');
+                        }
+                    });
                 }
             } else {
                 errorTip.textContent = response.data.msg || '获取圈子信息失败';
@@ -356,15 +361,6 @@
             errorTip.textContent = '网络错误，请稍后重试';
             errorTip.classList.add('show');
         }
-    }
-
-    function closeModal() {
-        document.getElementById('payModal').classList.remove('show');
-    }
-
-    function goToCircleIndex() {
-        closeModal();
-        window.location.href = '/page/circle/index?cid=' + cid;
     }
 
     function formatDate(dateStr) {

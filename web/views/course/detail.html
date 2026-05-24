@@ -261,20 +261,10 @@
     </div>
 </div>
 
-<div class="modal" id="payModal">
-    <div class="modal-content">
-        <h3>请扫码支付</h3>
-        <img id="payImg" src="" alt="支付二维码">
-        <div class="modal-btns">
-            <button class="btn btn-primary" onclick="confirmPurchase()">已支付</button>
-            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-        </div>
-    </div>
-</div>
-
 {{template "index_layout_body_end" .}}
 
 {{define "index_layout_extra_scripts"}}
+<script src="/js/pay-qrcode.js"></script>
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('course_id');
@@ -300,7 +290,10 @@
                 const purchaseResponse = await axios.get('/api/purchase/get', {
                     params: { course_id: courseId }
                 });
-                const isPurchased = purchaseResponse.data.data && purchaseResponse.data.data.isPurchased ? true : false;
+                var isPurchased = false;
+                if (purchaseResponse.data.code === 0) {
+                    isPurchased = purchaseResponse.data.data && purchaseResponse.data.data.isPurchased ? true : false;
+                }
 
                 renderCourseDetail(data, isPurchased);
                 loadLessons(isPurchased, isOwner, isFree);
@@ -446,58 +439,48 @@
         successTip.classList.remove('show');
 
         try {
-            const params = new URLSearchParams();
-            params.append('course_id', courseId);
-            const response = await axios.post('/api/purchase/add', params);
+            // 先获取课程价格
+            const courseResponse = await axios.get('/api/course/get', {
+                params: { course_id: courseId }
+            });
 
-            if (response.data.code === 0) {
-                successTip.textContent = '购买成功！';
-                successTip.classList.add('show');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                errorTip.textContent = response.data.msg || '购买失败';
+            if (courseResponse.data.code !== 0) {
+                errorTip.textContent = courseResponse.data.msg || '获取课程信息失败';
                 errorTip.classList.add('show');
+                return;
             }
+
+            const price = courseResponse.data.data.course.price || 0;
+
+            PayQRCode.open({
+                createOrder: {
+                    url: '/api/purchase/add',
+                    params: { course_id: courseId }
+                },
+                poll: {
+                    url: '/api/purchase/get-by-id',
+                    getParams: function(orderId) { return { purchase_id: orderId }; },
+                    isPaid: function(data) { return data.purchase && data.purchase.purchaseStatus === 1; }
+                },
+                price: price,
+                modalTitle: '扫码支付课程',
+                unpaidRedirectUrl: '/page/purchase/index',
+                onSuccess: function() {
+                    window.location.reload();
+                },
+                onError: function(msg) {
+                    errorTip.textContent = msg;
+                    errorTip.classList.add('show');
+                }
+            });
         } catch (error) {
             errorTip.textContent = '操作失败，请稍后重试';
             errorTip.classList.add('show');
         }
-    }
-
-    async function confirmPurchase() {
-        closeModal();
-        try {
-            const params = new URLSearchParams();
-            params.append('course_id', courseId);
-            const response = await axios.post('/api/purchase/add', params);
-
-            if (response.data.code === 0) {
-                const successTip = document.getElementById('actionSuccess');
-                successTip.textContent = '购买成功！';
-                successTip.classList.add('show');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                const errorTip = document.getElementById('actionError');
-                errorTip.textContent = response.data.msg || '购买失败';
-                errorTip.classList.add('show');
-            }
-        } catch (error) {
-            const errorTip = document.getElementById('actionError');
-            errorTip.textContent = '操作失败，请稍后重试';
-            errorTip.classList.add('show');
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('payModal').classList.remove('show');
     }
 
     function viewLesson(lessonId) {
-        window.location.href = '/page/lesson/detail?lesson_id=' + lessonId;
+        window.location.href = '/page/lesson/index?lesson_id=' + lessonId;
     }
 
     function escapeHtml(text) {
@@ -516,11 +499,5 @@
         return `${year}-${month}-${day}`;
     }
 
-    window.onclick = function(event) {
-        const modal = document.getElementById('payModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-    }
 </script>
 {{end}}

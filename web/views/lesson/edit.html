@@ -202,7 +202,7 @@
                 successTip.textContent = '修改成功';
                 setTimeout(() => {
                     if (courseId) {
-                        window.location.href = '/page/lesson/detail?lesson_id=' + lessonId;
+                        window.location.href = '/page/lesson/index?lesson_id=' + lessonId;
                     } else {
                         window.location.href = '/page/course/index';
                     }
@@ -217,7 +217,7 @@
 
     function goBack() {
         if (lessonId) {
-            window.location.href = '/page/lesson/detail?lesson_id=' + lessonId;
+            window.location.href = '/page/lesson/index?lesson_id=' + lessonId;
         } else {
             window.location.href = '/page/course/index';
         }

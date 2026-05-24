@@ -30,9 +30,8 @@ func GetPurchaseById(id int) (purchase *model.Purchase, err error) {
 
 // 获取用户购买课程
 func GetPurchaseByUidCid(uid int, cid int) (purchases []model.Purchase, err error) {
-	statuss := []int{model.PURCHASE_STATUS_UNPAID, model.PURCHASE_STATUS_PAID}
 	err = DB.Model(&model.Purchase{}).
-		Where("user_id=? and course_id=? and purchase_status IN (?)", uid, cid, statuss).
+		Where("user_id=? and course_id=?", uid, cid).
 		Find(&purchases).Error
 
 	if err != nil {
@@ -65,6 +64,7 @@ func GetUserPurchaseByUidCid(uid int, cid int) (purchase *model.Purchase, err er
 func GetAllPurchaseByUid(uid int) (purchases []model.Purchase, err error) {
 	err = DB.Model(&model.Purchase{}).
 		Where("user_id = ?", uid).
+		Order("id DESC").
 		Find(&purchases).Error
 	if err != nil {
 		return

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信支付</title>
+    <script src="/js/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: #07c160;
+            color: white;
+            text-align: center;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 500;
+            position: relative;
+        }
+        .header .back {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+        }
+        .card {
+            background: white;
+            margin: 12px;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .merchant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+        .merchant-logo {
+            width: 40px;
+            height: 40px;
+            background: #07c160;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .merchant-name {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        .amount-section {
+            text-align: center;
+            padding: 10px 0 20px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 16px;
+        }
+        .amount-label {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .amount {
+            font-size: 40px;
+            color: #333;
+            font-weight: bold;
+        }
+        .amount .symbol {
+            font-size: 24px;
+        }
+        .product-name {
+            text-align: center;
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .btn-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+        }
+        .btn-pay {
+            width: 100%;
+            padding: 14px;
+            background: #07c160;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+        .btn-pay:active { opacity: 0.8; }
+        .btn-pay:disabled { background: #9ad9b8; cursor: not-allowed; }
+        .error-tip {
+            text-align: center;
+            color: #f56c6c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+        .error-tip.show { display: block; }
+        .success-page {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background: #07c160;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-icon::after {
+            content: '';
+            display: block;
+            width: 16px;
+            height: 30px;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+            margin-top: -4px;
+        }
+        .success-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a class="back" href="javascript:history.back()">←</a>
+        微信支付
+    </div>
+
+    <div id="content">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var purchaseId = params.get('purchase_id');
+            var courseId = params.get('course_id');
+            var price = params.get('price');
+            var title = params.get('title') || '课程';
+
+            if (!purchaseId || !courseId || !price) {
+                document.getElementById('content').innerHTML = '<div class="card"><div class="error-tip show">缺少必要参数</div></div>';
+                return;
+            }
+
+            renderPayPage(purchaseId, courseId, price, title);
+        })();
+
+        function renderPayPage(purchaseId, courseId, price, title) {
+            var html = '';
+            html += '<div class="card">';
+            html += '  <div class="merchant-info">';
+            html += '    <div class="merchant-logo">课</div>';
+            html += '    <div class="merchant-name">课程购买</div>';
+            html += '  </div>';
+            html += '  <div class="amount-section">';
+            html += '    <div class="product-name">' + escapeHtml(title) + '</div>';
+            html += '    <div class="amount"><span class="symbol">&yen;</span>' + price + '</div>';
+            html += '  </div>';
+            html += '</div>';
+            html += '<div class="error-tip" id="errorTip"></div>';
+            html += '<div class="btn-area">';
+            html += '  <button class="btn-pay" id="payBtn" onclick="confirmPay(\'' + courseId + '\', \'' + purchaseId + '\')">立即支付</button>';
+            html += '</div>';
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        async function confirmPay(courseId, purchaseId) {
+            var btn = document.getElementById('payBtn');
+            var errorTip = document.getElementById('errorTip');
+            errorTip.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = '支付中...';
+
+            try {
+                var formData = new FormData();
+                formData.append('course_id', courseId);
+                formData.append('purchase_id', purchaseId);
+
+                var response = await axios.post('/api/purchase/pay', formData);
+                if (response.data.code === 0) {
+                    document.getElementById('content').innerHTML = `
+                        <div class="success-page">
+                            <div class="success-icon"></div>
+                            <div class="success-text">支付成功</div>
+                        </div>
+                    `;
+                } else {
+                    errorTip.textContent = response.data.msg || '支付失败';
+                    errorTip.classList.add('show');
+                    btn.disabled = false;
+                    btn.textContent = '立即支付';
+                }
+            } catch (error) {
+                errorTip.textContent = '网络错误，请稍后重试';
+                errorTip.classList.add('show');
+                btn.disabled = false;
+                btn.textContent = '立即支付';
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
