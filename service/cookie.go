@@ -27,8 +27,8 @@ func SetUserJwtCookie(c *gin.Context, uid int, name string, now time.Time) (err 
 
 // 获取用户信息
 func GetUserCookie(c *gin.Context) (uid int, name string, isExpired bool, err error) {
-	userJwtStr, err := c.Cookie(CookieUser)
-	if err != nil {
+	userJwtStr, _ := c.Cookie(CookieUser)
+	if userJwtStr == "" {
 		return
 	}
 
@@ -60,8 +60,8 @@ func SetAdminUserJwtCookie(c *gin.Context, uid int, name string, now time.Time) 
 
 // 获取用户信息
 func GetAdminUserJwtCookie(c *gin.Context) (uid int, name string, isExpired bool, err error) {
-	adminUserJwtStr, err := c.Cookie(CookieAdminUser)
-	if err != nil {
+	adminUserJwtStr, _ := c.Cookie(CookieAdminUser)
+	if adminUserJwtStr == "" {
 		return
 	}
 

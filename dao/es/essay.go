@@ -57,33 +57,66 @@ func AddEssayEsDoc(c *gin.Context, essay model.Essay) (err error) {
 
 // 从es获取文章
 func GetEssayFromEs(cid int, word string, from int, size int) (essayList []model.Essay, err error) {
-	req := map[string]interface{}{
-		"from": from,
-		"size": size,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
-					{
-						"match": map[string]interface{}{
-							"title": word,
+	_, wordErr := strconv.Atoi(word)
+	var req map[string]interface{}
+	if wordErr == nil {
+		req = map[string]interface{}{
+			"from": from,
+			"size": size,
+			"query": map[string]interface{}{
+				"bool": map[string]interface{}{
+					"should": []map[string]interface{}{
+						{
+							"wildcard": map[string]interface{}{
+								"title": "*" + word + "*",
+							},
+						},
+						{
+							"wildcard": map[string]interface{}{
+								"content": "*" + word + "*",
+							},
 						},
 					},
-					{
-						"match": map[string]interface{}{
-							"content": word,
-						},
-					},
-				},
-				"minimum_should_match": 1,
-				"filter": []map[string]interface{}{
-					{
-						"term": map[string]interface{}{
-							"circleId": cid,
+					"minimum_should_match": 1,
+					"filter": []map[string]interface{}{
+						{
+							"term": map[string]interface{}{
+								"circleId": cid,
+							},
 						},
 					},
 				},
 			},
-		},
+		}
+	} else {
+		req = map[string]interface{}{
+			"from": from,
+			"size": size,
+			"query": map[string]interface{}{
+				"bool": map[string]interface{}{
+					"should": []map[string]interface{}{
+						{
+							"match": map[string]interface{}{
+								"title": word,
+							},
+						},
+						{
+							"match": map[string]interface{}{
+								"content": word,
+							},
+						},
+					},
+					"minimum_should_match": 1,
+					"filter": []map[string]interface{}{
+						{
+							"term": map[string]interface{}{
+								"circleId": cid,
+							},
+						},
+					},
+				},
+			},
+		}
 	}
 
 	reqStr, err := json.Marshal(req)

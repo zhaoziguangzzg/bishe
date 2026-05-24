@@ -211,6 +211,21 @@
         return escaped.replace(regex, '<span class="highlight">$1</span>');
     }
 
+    function highlightHtmlText(html, keyword) {
+        const plainText = stripHtml(html);
+        if (!keyword) return escapeHtml(plainText);
+        const escaped = escapeHtml(plainText);
+        const regex = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        return escaped.replace(regex, '<span class="highlight">$1</span>');
+    }
+
+    function stripHtml(html) {
+        if (!html) return '';
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        return div.textContent || div.innerText || '';
+    }
+
     async function loadUserInfo() {
         try {
             const response = await axios.get('/api/user/get');
@@ -281,7 +296,7 @@
                         <div class="essay-badges">${badgesHtml}</div>
                     </div>
                     <div class="essay-title" onclick="goToEssayDetail(${cid}, ${essay.id})">${highlightText(essay.title, keyword)}</div>
-                    <div class="essay-content-preview">${highlightText(essay.content, keyword)}</div>
+                    <div class="essay-content-preview">${highlightHtmlText(essay.content, keyword)}</div>
                     <div class="essay-footer">
                         <span class="detail-link" onclick="goToEssayDetail(${cid}, ${essay.id})">查看详情</span>
                     </div>
