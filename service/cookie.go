@@ -21,7 +21,7 @@ func SetUserJwtCookie(c *gin.Context, uid int, name string, now time.Time) (err 
 		return
 	}
 
-	c.SetCookie(CookieUser, userJwtStr, USER_JWT_EXPIRE_DAYS*86400-10, "/", "", true, true)
+	c.SetCookie(CookieUser, userJwtStr, USER_JWT_EXPIRE_DAYS*86400-10, "/", "", false, true)
 	return
 }
 
@@ -43,7 +43,7 @@ func GetUserCookie(c *gin.Context) (uid int, name string, isExpired bool, err er
 
 // 清除cookie
 func DeleteUserCookie(c *gin.Context) {
-	c.SetCookie(CookieUser, "", -1, "/", "", true, true)
+	c.SetCookie(CookieUser, "", -1, "/", "", false, true)
 }
 
 // 将管理员用户信息jwt设置到cookie
@@ -54,7 +54,7 @@ func SetAdminUserJwtCookie(c *gin.Context, uid int, name string, now time.Time) 
 		return
 	}
 
-	c.SetCookie(CookieAdminUser, adminUserJwtStr, ADMIN_USER_JWT_EXPIRES_DAYS*86400-10, "/", "", true, true)
+	c.SetCookie(CookieAdminUser, adminUserJwtStr, ADMIN_USER_JWT_EXPIRES_DAYS*86400-10, "/", "", false, true)
 	return
 }
 
@@ -77,5 +77,5 @@ func GetAdminUserJwtCookie(c *gin.Context) (uid int, name string, isExpired bool
 
 // 清除cookie
 func DeleteAdminUserCookie(c *gin.Context) {
-	c.SetCookie(CookieAdminUser, "", -1, "/", "", true, true)
+	c.SetCookie(CookieAdminUser, "", -1, "/", "", false, true)
 }
