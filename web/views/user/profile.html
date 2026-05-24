@@ -330,6 +330,33 @@
         padding: 40px;
         color: #667eea;
     }
+    .collect-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 8px;
+    }
+    .back-btn {
+        background: none;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .back-btn:hover {
+        color: #667eea;
+        border-color: #667eea;
+    }
+    .collect-folder-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+    }
 </style>
 {{end}}
 
@@ -370,8 +397,8 @@
             <div class="tab-header">
                 <div class="tab-item" data-tab="essay" onclick="switchTab('essay')">发布的文章</div>
                 <div class="tab-item" data-tab="like" onclick="switchTab('like')">喜欢</div>
-                <div class="tab-item" data-tab="favorite" onclick="switchTab('favorite')">收藏夹</div>
                 <div class="tab-item" data-tab="comment" onclick="switchTab('comment')">评论</div>
+                <div class="tab-item" data-tab="favorite" onclick="switchTab('favorite')">收藏夹</div>
                 <div class="tab-item" data-tab="follow" onclick="switchTab('follow')">关注</div>
             </div>
             <div class="tab-content" id="tabContent">
@@ -649,7 +676,7 @@
                     return '<div class="empty-tip">暂无发布的文章</div>';
                 }
                 return essays.map(essay => `
-                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}'">
+                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}&cid=${essay.circleId}'">
                         <div class="essay-title">${essay.title}</div>
                         <div class="essay-meta">发布时间：${formatTime(essay.createAt)}</div>
                     </div>
@@ -677,7 +704,7 @@
                 return '<div class="empty-tip">暂无喜欢的文章</div>';
             }
             return essays.map(item => `
-                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                    <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}&cid=${item.essay.circleId}'">
                         <div class="essay-title">${item.essay.title}</div>
                         <div class="essay-meta">作者：${item.author.name} | 发布时间：${formatTime(item.essay.createAt)}</div>
                     </div>
@@ -689,6 +716,10 @@
     }
 
     async function loadFavoriteTab() {
+        return await loadFavoriteList();
+    }
+
+    async function loadFavoriteList() {
         try {
             const response = await axios.get('/api/favorite/all-by-uid', { params: { uid: profileUserId, page: 1 } });
             if (response.data.code === 0 && response.data.data && response.data.data.favorites) {
@@ -697,8 +728,8 @@
                     return '<div class="empty-tip">暂无收藏夹</div>';
                 }
                 return favorites.map(fav => `
-                    <div class="favorite-item" onclick="window.location.href='/page/favorite/detail?id=${fav.id}'">
-                        <div class="favorite-title">${fav.title}</div>
+                    <div class="favorite-item" data-fid="${fav.id}" data-title="${escapeHtml(fav.title)}" onclick="openFavoriteFolder(this)">
+                        <div class="favorite-title">${escapeHtml(fav.title)}</div>
                         <div class="favorite-meta">创建时间：${formatTime(fav.createAt)}</div>
                     </div>
                 `).join('');
@@ -707,6 +738,51 @@
         } catch (error) {
             return '<div class="empty-tip">加载失败，请重试</div>';
         }
+    }
+
+    function openFavoriteFolder(el) {
+        const fid = parseInt(el.dataset.fid);
+        const title = el.dataset.title;
+        loadCollectArticles(fid, title);
+    }
+
+    async function loadCollectArticles(fid, title) {
+        const container = document.getElementById('tabContent');
+        container.innerHTML = '<div class="loading-tip">加载中...</div>';
+
+        try {
+            const response = await axios.get('/api/collect/all', { params: { fid: fid, page: 1 } });
+            if (response.data.code === 0 && response.data.data && response.data.data.collects) {
+                const collects = response.data.data.collects;
+                let html = `
+                    <div class="collect-header">
+                        <button class="back-btn" onclick="event.stopPropagation();switchTab('favorite');">← 返回收藏夹</button>
+                        <span class="collect-folder-name">${escapeHtml(title)}</span>
+                    </div>`;
+                if (collects.length === 0) {
+                    html += '<div class="empty-tip">该收藏夹暂无文章</div>';
+                } else {
+                    html += collects.map(essay => `
+                        <div class="essay-item" onclick="window.location.href='/page/essay/detail?eid=${essay.id}&cid=${essay.circleId}'">
+                            <div class="essay-title">${essay.title}</div>
+                            <div class="essay-meta">发布时间：${formatTime(essay.createAt)}</div>
+                        </div>
+                    `).join('');
+                }
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="empty-tip">加载失败，请重试</div>';
+            }
+        } catch (error) {
+            console.error('loadCollectArticles error:', error);
+            container.innerHTML = '<div class="empty-tip">加载失败，请重试</div>';
+        }
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     async function loadCommentTab() {
@@ -718,7 +794,7 @@
                     return '<div class="empty-tip">暂无评论</div>';
                 }
                 return commentEssays.map(item => `
-                    <div class="comment-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}'">
+                    <div class="comment-item" onclick="window.location.href='/page/essay/detail?eid=${item.essay.id}&cid=${item.essay.circleId}'">
                         <div class="comment-content">${item.comment.content}</div>
                         <div class="comment-meta">文章：${item.essay.title} | 时间：${formatTime(item.comment.createAt)}</div>
                     </div>
