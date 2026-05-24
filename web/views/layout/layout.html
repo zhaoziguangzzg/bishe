@@ -63,6 +63,63 @@
         .user-nav a:hover {
             background: rgba(255,255,255,0.2);
         }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .user-info:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            min-width: 140px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .user-dropdown-menu.show {
+            display: block;
+        }
+        .user-dropdown-menu a {
+            display: block;
+            color: #333 !important;
+            padding: 12px 20px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .user-dropdown-menu a:hover {
+            background: #f5f7fa;
+            text-decoration: none !important;
+        }
+        .user-dropdown-menu .logout-item {
+            color: #e74c3c !important;
+            border-top: 1px solid #f0f0f0;
+        }
         .header-search {
             flex: 1;
             display: flex;
@@ -132,7 +189,16 @@
             <a href="/page/notice/index">通知</a>
             <a href="/page/feedback/index">反馈</a>
             <a href="/page/announce/list">公告</a>
-            <a href="/page/user/profile">我的</a>
+            <div class="user-dropdown" id="userDropdown">
+                <div class="user-info" id="userInfo">
+                    <img id="headerAvatar" class="user-avatar" src="/img/default-avatar.png" alt="头像"/>
+                    <span id="headerUserName">我的</span>
+                </div>
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="/page/user/profile">个人主页</a>
+                    <a href="javascript:;" class="logout-item" onclick="handleLogout()">退出</a>
+                </div>
+            </div>
         </div>
     </div>
     <div class="container">
@@ -166,6 +232,46 @@
                 }
             }
         })();
+
+        (function() {
+            var userNameEl = document.getElementById('headerUserName');
+            var avatarEl = document.getElementById('headerAvatar');
+            if (!userNameEl || !avatarEl) return;
+            axios.get('/api/user/get').then(function(response) {
+                var data = response.data;
+                if (data.code === 0 && data.data && data.data.user) {
+                    var user = data.data.user;
+                    userNameEl.textContent = user.name;
+                    if (user.avatar) {
+                        avatarEl.src = user.avatar;
+                    }
+                }
+            }).catch(function() {});
+
+            var userInfo = document.getElementById('userInfo');
+            var dropdownMenu = document.getElementById('userDropdownMenu');
+            if (!userInfo || !dropdownMenu) return;
+
+            userInfo.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdownMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function(e) {
+                var dropdown = document.getElementById('userDropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        })();
+
+        function handleLogout() {
+            axios.get('/api/user/logout').then(function() {
+                window.location.href = '/page/user/login';
+            }).catch(function() {
+                window.location.href = '/page/user/login';
+            });
+        }
     </script>
     <script>
         function escapeHtml(text) {
