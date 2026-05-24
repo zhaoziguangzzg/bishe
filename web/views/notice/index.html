@@ -1,356 +1,318 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的通知 - 知识分享平台</title>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .page-title {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .tab-menu {
-            display: flex;
-            background: white;
-            border-radius: 12px 12px 0 0;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-        .tab-item {
-            flex: 1;
-            padding: 14px 8px;
-            text-align: center;
-            font-size: 13px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-item:hover {
-            color: #667eea;
-        }
-        .tab-item.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            background: #f8f9ff;
-        }
-        .notice-list {
-            background: white;
-            border-radius: 0 0 12px 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
-        .notice-item {
-            display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-        .notice-item:last-child {
-            border-bottom: none;
-        }
-        .notice-item:hover {
-            background: #f8f9fa;
-        }
-        .notice-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-        .notice-icon.follow {
-            background: #ecf5ff;
-            color: #409eff;
-        }
-        .notice-icon.like {
-            background: #fef0f0;
-            color: #f56c6c;
-        }
-        .notice-icon.comment {
-            background: #f0f9eb;
-            color: #67c23a;
-        }
-        .notice-icon.accusation {
-            background: #fdf6ec;
-            color: #e6a23c;
-        }
-        .notice-icon.feedback {
-            background: #f4f4f5;
-            color: #909399;
-        }
-        .notice-icon.dispatch {
-            background: #ecf5ff;
-            color: #409eff;
-        }
-        .notice-icon.other {
-            background: #f4f4f5;
-            color: #909399;
-        }
-        .notice-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .notice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .notice-type {
-            font-size: 15px;
-            color: #333;
-            font-weight: 500;
-        }
-        .notice-time {
-            font-size: 12px;
-            color: #909399;
-        }
-        .notice-content {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.4;
-        }
-        .empty-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #909399;
-            font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #667eea;
-        }
-        .error-tip {
-            text-align: center;
-            padding: 60px 20px;
-            color: #f56c6c;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <span>知识分享平台</span>
-        <a href="/page/index">返回首页</a>
-    </div>
+{{template "index_layout_head" .}}
 
-    <div class="container">
-        <h1 class="page-title">我的通知</h1>
-        <div class="tab-menu" id="tabMenu">
-            <div class="tab-item active" data-type="-1">全部</div>
-            <div class="tab-item" data-type="1">关注</div>
-            <div class="tab-item" data-type="2">点赞</div>
-            <div class="tab-item" data-type="3">评论</div>
-            <div class="tab-item" data-type="4">举报</div>
-            <div class="tab-item" data-type="5">反馈</div>
-        </div>
-        <div class="notice-list" id="noticeList">
-            <div class="loading">加载中...</div>
-        </div>
-    </div>
+{{template "index_layout_body_start" .}}
 
-    <script>
-        let currentType = -1;
+{{block "index_layout_extra_styles" .}}
+<style>
+    .page-title {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .tab-menu {
+        display: flex;
+        background: white;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .tab-item {
+        flex: 1;
+        padding: 14px 8px;
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-bottom: 2px solid transparent;
+    }
+    .tab-item:hover {
+        color: #667eea;
+    }
+    .tab-item.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        background: #f8f9ff;
+    }
+    .notice-list {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .notice-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    .notice-item:last-child {
+        border-bottom: none;
+    }
+    .notice-item:hover {
+        background: #f8f9fa;
+    }
+    .notice-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    .notice-icon.follow {
+        background: #ecf5ff;
+        color: #409eff;
+    }
+    .notice-icon.like {
+        background: #fef0f0;
+        color: #f56c6c;
+    }
+    .notice-icon.comment {
+        background: #f0f9eb;
+        color: #67c23a;
+    }
+    .notice-icon.accusation {
+        background: #fdf6ec;
+        color: #e6a23c;
+    }
+    .notice-icon.feedback {
+        background: #f4f4f5;
+        color: #909399;
+    }
+    .notice-icon.dispatch {
+        background: #ecf5ff;
+        color: #409eff;
+    }
+    .notice-icon.other {
+        background: #f4f4f5;
+        color: #909399;
+    }
+    .notice-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .notice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .notice-type {
+        font-size: 15px;
+        color: #333;
+        font-weight: 500;
+    }
+    .notice-time {
+        font-size: 12px;
+        color: #909399;
+    }
+    .notice-content {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.4;
+    }
+    .empty-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #909399;
+        font-size: 14px;
+    }
+    .loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: #667eea;
+    }
+    .error-tip {
+        text-align: center;
+        padding: 60px 20px;
+        color: #f56c6c;
+    }
+</style>
+{{end}}
 
-        (async function init() {
-            initTabEvents();
-            await loadNoticeList();
-        })();
+<h1 class="page-title">我的通知</h1>
+<div class="tab-menu" id="tabMenu">
+    <div class="tab-item active" data-type="-1">全部</div>
+    <div class="tab-item" data-type="1">关注</div>
+    <div class="tab-item" data-type="2">点赞</div>
+    <div class="tab-item" data-type="3">评论</div>
+    <div class="tab-item" data-type="4">举报</div>
+    <div class="tab-item" data-type="5">反馈</div>
+</div>
+<div class="notice-list" id="noticeList">
+    <div class="loading">加载中...</div>
+</div>
 
-        function initTabEvents() {
-            const tabItems = document.querySelectorAll('.tab-item');
-            tabItems.forEach(item => {
-                item.addEventListener('click', async function() {
-                    tabItems.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentType = parseInt(this.dataset.type);
-                    await loadNoticeList();
-                });
+{{template "index_layout_body_end" .}}
+
+{{define "index_layout_extra_scripts"}}
+<script>
+    let currentType = -1;
+
+    (async function init() {
+        initTabEvents();
+        await loadNoticeList();
+    })();
+
+    function initTabEvents() {
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(item => {
+            item.addEventListener('click', async function() {
+                tabItems.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentType = parseInt(this.dataset.type);
+                await loadNoticeList();
             });
-        }
+        });
+    }
 
-        async function loadNoticeList() {
-            document.getElementById('noticeList').innerHTML = '<div class="loading">加载中...</div>';
+    async function loadNoticeList() {
+        document.getElementById('noticeList').innerHTML = '<div class="loading">加载中...</div>';
 
-            try {
-                let response;
-                if (currentType === -1) {
-                    response = await axios.get('/api/notice/all');
-                    if (response.data.code === 0 && response.data.data) {
-                        renderNoticeList(response.data.data.notices || []);
-                    } else {
-                        document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
-                    }
+        try {
+            let response;
+            if (currentType === -1) {
+                response = await axios.get('/api/notice/all');
+                if (response.data.code === 0 && response.data.data) {
+                    renderNoticeList(response.data.data.notices || []);
                 } else {
-                    response = await axios.get('/api/notice/alltype', {
-                        params: { type: currentType }
-                    });
-                    if (response.data.code === 0 && response.data.data) {
-                        renderUserNoticeList(response.data.data.userNotices || []);
-                    } else {
-                        document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
-                    }
+                    document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
                 }
-            } catch (error) {
-                document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
-            }
-        }
-
-        function renderNoticeList(notices) {
-            if (notices.length === 0) {
-                document.getElementById('noticeList').innerHTML = '<div class="empty-tip">暂无通知</div>';
-                return;
-            }
-
-            const html = notices.map(notice => {
-                const typeInfo = getNoticeTypeInfo(notice.type);
-                const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
-
-                return `
-                    <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
-                        <div class="notice-icon ${typeInfo.className}">
-                            ${typeInfo.icon}
-                        </div>
-                        <div class="notice-info">
-                            <div class="notice-header">
-                                <span class="notice-type">${typeInfo.name}</span>
-                                <span class="notice-time">${updateAt}</span>
-                            </div>
-                            <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('noticeList').innerHTML = html;
-        }
-
-        function renderUserNoticeList(userNotices) {
-            if (userNotices.length === 0) {
-                document.getElementById('noticeList').innerHTML = '<div class="empty-tip">暂无通知</div>';
-                return;
-            }
-
-            const html = userNotices.map(notice => {
-                const typeInfo = getNoticeTypeInfo(notice.type);
-                const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
-
-                return `
-                    <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
-                        <div class="notice-icon ${typeInfo.className}">
-                            ${typeInfo.icon}
-                        </div>
-                        <div class="notice-info">
-                            <div class="notice-header">
-                                <span class="notice-type">${notice.name || ''} ${typeInfo.name}</span>
-                                <span class="notice-time">${updateAt}</span>
-                            </div>
-                            <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('noticeList').innerHTML = html;
-        }
-
-        function goToNoticeDetail(notice) {
-            if (notice.url && notice.url.trim() !== '') {
-                window.location.href = notice.url;
-                return;
-            }
-            const params = new URLSearchParams({
-                content: notice.content || '',
-                type: notice.type || 0,
-                updateAt: notice.updateAt || ''
-            });
-            window.location.href = `/page/notice/detail?${params.toString()}`;
-        }
-
-        function getNoticeTypeInfo(type) {
-            const typeMap = {
-                0: { name: '系统通知', icon: '&#9997;', className: 'other' },
-                1: { name: '关注', icon: '&#10084;', className: 'follow' },
-                2: { name: '点赞', icon: '&#9829;', className: 'like' },
-                3: { name: '评论', icon: '&#59194;', className: 'comment' },
-                4: { name: '举报结果', icon: '&#9888;', className: 'accusation' },
-                5: { name: '反馈回复', icon: '&#59197;', className: 'feedback' },
-                6: { name: '关注发文', icon: '&#128276;', className: 'dispatch' }
-            };
-            return typeMap[type] || typeMap[0];
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function convertUrlToLink(text) {
-            if (!text) return '';
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.replace(urlRegex, '<a href="$1" style="color: #409eff; text-decoration: underline;" target="_blank">$1</a>');
-        }
-
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) {
-                return '刚刚';
-            } else if (diff < 3600000) {
-                return Math.floor(diff / 60000) + '分钟前';
-            } else if (diff < 86400000) {
-                return Math.floor(diff / 3600000) + '小时前';
-            } else if (diff < 604800000) {
-                return Math.floor(diff / 86400000) + '天前';
             } else {
-                return date.toLocaleDateString();
+                response = await axios.get('/api/notice/alltype', {
+                    params: { type: currentType }
+                });
+                if (response.data.code === 0 && response.data.data) {
+                    renderUserNoticeList(response.data.data.userNotices || []);
+                } else {
+                    document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
+                }
             }
+        } catch (error) {
+            document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
         }
-    </script>
-</body>
-</html>
+    }
+
+    function renderNoticeList(notices) {
+        if (notices.length === 0) {
+            document.getElementById('noticeList').innerHTML = '<div class="empty-tip">暂无通知</div>';
+            return;
+        }
+
+        const html = notices.map(notice => {
+            const typeInfo = getNoticeTypeInfo(notice.type);
+            const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
+
+            return `
+                <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
+                    <div class="notice-icon ${typeInfo.className}">
+                        ${typeInfo.icon}
+                    </div>
+                    <div class="notice-info">
+                        <div class="notice-header">
+                            <span class="notice-type">${typeInfo.name}</span>
+                            <span class="notice-time">${updateAt}</span>
+                        </div>
+                        <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('noticeList').innerHTML = html;
+    }
+
+    function renderUserNoticeList(userNotices) {
+        if (userNotices.length === 0) {
+            document.getElementById('noticeList').innerHTML = '<div class="empty-tip">暂无通知</div>';
+            return;
+        }
+
+        const html = userNotices.map(notice => {
+            const typeInfo = getNoticeTypeInfo(notice.type);
+            const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
+
+            return `
+                <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
+                    <div class="notice-icon ${typeInfo.className}">
+                        ${typeInfo.icon}
+                    </div>
+                    <div class="notice-info">
+                        <div class="notice-header">
+                            <span class="notice-type">${notice.name || ''} ${typeInfo.name}</span>
+                            <span class="notice-time">${updateAt}</span>
+                        </div>
+                        <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('noticeList').innerHTML = html;
+    }
+
+    function goToNoticeDetail(notice) {
+        if (notice.url && notice.url.trim() !== '') {
+            window.location.href = notice.url;
+            return;
+        }
+        const params = new URLSearchParams({
+            content: notice.content || '',
+            type: notice.type || 0,
+            updateAt: notice.updateAt || ''
+        });
+        window.location.href = `/page/notice/detail?${params.toString()}`;
+    }
+
+    function getNoticeTypeInfo(type) {
+        const typeMap = {
+            0: { name: '系统通知', icon: '&#9997;', className: 'other' },
+            1: { name: '关注', icon: '&#10084;', className: 'follow' },
+            2: { name: '点赞', icon: '&#9829;', className: 'like' },
+            3: { name: '评论', icon: '&#59194;', className: 'comment' },
+            4: { name: '举报结果', icon: '&#9888;', className: 'accusation' },
+            5: { name: '反馈回复', icon: '&#59197;', className: 'feedback' },
+            6: { name: '关注发文', icon: '&#128276;', className: 'dispatch' }
+        };
+        return typeMap[type] || typeMap[0];
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function convertUrlToLink(text) {
+        if (!text) return '';
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, '<a href="$1" style="color: #409eff; text-decoration: underline;" target="_blank">$1</a>');
+    }
+
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+
+        if (diff < 60000) {
+            return '刚刚';
+        } else if (diff < 3600000) {
+            return Math.floor(diff / 60000) + '分钟前';
+        } else if (diff < 86400000) {
+            return Math.floor(diff / 3600000) + '小时前';
+        } else if (diff < 604800000) {
+            return Math.floor(diff / 86400000) + '天前';
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+</script>
+{{end}}
