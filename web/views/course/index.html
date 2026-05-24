@@ -292,7 +292,7 @@
                 <span>我的学习</span>
             </div>
         </div>
-        <div class="ad-slot-container">
+        <div class="ad-slot-container" id="adSlotContainer" style="display:none;">
             <div id="adSlot1" class="ad-slot"></div>
         </div>
     </div>
@@ -353,11 +353,19 @@
                 
                 if (adHtml) {
                     adSlot.innerHTML = adHtml;
+                    document.getElementById('adSlotContainer').style.display = 'block';
                 }
             }
         } catch (error) {
             console.error('Load ads error:', error);
         }
+    }
+
+    function getCoverHtml(course) {
+        if (course.img) {
+            return '<img src="' + escapeHtml(course.img) + '" style="width:100%;height:100%;object-fit:cover;">';
+        }
+        return '📖';
     }
 
     function switchMenu(menu) {
@@ -429,7 +437,7 @@
 
                 container.innerHTML = courses.map(course => {
                     const isFree = course.price === 0;
-                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">' + getCoverHtml(course) + '</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
                 }).join('');
 
                 renderPagination(response.data.data.total || 0, page);
@@ -464,7 +472,7 @@
                         actionHtml = '<button class="course-action-btn publish" onclick="event.stopPropagation();publishCourse(' + course.id + ')">发布</button>';
                     }
                     actionHtml += '<button class="course-action-btn edit" onclick="event.stopPropagation();editCourse(' + course.id + ')">修改</button><button class="course-action-btn view" onclick="event.stopPropagation();goToCourse(' + course.id + ')">查看</button>';
-                    return '<div class="course-item"><div class="course-cover" onclick="goToCourse(' + course.id + ')">📖</div><div class="course-content"><div class="course-title" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.title) + '</div><div class="course-desc" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta" onclick="goToCourse(' + course.id + ')"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div><div class="course-actions">' + actionHtml + '</div></div></div>';
+                    return '<div class="course-item"><div class="course-cover" onclick="goToCourse(' + course.id + ')">' + getCoverHtml(course) + '</div><div class="course-content"><div class="course-title" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.title) + '</div><div class="course-desc" onclick="goToCourse(' + course.id + ')">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta" onclick="goToCourse(' + course.id + ')"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div><div class="course-actions">' + actionHtml + '</div></div></div>';
                 }).join('');
 
                 document.getElementById('pagination').innerHTML = '';
@@ -496,7 +504,7 @@
                     const course = item.course;
                     if (!course) return '';
                     const isFree = course.price === 0;
-                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">' + getCoverHtml(course) + '</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
                 }).join('');
 
                 document.getElementById('pagination').innerHTML = '';
@@ -541,7 +549,7 @@
 
                 container.innerHTML = courses.map(course => {
                     const isFree = course.price === 0;
-                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">📖</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
+                    return '<div class="course-item" onclick="goToCourse(' + course.id + ')"><div class="course-cover">' + getCoverHtml(course) + '</div><div class="course-content"><div class="course-title">' + escapeHtml(course.title) + '</div><div class="course-desc">' + escapeHtml(course.content || '暂无简介') + '</div><div class="course-meta"><span>' + (course.joinNum || 0) + '人学习</span><span class="course-price ' + (isFree ? 'free' : '') + '">' + (isFree ? '免费' : course.price + '元') + '</span></div></div></div>';
                 }).join('');
 
                 document.getElementById('backBtn').style.display = 'inline-block';
