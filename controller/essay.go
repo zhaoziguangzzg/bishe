@@ -421,6 +421,7 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 
 		userEssay.Author = vUser
 		userEssay.Level = level
+		userEssay.Score = vLevelScore.Score
 		userEssay.Essay = v
 		userEssay.IsLike = isLike
 		userEssay.IsCollect = isCollect

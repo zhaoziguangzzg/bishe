@@ -281,6 +281,7 @@ func main() {
 
 	//等级
 	//api.GET("/levelrecord/all", controller.GetUserCircleLevelAllRecordHandler)
+	api.GET("/levelscore/get", controller.GetUserLevelScoreHandler)
 
 	//课程
 	page.GET("/course/index", controller.CourseIndexPageHandler)

@@ -53,6 +53,8 @@ type UserEssay struct {
 	Author User `json:"author"`
 	//作者等级
 	Level int `json:"level"`
+	//作者积分
+	Score int `json:"score"`
 	//文章
 	Essay Essay `json:"essay"`
 	//当前用户是否喜欢
