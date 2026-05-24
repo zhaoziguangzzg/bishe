@@ -165,7 +165,7 @@
     const cid = urlParams.get('course_id');
     let courseData = null;
     var courseImgUrl = '';
-    var payImgUrl = '';
+    var payAccountValue = '';
 
     if (!cid) {
         document.getElementById('editForm').innerHTML = '<div class="error-tip">缺少课程ID参数</div>';
@@ -195,10 +195,10 @@
         const title = course.title || '';
         const content = course.content || '';
         const img = course.img || '';
-        const payImg = course.payImg || '';
+        const payAccount = course.payAccount || '';
 
         if (img) courseImgUrl = img;
-        if (payImg) payImgUrl = payImg;
+        if (payAccount) payAccountValue = payAccount;
 
         document.getElementById('editForm').innerHTML = `
             <div class="success-tip" id="successMsg" style="display: none;"></div>
@@ -220,14 +220,10 @@
                     <span id="courseImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
                 </div>
             </div>
-            <div class="upload-section">
-                <label>收款码图片</label>
-                <div class="upload-area">
-                    <input type="file" id="payImgInput" accept="image/*">
-                    <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
-                    <img id="payImgPreview" class="preview-img" src="${escapeHtml(payImg)}" style="${payImg ? '' : 'display: none;'}">
-                    <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
-                </div>
+            <div class="form-group">
+                <label for="payAccount">收款账户</label>
+                <input type="text" class="form-input" id="payAccount" value="${escapeHtml(payAccount)}" placeholder="请输入收款账户">
+                <div class="form-hint">用于接收付款的账户信息</div>
             </div>
             <div class="btn-group">
                 <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveCourse()">保存修改</button>
@@ -243,13 +239,6 @@
             onSuccess: function(url) { courseImgUrl = url; }
         });
 
-        setupImageUpload({
-            inputId: 'payImgInput',
-            previewId: 'payImgPreview',
-            statusId: 'payImgStatus',
-            type: 6,
-            onSuccess: function(url) { payImgUrl = url; }
-        });
     }
 
     async function saveCourse() {
@@ -271,7 +260,9 @@
             formData.append('price', '0');
 
             if (courseImgUrl) formData.append('img', courseImgUrl);
-            if (payImgUrl) formData.append('pay_img', payImgUrl);
+
+            const payAccount = document.getElementById('payAccount').value.trim();
+            if (payAccount) formData.append('pay_account', payAccount);
 
             const response = await axios.post('/api/course/update', formData);
 

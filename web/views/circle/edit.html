@@ -198,8 +198,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const cid = urlParams.get('cid');
         var circleImgUrl = '';
-        var payAccountValue = '';
-
         setupImageUpload({
             inputId: 'circleImgInput',
             previewId: 'circleImgPreview',
@@ -234,7 +232,6 @@
                         document.getElementById('circleImgPreview').style.display = 'block';
                     }
                     if (circle.payAccount) {
-                        payAccountValue = circle.payAccount;
                         document.getElementById('payAccount').value = circle.payAccount;
                     }
                     document.getElementById('loadingTip').style.display = 'none';
@@ -298,7 +295,9 @@
                 formData.append('introduction', document.getElementById('introduction').value.trim());
 
                 if (circleImgUrl) formData.append('circleImg', circleImgUrl);
-                if (payAccountValue) formData.append('pay_account', payAccountValue);
+
+                const payAccount = document.getElementById('payAccount').value.trim();
+                if (payAccount) formData.append('pay_account', payAccount);
 
                 const response = await axios.post('/api/circle/update', formData);
 

@@ -187,14 +187,10 @@
             </div>
         </div>
 
-        <div class="upload-section">
-            <label>收款码图片</label>
-            <div class="upload-area">
-                <input type="file" id="payImgInput" accept="image/*">
-                <button type="button" class="upload-btn" onclick="document.getElementById('payImgInput').click()">选择图片</button>
-                <img id="payImgPreview" class="preview-img" style="display: none;">
-                <span id="payImgStatus" class="img-hint">支持 JPG、PNG 格式</span>
-            </div>
+        <div class="form-group">
+            <label for="payAccount">收款账户</label>
+            <input type="text" id="payAccount" name="pay_account" placeholder="请输入收款账户">
+            <div class="hint">用于接收付款的账户信息</div>
         </div>
 
         <button type="button" class="btn" onclick="submitCourse()">提交</button>
@@ -207,7 +203,7 @@
 {{define "index_layout_extra_scripts"}}
 <script>
     var courseImgUrl = '';
-    var payImgUrl = '';
+    var payAccountValue = '';
 
     setupImageUpload({
         inputId: 'courseImgInput',
@@ -215,14 +211,6 @@
         statusId: 'courseImgStatus',
         type: 5,
         onSuccess: function(url) { courseImgUrl = url; }
-    });
-
-    setupImageUpload({
-        inputId: 'payImgInput',
-        previewId: 'payImgPreview',
-        statusId: 'payImgStatus',
-        type: 6,
-        onSuccess: function(url) { payImgUrl = url; }
     });
 
     function showError(message) {
@@ -267,7 +255,9 @@
             formData.append('price', priceNum.toString());
 
             if (courseImgUrl) formData.append('img', courseImgUrl);
-            if (payImgUrl) formData.append('pay_img', payImgUrl);
+
+            const payAccount = document.getElementById('payAccount').value.trim();
+            if (payAccount) formData.append('pay_account', payAccount);
 
             const response = await axios.post('/api/course/add', formData);
 

@@ -172,8 +172,8 @@ func UpdateCircleHandler(c *gin.Context) {
 	}
 
 	//更新圈子信息
-	affectRows, err := service.UpdateCircleByCid(cid, updateMap)
-	if err != nil || affectRows == 0 {
+	_, err = service.UpdateCircleByCid(cid, updateMap)
+	if err != nil {
 		service.Logger.Error("UpdateCircleByCid err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return

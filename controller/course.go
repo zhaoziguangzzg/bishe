@@ -289,8 +289,8 @@ func UpdateCourseHandler(c *gin.Context) {
 		courseMap["pay_account"] = payAccount
 	}
 
-	rowsAffected, err := service.UpdateCourse(cid, courseMap)
-	if err != nil || rowsAffected == 0 {
+	_, err = service.UpdateCourse(cid, courseMap)
+	if err != nil {
 		service.Logger.Error("UpdateCourse err", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
