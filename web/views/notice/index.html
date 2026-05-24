@@ -9,30 +9,38 @@
         color: #333;
         margin-bottom: 20px;
     }
-    .tab-menu {
-        display: flex;
+    .filter-bar {
         background: white;
         border-radius: 12px 12px 0 0;
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        overflow: hidden;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
     }
-    .tab-item {
-        flex: 1;
-        padding: 14px 8px;
-        text-align: center;
+    .filter-bar label {
         font-size: 13px;
         color: #666;
+        margin-right: 8px;
+        white-space: nowrap;
+    }
+    .filter-bar select {
+        height: 34px;
+        padding: 0 12px;
+        font-size: 13px;
+        color: #333;
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        background: white;
         cursor: pointer;
-        transition: all 0.3s;
-        border-bottom: 2px solid transparent;
+        outline: none;
+        min-width: 140px;
+        transition: border-color 0.3s;
     }
-    .tab-item:hover {
-        color: #667eea;
+    .filter-bar select:hover {
+        border-color: #667eea;
     }
-    .tab-item.active {
-        color: #667eea;
-        border-bottom-color: #667eea;
-        background: #f8f9ff;
+    .filter-bar select:focus {
+        border-color: #667eea;
     }
     .notice-list {
         background: white;
@@ -137,13 +145,10 @@
 {{end}}
 
 <h1 class="page-title">我的通知</h1>
-<div class="tab-menu" id="tabMenu">
-    <div class="tab-item active" data-type="-1">全部</div>
-    <div class="tab-item" data-type="1">关注</div>
-    <div class="tab-item" data-type="2">点赞</div>
-    <div class="tab-item" data-type="3">评论</div>
-    <div class="tab-item" data-type="4">举报</div>
-    <div class="tab-item" data-type="5">反馈</div>
+<div class="filter-bar">
+    <label>通知类型：</label>
+    <select id="typeSelect">
+    </select>
 </div>
 <div class="notice-list" id="noticeList">
     <div class="loading">加载中...</div>
@@ -153,50 +158,46 @@
 
 {{define "index_layout_extra_scripts"}}
 <script>
-    let currentType = -1;
+    let typeNameList = [];
 
     (async function init() {
-        initTabEvents();
         await loadNoticeList();
     })();
 
-    function initTabEvents() {
-        const tabItems = document.querySelectorAll('.tab-item');
-        tabItems.forEach(item => {
-            item.addEventListener('click', async function() {
-                tabItems.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                currentType = parseInt(this.dataset.type);
-                await loadNoticeList();
-            });
-        });
-    }
+    document.getElementById('typeSelect').addEventListener('change', async function() {
+        await loadNoticeList();
+    });
 
     async function loadNoticeList() {
         document.getElementById('noticeList').innerHTML = '<div class="loading">加载中...</div>';
 
+        const currentType = parseInt(document.getElementById('typeSelect').value);
+
         try {
-            let response;
-            if (currentType === -1) {
-                response = await axios.get('/api/notice/all');
-                if (response.data.code === 0 && response.data.data) {
-                    renderNoticeList(response.data.data.notices || []);
-                } else {
-                    document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
+            const params = currentType === -1 ? {} : { type: currentType };
+            const response = await axios.get('/api/notice/all', { params });
+            if (response.data.code === 0 && response.data.data) {
+                if (typeNameList.length === 0 && response.data.data.typeNameList) {
+                    typeNameList = response.data.data.typeNameList;
+                    populateTypeSelect();
                 }
+                renderNoticeList(response.data.data.notices || []);
             } else {
-                response = await axios.get('/api/notice/alltype', {
-                    params: { type: currentType }
-                });
-                if (response.data.code === 0 && response.data.data) {
-                    renderUserNoticeList(response.data.data.userNotices || []);
-                } else {
-                    document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
-                }
+                document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败</div>';
             }
         } catch (error) {
             document.getElementById('noticeList').innerHTML = '<div class="error-tip">加载失败，请稍后重试</div>';
         }
+    }
+
+    function populateTypeSelect() {
+        const select = document.getElementById('typeSelect');
+        typeNameList.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.type;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
     }
 
     function renderNoticeList(notices) {
@@ -217,35 +218,6 @@
                     <div class="notice-info">
                         <div class="notice-header">
                             <span class="notice-type">${typeInfo.name}</span>
-                            <span class="notice-time">${updateAt}</span>
-                        </div>
-                        <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        document.getElementById('noticeList').innerHTML = html;
-    }
-
-    function renderUserNoticeList(userNotices) {
-        if (userNotices.length === 0) {
-            document.getElementById('noticeList').innerHTML = '<div class="empty-tip">暂无通知</div>';
-            return;
-        }
-
-        const html = userNotices.map(notice => {
-            const typeInfo = getNoticeTypeInfo(notice.type);
-            const updateAt = notice.updateAt ? formatTime(notice.updateAt) : '';
-
-            return `
-                <div class="notice-item" onclick="goToNoticeDetail(${JSON.stringify(notice).replace(/"/g, '&quot;')})">
-                    <div class="notice-icon ${typeInfo.className}">
-                        ${typeInfo.icon}
-                    </div>
-                    <div class="notice-info">
-                        <div class="notice-header">
-                            <span class="notice-type">${notice.name || ''} ${typeInfo.name}</span>
                             <span class="notice-time">${updateAt}</span>
                         </div>
                         <div class="notice-content">${convertUrlToLink(escapeHtml(notice.content || ''))}</div>
@@ -278,7 +250,10 @@
             3: { name: '评论', icon: '&#59194;', className: 'comment' },
             4: { name: '举报结果', icon: '&#9888;', className: 'accusation' },
             5: { name: '反馈回复', icon: '&#59197;', className: 'feedback' },
-            6: { name: '关注发文', icon: '&#128276;', className: 'dispatch' }
+            6: { name: '关注发文', icon: '&#128276;', className: 'dispatch' },
+            7: { name: '加精', icon: '&#11088;', className: 'other' },
+            8: { name: '加入圈子', icon: '&#128309;', className: 'follow' },
+            9: { name: '被举报', icon: '&#9888;', className: 'accusation' }
         };
         return typeMap[type] || typeMap[0];
     }

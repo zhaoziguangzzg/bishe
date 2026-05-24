@@ -280,10 +280,10 @@
                         </div>
                         <div class="essay-badges">${badgesHtml}</div>
                     </div>
-                    <div class="essay-title" onclick="goToEssayDetail(${essay.id})">${highlightText(essay.title, keyword)}</div>
+                    <div class="essay-title" onclick="goToEssayDetail(${cid}, ${essay.id})">${highlightText(essay.title, keyword)}</div>
                     <div class="essay-content-preview">${highlightText(essay.content, keyword)}</div>
                     <div class="essay-footer">
-                        <span class="detail-link" onclick="goToEssayDetail(${essay.id})">查看详情</span>
+                        <span class="detail-link" onclick="goToEssayDetail(${cid}, ${essay.id})">查看详情</span>
                     </div>
                 </div>
             `;
@@ -294,8 +294,8 @@
         window.location.href = `/page/user/profile?uid=${uid}`;
     }
 
-    function goToEssayDetail(eid) {
-        window.location.href = `/page/essay/detail?eid=${eid}`;
+    function goToEssayDetail(cid, eid) {
+        window.location.href = `/page/essay/detail?cid=${cid}&eid=${eid}`;
     }
 
     function formatTime(timeStr) {

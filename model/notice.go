@@ -71,6 +71,11 @@ const (
 	KAFKA_TOPIC_NOTICE string = "topic_user_notice"
 )
 
+type NoticeTypeName struct {
+	Type int    `json:"type"`
+	Name string `json:"name"`
+}
+
 // 指定Notice对应的表名
 func (Notice) TableName() string {
 	return "notice"

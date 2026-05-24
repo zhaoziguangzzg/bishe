@@ -124,7 +124,7 @@ func AddNoticeEssayAdd(msg model.NoticeMsg) {
 		return
 	}
 
-	essayUrl := GetUrlEssayDetail(essay.Id)
+	essayUrl := GetUrlEssayDetail(essay.CircleId, essay.Id)
 
 	content := "你关注的" + authorUser.Name + "发布了新文章" + essay.Title + "，快去看看吧"
 
@@ -240,7 +240,7 @@ func AddNoticeComment(msg model.NoticeMsg) {
 		return
 	}
 
-	essayUrl := GetUrlEssayDetail(essay.Id)
+	essayUrl := GetUrlEssayDetail(essay.CircleId, essay.Id)
 	content := commentUser.Name + "评论了你的文章" + essay.Title
 
 	err = UserAddNotice(essay.AuthorId, content, noticeType, essayUrl, noticeTime)
@@ -466,7 +466,7 @@ func AddNoticeEssence(msg model.NoticeMsg) {
 		return
 	}
 
-	url := GetUrlEssayDetail(eid)
+	url := GetUrlEssayDetail(essay.CircleId, eid)
 	content := "你的文章" + essay.Title + "被加精"
 
 	err = UserAddNotice(essay.AuthorId, content, noticeType, url, noticeTime)
@@ -474,4 +474,21 @@ func AddNoticeEssence(msg model.NoticeMsg) {
 		Logger.Error("UserAddNotice err", zap.Int("essay.AuthorId", essay.AuthorId), zap.String("content", content), zap.Error(err))
 		return
 	}
+}
+
+func GetNoticeTypeNameList() (typeNameList []model.NoticeTypeName) {
+	typeNameList = []model.NoticeTypeName{
+		{model.NOTICE_TYPE_OTHER, "全部"},
+		{model.NOTICE_TYPE_FOLLOW, "关注"},
+		{model.NOTICE_TYPE_LIKE, "点赞"},
+		{model.NOTICE_TYPE_COMMENT, "评论"},
+		{model.NOTICE_TYPE_ACCUSATION, "举报"},
+		{model.NOTICE_TYPE_ACCUSATIONED, "被举报"},
+		{model.NOTICE_TYPE_FEEDBACK, "反馈"},
+		{model.NOTICE_TYPE_ESSAY_ADD, "关注者发布文章"},
+		{model.NOTICE_TYPE_ESSENCE, "被加精"},
+		{model.NOTICE_TYPE_JOIN, "加入圈子"},
+	}
+
+	return typeNameList
 }

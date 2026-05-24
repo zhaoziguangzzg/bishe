@@ -20,8 +20,8 @@ func GetUrlCircleIndex(cid int) string {
 }
 
 //文章详情
-func GetUrlEssayDetail(eid int) string {
-	return "/page/essay/detail?eid=" + strconv.Itoa(eid)
+func GetUrlEssayDetail(cid int, eid int) string {
+	return "/page/essay/detail?cid=" + strconv.Itoa(cid) + "&eid=" + strconv.Itoa(eid)
 }
 
 // 课程详情

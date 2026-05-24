@@ -250,8 +250,6 @@ func main() {
 	page.GET("/notice/index", controller.NoticeIndexPageHandler)
 	//获取通知列表
 	api.GET("/notice/all", controller.GetNoticeListHandler)
-	//获取某类型通知列表
-	api.GET("/notice/alltype", controller.GetNoticeListByTypeHandler)
 	//page.GET("/notice/detail", controller.NoticeDetailPageHandler)
 
 	//统计
