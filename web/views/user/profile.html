@@ -808,7 +808,12 @@
 
     async function loadFollowTab() {
         try {
-            const response = await axios.get('/api/follow/all', { params: { page: 1 } });
+            let response;
+            if (isOwnProfile) {
+                response = await axios.get('/api/follow/all', { params: { page: 1 } });
+            } else {
+                response = await axios.get('/api/follow/all-by-uid', { params: { uid: profileUserId, page: 1 } });
+            }
             if (response.data.code === 0 && response.data.data && response.data.data.user) {
                 const users = response.data.data.user;
                 if (users.length === 0) {

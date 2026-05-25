@@ -249,3 +249,38 @@ func GetUserAllFanHandler(c *gin.Context) {
 		"user": users,
 	})
 }
+
+// 获取根据uid用户关注列表
+func GetUserAllFollowByUidHandler(c *gin.Context) {
+	uidStr := c.Query("uid")
+	if uidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	pageStr := c.Query("page")
+	page := GetPage(pageStr)
+
+	pageSize := 10
+
+	users, err := service.GetUserFollowListByUid(uid, page, pageSize)
+	if err != nil {
+		service.Logger.Error("GetUserFollowListByUid", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if users == nil {
+		users = make([]model.User, 0)
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"user": users,
+	})
+}

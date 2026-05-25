@@ -86,6 +86,8 @@ func main() {
 	api.GET("/follow/get", controller.GetUserFollowHandler)
 	//获取用户关注列表
 	api.GET("/follow/all", controller.GetUserAllFollowHandler)
+	//获取根据uid用户关注列表
+	api.GET("/follow/all-by-uid", controller.GetUserAllFollowByUidHandler)
 	//获取用户粉丝列表
 	api.GET("/follow/allfan", controller.GetUserAllFanHandler)
 
