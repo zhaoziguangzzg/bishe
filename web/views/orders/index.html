@@ -276,7 +276,7 @@
                 <tr>
                     <td>${order.id}</td>
                     <td>${order.cid}</td>
-                    <td class="price">¥${(order.price / 100).toFixed(2)}</td>
+                    <td class="price">¥${order.price.toFixed(2)}</td>
                     <td>${order.discount > 0 ? '¥' + order.discount.toFixed(2) : '-'}</td>
                     <td><span class="status-badge ${status.class}">${status.text}</span></td>
                     <td>${createTime}</td>

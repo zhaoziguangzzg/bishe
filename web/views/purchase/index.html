@@ -274,7 +274,7 @@
                     <tr>
                         <td>${purchase.id}</td>
                         <td><span class="course-link" onclick="goToCourse(${course.id})">${escapeHtml(course.title)}</span></td>
-                        <td class="price">¥${(price / 100).toFixed(2)}</td>
+                        <td class="price">¥${price.toFixed(2)}</td>
                         <td>${purchaseTime}</td>
                         <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
                         <td>${actionHtml}</td>

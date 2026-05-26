@@ -309,6 +309,8 @@ func main() {
 	api.GET("/course/get", controller.GetCourseHandler)
 	//获取购买记录
 	api.GET("/purchase/get", controller.GetPurchaseHandler)
+	//学习免费课程
+	api.POST("/purchase/free", controller.AddPurchaseFreeHandler)
 	//购买课程
 	api.POST("/purchase/add", controller.AddPurchaseHandler)
 	//取消未支付购买

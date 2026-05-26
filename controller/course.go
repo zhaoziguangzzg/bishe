@@ -218,11 +218,15 @@ func GetCourseHandler(c *gin.Context) {
 
 	uid := service.GetUidFromContext(c)
 	isOwner := course.Uid == uid
+	isFree := course.Price == 0
 
-	MakeApiResponseSuccess(c, map[string]interface{}{
+	data := map[string]interface{}{
 		"course":   course,
 		"is_owner": isOwner,
-	})
+		"is_free":  isFree,
+	}
+
+	MakeApiResponseSuccess(c, data)
 }
 
 // 修改课程
@@ -589,6 +593,88 @@ func AddPurchaseHandler(c *gin.Context) {
 	qrCodeUrl, err := service.QrcodeImgSave(payUrl, 200, service.FileTypeCoursePayImg, createTime)
 	if err != nil {
 		service.Logger.Error("QrcodeImgSave err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	MakeApiResponseSuccess(c, map[string]interface{}{
+		"purchase_id": purchase.Id,
+		"pay_url":     payUrl,
+		"qr_code_url": qrCodeUrl,
+		"price":       course.Price,
+	})
+}
+
+// 学习免费课程
+func AddPurchaseFreeHandler(c *gin.Context) {
+	uid := service.GetUidFromContext(c)
+
+	cidStr := c.PostForm("course_id")
+	if cidStr == "" {
+		MakeApiResponseErrorParams(c)
+		return
+	}
+
+	cid, err := strconv.Atoi(cidStr)
+	if err != nil {
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 获取用户该课程的购买记录
+	purchases, err := service.GetPurchaseByUidCid(uid, cid)
+	if err != nil {
+		service.Logger.Error("GetPurchaseByUidCid err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 获取课程信息
+	course, err := service.GetCourseById(cid)
+	if err != nil || course == nil {
+		service.Logger.Error("GetCourseById err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	if len(purchases) > 0 {
+		for _, v := range purchases {
+			if v.PurchaseStatus == model.PURCHASE_STATUS_PAID {
+				MakeApiResponseError(c, CODE_USER_PURCHASED)
+				return
+			}
+		}
+	}
+
+	createTime := time.Now()
+	purchase := &model.Purchase{
+		UserId:         uid,
+		CourseId:       cid,
+		CreateAt:       &createTime,
+		UpdateAt:       &createTime,
+		PurchaseStatus: model.PURCHASE_STATUS_PAID,
+	}
+
+	//创建购买记录
+	err = service.CreatePurchase(purchase)
+	if err != nil {
+		service.Logger.Error("CreatePurchase err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	payUrl := getCoursePayUrl(c, purchase.Id, cid, course.Price, course.Title)
+	qrCodeUrl, err := service.QrcodeImgSave(payUrl, 200, service.FileTypeCoursePayImg, createTime)
+	if err != nil {
+		service.Logger.Error("QrcodeImgSave err", zap.Error(err))
+		MakeApiResponseErrorDefault(c)
+		return
+	}
+
+	// 学习免费课程，更新课程加入人数
+	rowsAffected, err := service.IncrCourseJoinNumByCid(cid)
+	if rowsAffected == 0 || err != nil {
+		service.Logger.Error("IncrCourseJoinNumByCid err", zap.Error(err), zap.Int("cid", cid))
 		MakeApiResponseErrorDefault(c)
 		return
 	}

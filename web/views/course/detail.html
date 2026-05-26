@@ -285,7 +285,7 @@
             if (courseResponse.data.code === 0) {
                 const data = courseResponse.data.data;
                 const isOwner = data.is_owner || false;
-                const isFree = data.course.price === 0;
+                const isFree = data.is_free || false;
 
                 const purchaseResponse = await axios.get('/api/purchase/get', {
                     params: { course_id: courseId }
@@ -326,7 +326,7 @@
     function renderCourseDetail(data, isPurchased) {
         const course = data.course;
         const isOwner = data.is_owner || false;
-        const isFree = course.price === 0;
+        const isFree = data.is_free || false;
 
         const html = `
             <div class="course-header">
@@ -358,17 +358,22 @@
 
     function renderLessons(lessons, isPurchased, isOwner, isFree) {
         const canView = isPurchased || isOwner || isFree;
-        let displayLessons = lessons;
 
-        if (!canView && lessons.length > 0) {
-            displayLessons = lessons.slice(0, 1);
+        if (!canView) {
+            const lessonSection = document.createElement('div');
+            lessonSection.innerHTML = `
+                <h3 class="section-title">课时列表</h3>
+                <div class="no-lesson">购买课程后即可查看课时</div>
+            `;
+            document.getElementById('content').appendChild(lessonSection);
+            return;
         }
 
         let lessonsHtml;
-        if (displayLessons.length === 0) {
+        if (lessons.length === 0) {
             lessonsHtml = '<div class="no-lesson">暂无课时</div>';
         } else {
-            lessonsHtml = '<div class="lesson-list">' + displayLessons.map((lesson, index) => `
+            lessonsHtml = '<div class="lesson-list">' + lessons.map((lesson, index) => `
                 <div class="lesson-item" onclick="viewLesson(${lesson.id})">
                     <div class="lesson-icon">${index + 1}</div>
                     <div class="lesson-info">
@@ -379,16 +384,10 @@
             `).join('') + '</div>';
         }
 
-        let purchaseTip = '';
-        if (!canView && lessons.length > 1) {
-            purchaseTip = '<div class="no-lesson">购买课程后即可查看全部课时</div>';
-        }
-
         const lessonSection = document.createElement('div');
         lessonSection.innerHTML = `
             <h3 class="section-title">课时列表</h3>
             ${lessonsHtml}
-            ${purchaseTip}
         `;
 
         document.getElementById('content').appendChild(lessonSection);
@@ -399,7 +398,11 @@
 
         if (isFree || isPurchased) {
             const lessonUrl = firstLessonId ? `/page/lesson/index?lesson_id=${firstLessonId}` : `/page/lesson/index?course_id=${courseId}`;
-            buttons.push(`<button class="btn btn-study" onclick="window.location.href='${lessonUrl}'">开始学习</button>`);
+            if (isFree && !isPurchased) {
+                buttons.push(`<button class="btn btn-study" onclick="startFreeLearning('${lessonUrl}')">添加学习</button>`);
+            } else {
+                buttons.push(`<button class="btn btn-study" onclick="window.location.href='${lessonUrl}'">开始学习</button>`);
+            }
         }
 
         if (isOwner) {
@@ -414,6 +417,26 @@
         buttons.push(`<button class="btn btn-secondary" onclick="window.location.href='/page/course/index'">返回列表</button>`);
 
         return buttons.join('\n                ');
+    }
+
+    async function startFreeLearning(lessonUrl) {
+        const errorTip = document.getElementById('actionError');
+        errorTip.classList.remove('show');
+
+        try {
+            const formData = new FormData();
+            formData.append('course_id', courseId);
+            const response = await axios.post('/api/purchase/free', formData);
+            if (response.data.code === 0) {
+                window.location.reload();
+            } else {
+                errorTip.textContent = response.data.msg || '加入学习失败';
+                errorTip.classList.add('show');
+            }
+        } catch (error) {
+            errorTip.textContent = '网络错误，请稍后重试';
+            errorTip.classList.add('show');
+        }
     }
 
     function renderActionSection(isPurchased, isFree, isOwner, firstLessonId) {
