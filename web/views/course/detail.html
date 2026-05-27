@@ -397,7 +397,7 @@
         const buttons = [];
 
         if (isFree || isPurchased) {
-            const lessonUrl = firstLessonId ? `/page/lesson/index?lesson_id=${firstLessonId}` : `/page/lesson/index?course_id=${courseId}`;
+            const lessonUrl = firstLessonId ? `/page/lesson/index?lesson_id=${firstLessonId}&course_id=${courseId}` : `/page/lesson/index?course_id=${courseId}`;
             if (isFree && !isPurchased) {
                 buttons.push(`<button class="btn btn-study" onclick="startFreeLearning('${lessonUrl}')">添加学习</button>`);
             } else {

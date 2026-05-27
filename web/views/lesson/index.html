@@ -218,19 +218,23 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const lessonId = urlParams.get('lesson_id');
-    let courseId = null;
+    let courseId = urlParams.get('course_id') ? parseInt(urlParams.get('course_id')) : null;
     let lessonsData = [];
     let isOwner = false;
     let currentLesson = null;
 
-    if (!lessonId) {
-        document.getElementById('rightPanel').innerHTML = '<div class="not-found"><h2>缺少课时ID参数</h2></div>';
+    if (!lessonId && !courseId) {
+        document.getElementById('rightPanel').innerHTML = '<div class="not-found"><h2>缺少课时ID或课程ID参数</h2></div>';
     } else {
         initPage();
     }
 
     async function initPage() {
-        await loadLessonDetail();
+        if (lessonId) {
+            await loadLessonDetail();
+        } else {
+            document.getElementById('rightPanel').innerHTML = '<div class="lesson-detail" style="display:flex;align-items:center;justify-content:center;color:#909399;font-size:14px;">请选择左侧课时开始学习</div>';
+        }
         if (courseId) {
             await loadLessons();
         }
@@ -316,7 +320,7 @@
     }
 
     function selectLesson(id) {
-        window.location.href = '/page/lesson/index?lesson_id=' + id;
+        window.location.href = '/page/lesson/index?lesson_id=' + id + (courseId ? '&course_id=' + courseId : '');
     }
 
     function renderLessonDetail(lesson) {

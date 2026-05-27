@@ -334,7 +334,7 @@ func main() {
 	api.POST("/lesson/add", controller.AddLessonHandler)
 
 	//课时详情 页面
-	page.GET("/lesson/index", controller.LessonIndexPageHandler)
+	page.GET("/lesson/index", middleware.PageIsPurchaseCourse(), controller.LessonIndexPageHandler)
 	//获取课程全部课时
 	api.GET("/lesson/all", controller.GetCourseAllLessonHandler)
 	//获取课时详情
