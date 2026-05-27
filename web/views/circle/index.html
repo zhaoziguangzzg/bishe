@@ -1066,6 +1066,9 @@
         let selectedFavoriteId = null;
         let currentCircleType = 'join'; // 'join' or 'create'
         let currentFilterType = '';
+        let currentPage = 1;
+        let isLoadingMore = false;
+        let hasMoreEssays = true;
         let adCarouselIndex = 0;
         let adCarouselTimer = null;
         let adCarouselCount = 0;
@@ -1330,9 +1333,18 @@
             }
         }
 
-        async function loadEssays(circleId) {
+        async function loadEssays(circleId, append = false) {
             const container = document.getElementById('essayList');
-            container.innerHTML = '<div class="empty-state">加载中...</div>';
+            const page = append ? currentPage + 1 : 1;
+
+            if (append) {
+                isLoadingMore = true;
+                updateLoadMoreIndicator();
+            } else {
+                currentPage = 1;
+                hasMoreEssays = true;
+                container.innerHTML = '<div class="empty-state">加载中...</div>';
+            }
 
             if (!circleId) {
                 container.innerHTML = '<div class="empty-state">无效的圈子ID</div>';
@@ -1340,22 +1352,43 @@
             }
 
             try {
-                let url = '/api/essay/circle-all?cid=' + circleId + '&page=1';
+                let url = '/api/essay/circle-all?cid=' + circleId + '&page=' + page;
                 if (currentFilterType) {
                     url += '&type=' + currentFilterType;
                 }
                 const response = await axios.get(url);
                 if (response.data.code === 0 && response.data.data) {
                     const data = response.data.data;
-                    essays = data.userEssays || data.essays || [];
+                    const newEssays = data.userEssays || data.essays || [];
+
+                    if (append) {
+                        essays = essays.concat(newEssays);
+                    } else {
+                        essays = newEssays;
+                    }
+
+                    currentPage = page;
+                    hasMoreEssays = newEssays.length > 0;
+
                     renderEssays();
                 } else if (response.data.code === 401 || response.data.code === 1001) {
-                    container.innerHTML = '<div class="empty-state">请先登录后查看文章</div>';
+                    if (!append) {
+                        container.innerHTML = '<div class="empty-state">请先登录后查看文章</div>';
+                    }
                 } else {
-                    container.innerHTML = '<div class="empty-state">暂无文章</div>';
+                    if (!append) {
+                        container.innerHTML = '<div class="empty-state">暂无文章</div>';
+                    }
+                    hasMoreEssays = false;
+                    updateLoadMoreIndicator();
                 }
             } catch (error) {
-                container.innerHTML = '<div class="empty-state">加载失败，请刷新重试</div>';
+                if (!append) {
+                    container.innerHTML = '<div class="empty-state">加载失败，请刷新重试</div>';
+                }
+            } finally {
+                isLoadingMore = false;
+                updateLoadMoreIndicator();
             }
         }
 
@@ -1367,7 +1400,7 @@
             }
 
             try {
-                container.innerHTML = essays.map((item) => {
+                let html = essays.map((item) => {
                     const essay = item.essay;
                     const author = item.author;
                     const isCircleOwner = currentUserId === currentUserCircleOwnerId;
@@ -1435,9 +1468,42 @@
                         </div>
                     `;
                 }).join('');
+                html += '<div id="loadMoreIndicator" class="load-more-indicator"></div>';
+                container.innerHTML = html;
+                updateLoadMoreIndicator();
             } catch (error) {
-                console.error('renderEssays error:', error);
                 container.innerHTML = '<div class="empty-state">渲染失败: ' + error.message + '</div>';
+            }
+        }
+
+        function updateLoadMoreIndicator() {
+            const indicator = document.getElementById('loadMoreIndicator');
+            if (!indicator) return;
+            if (isLoadingMore) {
+                indicator.innerHTML = '<div class="empty-state">加载中...</div>';
+                indicator.style.display = 'block';
+            } else if (hasMoreEssays) {
+                indicator.innerHTML = '<div class="empty-state">上拉加载更多</div>';
+                indicator.style.display = 'block';
+            } else if (essays.length > 0) {
+                indicator.innerHTML = '<div class="empty-state">没有更多了</div>';
+                indicator.style.display = 'block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        function handleScroll() {
+            if (isLoadingMore || !hasMoreEssays || !currentCircleId) return;
+
+            const essayList = document.getElementById('essayList');
+            if (!essayList) return;
+
+            const rect = essayList.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+
+            if (rect.bottom - windowHeight < 300) {
+                loadEssays(currentCircleId, true);
             }
         }
 
@@ -1829,7 +1895,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const cidFromUrl = urlParams.get('cid');
             
-            // 默认展开"加入的圈子"菜单并加载列表
+            window.addEventListener('scroll', handleScroll);
+
             document.getElementById('menuJoin').classList.add('show');
             await loadMyCircles('join', cidFromUrl);
             

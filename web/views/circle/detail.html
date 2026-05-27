@@ -211,6 +211,7 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const cid = urlParams.get('cid');
+    let isRenew = false;
 
     if (!cid) {
         alert('缺少圈子ID参数');
@@ -226,12 +227,26 @@
             });
 
             if (response.data.code === 0) {
+                await loadRenewStatus();
                 renderCircleDetail(response.data.data);
             } else {
                 document.getElementById('content').innerHTML = '<div class="not-found"><h2>' + (response.data.msg || '圈子不存在') + '</h2><a href="/page/index">返回首页</a></div>';
             }
         } catch (error) {
             document.getElementById('content').innerHTML = '<div class="not-found"><h2>加载失败，请稍后重试</h2><a href="/page/index">返回首页</a></div>';
+        }
+    }
+
+    async function loadRenewStatus() {
+        try {
+            const response = await axios.get('/api/circle/need-new', {
+                params: { cid: cid }
+            });
+            if (response.data.code === 0 && response.data.data) {
+                isRenew = response.data.data.isRenew;
+            }
+        } catch (error) {
+            // 忽略错误，isRenew 保持 false
         }
     }
 
@@ -290,6 +305,9 @@
             `;
             if (isOwner) {
                 buttons += `<button class="btn btn-edit" onclick="window.location.href='/page/circle/edit?cid=${circle.id}'">修改圈子</button>`;
+            }
+            if (isRenew && circle.price > 0) {
+                buttons += `<button class="btn btn-edit" onclick="renewCircle()">续费</button>`;
             }
             return buttons;
         } else {
@@ -356,6 +374,54 @@
             } else {
                 errorTip.textContent = response.data.msg || '获取圈子信息失败';
                 errorTip.classList.add('show');
+            }
+        } catch (error) {
+            errorTip.textContent = '网络错误，请稍后重试';
+            errorTip.classList.add('show');
+        }
+    }
+
+    async function renewCircle() {
+        const errorTip = document.getElementById('actionError');
+        const successTip = document.getElementById('actionSuccess');
+        errorTip.classList.remove('show');
+        successTip.classList.remove('show');
+
+        try {
+            const response = await axios.get('/api/circle/get', {
+                params: { cid: cid }
+            });
+
+            if (response.data.code === 0) {
+                const circle = response.data.data.circle;
+                const price = circle.price || 0;
+
+                if (price === 0) {
+                    errorTip.textContent = '免费圈子无需续费';
+                    errorTip.classList.add('show');
+                    return;
+                }
+
+                PayQRCode.open({
+                    createOrder: {
+                        url: '/api/orders/add',
+                        params: { cid: cid, level: '0', price: price }
+                    },
+                    poll: {
+                        url: '/api/orders/get',
+                        getParams: function(orderId) { return { orders_id: orderId }; },
+                        isPaid: function(data) { return data.orders && data.orders.orderStatus === 1; }
+                    },
+                    price: price,
+                    modalTitle: '续费支付',
+                    onSuccess: function() {
+                        window.location.reload();
+                    },
+                    onError: function(msg) {
+                        errorTip.textContent = msg;
+                        errorTip.classList.add('show');
+                    }
+                });
             }
         } catch (error) {
             errorTip.textContent = '网络错误，请稍后重试';

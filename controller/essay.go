@@ -321,7 +321,7 @@ func GetCircleAllEssayHandler(c *gin.Context) {
 	pageStr := c.Query("page")
 	page := GetPage(pageStr)
 
-	pagesize := 10
+	pagesize := 2
 
 	filterType := c.Query("type")
 

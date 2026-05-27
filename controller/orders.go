@@ -471,30 +471,31 @@ func GetUserOrdersCircleHandler(c *gin.Context) {
 		return
 	}
 
-	userCircleJoin, err := service.GetUserJoinCircleByUidCid(uid, cid)
+	orderss, err := service.GetUserOrdersByUidCid(uid, cid)
 	if err != nil {
-		service.Logger.Error("GetUserJoinCircleByUidCid", zap.Error(err))
+		service.Logger.Error("GetUserOrdersByUidCid", zap.Error(err))
 		MakeApiResponseErrorDefault(c)
 		return
 	}
 
-	if userCircleJoin == nil {
-		MakeApiResponseError(c, CODE_USER_NOT_JOIN_CIRCLE)
+	if len(orderss) == 0 {
+		MakeApiResponseError(c, CODE_ORDERS_NOT_EXIST)
 		return
 	}
 
-	nowTime := time.Now()
-	var endTime time.Time
-	endTime = *userCircleJoin.EndTime
-	eTime := endTime.AddDate(0, -1, 0)
-	need := false
+	var isRenew bool
 
-	if nowTime.After(eTime) {
-		need = true
+	for _, orders := range orderss {
+		switch orders.OrderStatus {
+		case model.ORDER_STATUS_UNPAID:
+			isRenew = false
+		case model.ORDER_STATUS_PAID:
+			isRenew = true
+		}
 	}
 
 	data := map[string]bool{
-		"need": need,
+		"isRenew": isRenew,
 	}
 
 	MakeApiResponseSuccess(c, data)
